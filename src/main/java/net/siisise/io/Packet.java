@@ -4,7 +4,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- *
+ * First In First Out Stream Packet.
+ * 配列のような固定長でもなく、リストのような細切れでもないものを作ってみた。
+ * メモリとストレージの中間を狙ったようなそうでもないような Bufferの可変長。
+ * PipedInputStream / PipedOutputStream のような延長線。
+ * 逆向きの読み書きが可能。中間の読み書きは使わないのでやめた。
+ * 
+ * @since JDK 1.1
  * @author okome
  */
 public interface Packet {
@@ -28,5 +34,9 @@ public interface Packet {
     void backWrite(byte[] b, int offset, int length);
     void backWrite(byte[] b);
     
+    /**
+     * 32ビットでは足りないかもと足してみた
+     * @return 
+     */
     long length();
 }
