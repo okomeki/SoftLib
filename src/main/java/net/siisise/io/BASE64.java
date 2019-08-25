@@ -73,9 +73,9 @@ public class BASE64 {
          * URL用修正付きBASE64
          */
         URL;
-        char[] encsrc;
-        byte[] bytesrc;
-        int[] decsrc;
+        char[] encsrc = new char[64];
+        byte[] bytesrc = new byte[64];
+        int[] decsrc = new int[128];
     }
 
     static {
