@@ -20,6 +20,8 @@ import java.io.Writer;
  *
  * 改行コードはOSに依存せず通信の標準である\r\nに統一します。
  *
+ * 2019/09/14 BASE64URLのデコード修正
+ * 2019/08/28 複数バージョンを統合
  * 2007/01/10 エンコードの高速化
  * 2006/11/09 GPLライセンス適用
  * 2006/10/25 0.3 RFCヘッダフッタ処理機能追加
@@ -27,7 +29,7 @@ import java.io.Writer;
  * このコードのライセンスはGPLですが、他のソフトウェアに組み込みたい場合は、ご連絡ください。
  * 寄付歓迎
  *
- * @version 0.4
+ * @version 0.5
  * @author okome 佐藤 雅俊
  */
 public class BASE64 {
@@ -39,44 +41,24 @@ public class BASE64 {
      */
     protected int cols;
 
-    /**
-     * テーブルにしてみるとこうなる。
-     * コンストラクタで生成する方が省エネ
-     */
-    /*
-    static char[] ENC64 = {
-        'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P',
-        'Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f',
-        'g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v',
-        'w','x','y','z','0','1','2','3','4','5','6','7','8','9','+','/'};
-     */
-
-    private char[] encsrc;
-    private byte[] bytesrc;
-    private int[] decsrc;
-
     private static final byte[] CRLF = {'\r', '\n'};
 
     /**
      * BASE64 用変換表
      */
     public static enum Type {
-    /**
-         * BASE64 用変換表
-     */
+        /** BASE64 用変換表 */
         BASE64,
-    /**
-     * crypt / password 用変換表 (予定)
-     */
+        /** crypt / password 用変換表 (予定) */
         PASSWORD,
-        /**
-         * URL用修正付きBASE64
-         */
+        /** URL用修正付きBASE64 */
         URL;
         char[] encsrc = new char[64];
         byte[] bytesrc = new byte[64];
         int[] decsrc = new int[128];
     }
+
+    private Type type;
 
     static {
         for (int i = 0; i <= 'z' - 'a'; i++) {
@@ -135,6 +117,11 @@ public class BASE64 {
         setType(Type.BASE64);
     }
 
+    public BASE64(Type type, int size) {
+        setCols(size);
+        setType(type);
+    }
+
     static BASE64 selectType(Type t) {
         BASE64 b64 = new BASE64();
         b64.setType(t);
@@ -157,9 +144,7 @@ public class BASE64 {
                 type = Type.BASE64;
                 break;
         }
-        encsrc = type.encsrc;
-        bytesrc = type.bytesrc;
-        decsrc = type.decsrc;
+        this.type = type;
     }
 
     /**
@@ -233,10 +218,10 @@ public class BASE64 {
             int l2 = last - 2;
             while (offset < l2) {
                 int tmp = ((data[offset++] & 0xff) << 16) | ((data[offset++] & 0xff) << 8) | (data[offset++] & 0xff);
-                b64[b64offset++] = encsrc[tmp >>> 18];
-                b64[b64offset++] = encsrc[(tmp >>> 12) & 0x3f];
-                b64[b64offset++] = encsrc[(tmp >>> 6) & 0x3f];
-                b64[b64offset++] = encsrc[tmp & 0x3f];
+                b64[b64offset++] = type.encsrc[tmp >>> 18];
+                b64[b64offset++] = type.encsrc[(tmp >>> 12) & 0x3f];
+                b64[b64offset++] = type.encsrc[(tmp >>> 6) & 0x3f];
+                b64[b64offset++] = type.encsrc[tmp & 0x3f];
             }
         }
 
@@ -246,7 +231,7 @@ public class BASE64 {
             bit += 8;
             do {
                 bit -= 6;
-                b64[b64offset++] = encsrc[(tmpData >> bit) & 0x3f];
+                b64[b64offset++] = type.encsrc[(tmpData >> bit) & 0x3f];
                 col++;
                 if (cols > 0 && col >= cols) { // 4文字単位で改行するのなら while の外でもいいかも
                     b64[b64offset++] = '\r';
@@ -256,7 +241,7 @@ public class BASE64 {
             } while (bit >= 6);
         }
         if (bit > 0) { // ビット残あり 4または 2ビット
-            b64[b64offset++] = encsrc[(tmpData << (6 - bit)) & 0x3f];
+            b64[b64offset++] = type.encsrc[(tmpData << (6 - bit)) & 0x3f];
             bit += (8 - 6);
             do { // BASE64URLでは不要かもしれない
                 // 2 -> 10 -> 4 ->
@@ -331,26 +316,19 @@ public class BASE64 {
         int col = 0;
 
         int b64size = (length + 2) / 3 * 4; // 改行含まず
+        int last = offset + length;
         if (cols > 0) {
             b64size += (b64size + cols - 1) / cols * 2; // 字数は4の倍数のみ想定
-        }
-
-        int last = offset + length;
-        if (cols <= 0) {
+        } else {
             int l2 = last - 2;
             byte[] n = new byte[4];
             while (offset < l2) {
                 int tmp = ((data[offset++] & 0xff) << 16) | ((data[offset++] & 0xff) << 8) | (data[offset++] & 0xff);
-                n[0] = bytesrc[tmp >>> 18];
-                n[1] = bytesrc[(tmp >>> 12) & 0x3f];
-                n[2] = bytesrc[(tmp >>> 6) & 0x3f];
-                n[3] = bytesrc[tmp & 0x3f];
+                n[0] = type.bytesrc[tmp >>> 18];
+                n[1] = type.bytesrc[(tmp >>> 12) & 0x3f];
+                n[2] = type.bytesrc[(tmp >>> 6) & 0x3f];
+                n[3] = type.bytesrc[tmp & 0x3f];
                 out.write(n);
-                /*                out.write(bytesrc[tmp >>> 18]);
-                out.write(bytesrc[(tmp >>> 12) & 0x3f]);
-                out.write(bytesrc[(tmp >>> 6) & 0x3f]);
-                out.write(bytesrc[tmp & 0x3f]);
-                 */
             }
         }
 
@@ -360,7 +338,7 @@ public class BASE64 {
             bit += 8;
             do {
                 bit -= 6;
-                out.write(bytesrc[(tmpData >> bit) & 0x3f]);
+                out.write(type.bytesrc[(tmpData >> bit) & 0x3f]);
                 col++;
                 if (col >= cols && cols > 0) { // 4文字単位で改行するのなら while の外でもいいかも
                     out.write(CRLF);
@@ -369,7 +347,7 @@ public class BASE64 {
             } while (bit >= 6);
         }
         if (bit > 0) { // ビット残あり 4または 2ビット
-            out.write(bytesrc[(tmpData << (6 - bit)) & 0x3f]);
+            out.write(type.bytesrc[(tmpData << (6 - bit)) & 0x3f]);
             bit += (8 - 6);
             do {
                 // 2 -> 10 -> 4 ->
@@ -411,12 +389,23 @@ public class BASE64 {
         return b.decode(data);
     }
 
+    /**
+     * URLエンコードのBASE64デコード
+     * @param data
+     * @return 
+     */
     public static byte[] decodeURL(String data) {
         BASE64 b = new BASE64();
         b.setType(URL);
         return b.decode(data);
     }
 
+    /**
+     * パスワードエンコードのデコード
+     * 
+     * @param data
+     * @return 
+     */
     public static byte[] decodePass(String data) {
         BASE64 b = new BASE64();
         b.setType(PASSWORD);
@@ -434,40 +423,54 @@ public class BASE64 {
     public byte[] decode(String data) {
         PacketA pac = new PacketA();
         byte[] tmp = new byte[3];
-        int c;
+        int ch;
         int len = 0;
-        int b = 0;
+        int tmpbits = 0;
 
         // 余計な文字(改行、スペース等)を取り除く
         // いまのところ不要
         boolean skip;
         // 抽出
-        for (int i = 0, o = 0; i < data.length(); i++, o++) {
-            c = data.charAt(i);
-            b <<= 6;
+        int o = 0;
+        for (int i = 0; i < data.length(); i++, o++) {
+            ch = data.charAt(i);
+            tmpbits <<= 6;
             skip = false;
-            if (c < 128 && decsrc[c] >= 0) {
-                b |= decsrc[c];
-            } else if (c == '=') {
-                len--;
-                // デコード終了でもよい
+            if (ch < 128 && type.decsrc[ch] >= 0) {
+                tmpbits |= type.decsrc[ch];
+            } else if (ch == '=') {
+                len--; // 最後に捨てる文字数
+                // 4文字そろってからデコード終了する
             } else { // その他は無視する
                 // 基本的にはここを通ることはない
                 // 改行などは別にした方がいいかも
                 //  System.err.println("BASE64 対象外文字混入 異常処理");
                 o--;
-                b >>= 6;
+                tmpbits >>= 6;
                 skip = true;
             }
-            if (o % 4 == 3 && !skip) {
-                tmp[0] = (byte) ((b >> 16) & 0xff);
-                tmp[1] = (byte) ((b >> 8) & 0xff);
-                tmp[2] = (byte) (b & 0xff);
+            if (o % 4 == 3 && !skip) { // パディング込みで4文字必要
+                tmp[0] = (byte) ((tmpbits >> 16) & 0xff);
+                tmp[1] = (byte) ((tmpbits >> 8) & 0xff);
+                tmp[2] = (byte) (tmpbits & 0xff);
                 pac.write(tmp);
                 len += 3;
-                b = 0;
+                tmpbits = 0;
             }
         }
+        if ( type == URL ) { // パディングなし
+            System.out.println("o=" + o);
+            o  = o % 4; // 0123
+            System.out.println("o=" + o);
+            if ( o >= 2 ) {
+                tmpbits <<= 6*(4-o);
+                tmp[0] = (byte) ((tmpbits >> 16) & 0xff);
+                tmp[1] = (byte) ((tmpbits >> 8) & 0xff);
+                pac.write(tmp);
+                len += o-1;
+            }
+        }
+        
         tmp = new byte[len];
         pac.read(tmp);
         return tmp;
@@ -475,6 +478,7 @@ public class BASE64 {
 
     /**
      * RFCエンコード.
+     * pemかなにかのテキスト形式
      * 電子署名系で使用するヘッダフッタを付けます。
      * 64桁を指定しよう
      *
@@ -510,8 +514,9 @@ public class BASE64 {
     }
 
     /**
-     * Readerから1つだけ読み込んだり.
+     * PEMをReaderから1つだけ読み込んだり.
      * typeは1種類のみ指定可能
+     * RFC 7468 にまとまっている 
      *
      * @param type
      * @param fin

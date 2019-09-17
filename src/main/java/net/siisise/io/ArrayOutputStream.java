@@ -1,14 +1,11 @@
-/*
- * ArrayOutputStream.java
- *
- * Created on 2007/03/11, 1:22
- */
 package net.siisise.io;
 
 import java.io.*;
 
 /**
  * 固定サイズ配列へのStream
+ *
+ * Created on 2007/03/11, 1:22
  *
  * @author 佐藤 雅俊 <okome@siisise.net>
  */
@@ -32,14 +29,16 @@ public class ArrayOutputStream extends OutputStream {
         this.offset = offset;
     }
 
+    @Override
     public void write(int d) throws IOException {
         try {
             buff[offset++] = (byte) d;
-        } catch (java.lang.IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             throw new IOException(e);
         }
     }
 
+    @Override
     public void write(byte[] data, int offset, int length) throws IOException {
         try {
             System.arraycopy(data, offset, buff, this.offset, length);
@@ -51,6 +50,7 @@ public class ArrayOutputStream extends OutputStream {
 
     /**
      * 複製しない
+     * @return 
      */
     public byte[] toByteArray() {
         return buff;

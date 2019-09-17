@@ -10,7 +10,7 @@ import java.io.OutputStream;
 public class PacketA implements Packet {
 
     /**
-     * 効率的に開放したいので最大値など設けてみる
+     * 効率的に開放したいので内部で分割する最大値など設けてみる
      */
     static final int MAXLENGTH = 0x1000000;
 
@@ -68,7 +68,9 @@ public class PacketA implements Packet {
      * ちょっと違うので分けたい (未使用?)
      */
     enum Mode {
+        /** 1バイト待たない */
         STREAM,
+        /** 1バイトデータが用意されるまでブロックする? */
         BLOCK,
         EOF,
         CLOSE
