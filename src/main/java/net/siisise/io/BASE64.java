@@ -205,13 +205,10 @@ public class BASE64 {
         int col = 0;
         char[] b64;
         int b64offset = 0;
-        {
-            int b64size = (length + 2) / 3 * 4; // 改行含まず
-            if (cols > 0) {
-                b64size += (b64size + cols - 1) / cols * 2; // 字数は4の倍数のみ想定
-            }
-            b64 = new char[b64size];
-        }
+
+        int b64size = b64size(length);
+        b64 = new char[b64size];
+
         int last = offset + length;
 
         if (cols <= 0) { // 速い
@@ -243,24 +240,26 @@ public class BASE64 {
         if (bit > 0) { // ビット残あり 4または 2ビット
             b64[b64offset++] = type.encsrc[(tmpData << (6 - bit)) & 0x3f];
             bit += (8 - 6);
-            do { // BASE64URLでは不要かもしれない
-                // 2 -> 10 -> 4 ->
-                b64[b64offset++] = '=';
-                bit -= 6;
-                if (bit < 0) {
-                    bit += 8;
-                }
-                /*
-                col++;
-                // ここにも改行処理は必要?
-                 
-                if (col >= max) {
-                    b64[b64offset++] = '\r';
-                    b64[b64offset++] = '\n';
-                    col = 0;
-                }
-                 */
-            } while (bit > 0); // ビットあまりの場合なので比較はあとでいい
+            if ( type != Type.URL ) {
+                do { // BASE64URLでは不要かもしれない
+                    // 2 -> 10 -> 4 ->
+                    b64[b64offset++] = '=';
+                    bit -= 6;
+                    if (bit < 0) {
+                        bit += 8;
+                    }
+                    /*
+                    col++;
+                    // ここにも改行処理は必要?
+
+                    if (col >= max) {
+                        b64[b64offset++] = '\r';
+                        b64[b64offset++] = '\n';
+                        col = 0;
+                    }
+                     */
+                } while (bit > 0); // ビットあまりの場合なので比較はあとでいい
+            }
         }
         if (cols > 0 && col > 0) {
             b64[b64offset++] = '\r';
@@ -282,13 +281,8 @@ public class BASE64 {
      */
     public byte[] encodeToByte(byte[] data, int offset, int length) {
         ArrayOutputStream out;
-//        Packet2 out;
 
-        int b64size = (length + 2) / 3 * 4; // 改行含まず
-        if (cols > 0) {
-            b64size += (b64size + cols - 1) / cols * 2; // 字数は4の倍数のみ想定
-        }
-
+        int b64size = b64size(length);
         out = new ArrayOutputStream(b64size);
 
         try {
@@ -297,6 +291,17 @@ public class BASE64 {
             // ないかも
         }
         return out.toByteArray();
+    }
+    
+    private final int b64size(int length) {
+        int b64size = (length + 2) / 3 * 4; // 改行含まず
+        if (cols > 0) {
+            b64size += (b64size + cols - 1) / cols * 2; // 字数は4の倍数のみ想定
+        }
+        if ( type == Type.URL && length %3 > 0 ) { // パディングなし
+            b64size += length % 3 - 3;
+        }
+        return b64size;
     }
 
     /**
@@ -315,11 +320,9 @@ public class BASE64 {
         int tmpData = 0, bit = 0;
         int col = 0;
 
-        int b64size = (length + 2) / 3 * 4; // 改行含まず
+        int b64size = b64size(length);
         int last = offset + length;
-        if (cols > 0) {
-            b64size += (b64size + cols - 1) / cols * 2; // 字数は4の倍数のみ想定
-        } else {
+        if (cols <= 0) {
             int l2 = last - 2;
             byte[] n = new byte[4];
             while (offset < l2) {
@@ -349,24 +352,26 @@ public class BASE64 {
         if (bit > 0) { // ビット残あり 4または 2ビット
             out.write(type.bytesrc[(tmpData << (6 - bit)) & 0x3f]);
             bit += (8 - 6);
-            do {
-                // 2 -> 10 -> 4 ->
-                out.write('=');
-                bit -= 6;
-                if (bit < 0) {
-                    bit += 8;
-                }
-                /*
-            col++;
-            // ここにも改行処理は必要?
+            if ( type != URL ) {
+                do {
+                    // 2 -> 10 -> 4 ->
+                    out.write('=');
+                    bit -= 6;
+                    if (bit < 0) {
+                        bit += 8;
+                    }
+                    /*
+                    col++;
+                    // ここにも改行処理は必要?
 
-            if (col >= max) {
-            b64[b64offset++] = '\r';
-            b64[b64offset++] = '\n';
-            col = 0;
+                    if (col >= max) {
+                        b64[b64offset++] = '\r';
+                        b64[b64offset++] = '\n';
+                        col = 0;
+                    }
+                     */
+                } while (bit > 0); // ビットあまりの場合なので比較はあとでいい
             }
-                 */
-            } while (bit > 0); // ビットあまりの場合なので比較はあとでいい
         }
         if (cols > 0 && col > 0) {
             out.write(CRLF);
