@@ -59,6 +59,7 @@ public class BASE64 {
     }
 
     private Type type;
+    private boolean padding = true;
 
     static {
         for (int i = 0; i <= 'z' - 'a'; i++) {
@@ -113,12 +114,16 @@ public class BASE64 {
      * @param size
      */
     public BASE64(int size) {
-        setCols(size);
-        setType(Type.BASE64);
+        this(Type.BASE64, true, size);
     }
 
     public BASE64(Type type, int size) {
+        this(type, type != URL, size);
+    }
+    
+    public BASE64(Type type, boolean padding, int size) {
         setCols(size);
+        setPadding(padding);
         setType(type);
     }
 
@@ -147,6 +152,10 @@ public class BASE64 {
         this.type = type;
     }
 
+    public void setPadding(boolean pad) {
+        padding = pad;
+    }
+    
     /**
      * 改行字数の指定。
      * 4の倍数以外でも動作するが推奨はしない
@@ -240,7 +249,7 @@ public class BASE64 {
         if (bit > 0) { // ビット残あり 4または 2ビット
             b64[b64offset++] = type.encsrc[(tmpData << (6 - bit)) & 0x3f];
             bit += (8 - 6);
-            if ( type != Type.URL ) {
+            if ( padding ) {
                 do { // BASE64URLでは不要かもしれない
                     // 2 -> 10 -> 4 ->
                     b64[b64offset++] = '=';
@@ -298,7 +307,7 @@ public class BASE64 {
         if (cols > 0) {
             b64size += (b64size + cols - 1) / cols * 2; // 字数は4の倍数のみ想定
         }
-        if ( type == Type.URL && length %3 > 0 ) { // パディングなし
+        if ( !padding && length %3 > 0 ) { // パディングなし
             b64size += length % 3 - 3;
         }
         return b64size;
@@ -352,7 +361,7 @@ public class BASE64 {
         if (bit > 0) { // ビット残あり 4または 2ビット
             out.write(type.bytesrc[(tmpData << (6 - bit)) & 0x3f]);
             bit += (8 - 6);
-            if ( type != URL ) {
+            if ( padding ) {
                 do {
                     // 2 -> 10 -> 4 ->
                     out.write('=');
@@ -463,10 +472,8 @@ public class BASE64 {
                 tmpbits = 0;
             }
         }
-        if ( type == URL ) { // パディングなし
-            System.out.println("o=" + o);
+        if ( !padding ) {
             o  = o % 4; // 0123
-            System.out.println("o=" + o);
             if ( o >= 2 ) {
                 tmpbits <<= 6*(4-o);
                 tmp[0] = (byte) ((tmpbits >> 16) & 0xff);
