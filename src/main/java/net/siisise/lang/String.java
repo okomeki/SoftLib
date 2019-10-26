@@ -19,9 +19,6 @@
  */
 package net.siisise.lang;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * 文字列・改
  * UNICODE内文字列操作のstaticメソッドは、基本的にここに作成する。
