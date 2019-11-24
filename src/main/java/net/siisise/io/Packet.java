@@ -39,4 +39,5 @@ public interface Packet {
      * @return 
      */
     long length();
+    int size();
 }

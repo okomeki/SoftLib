@@ -371,6 +371,7 @@ public class PacketA implements Packet {
         return length;
     }
     
+    @Override
     public int size() {
         long l = length();
         if ( l > Integer.MAX_VALUE) {
