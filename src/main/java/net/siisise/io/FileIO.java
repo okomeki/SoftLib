@@ -40,7 +40,7 @@ public class FileIO {
     }
 
     /**
-     * 
+     * inとoutを繋ぐだけ
      * @param in
      * @param out
      * @return

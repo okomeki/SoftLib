@@ -11,12 +11,15 @@ import java.io.OutputStream;
  * 逆向きの読み書きが可能。中間の読み書きは使わないのでやめた。
  * 
  * @since JDK 1.1
- * @author okome
  */
 public interface Packet {
     InputStream getInputStream();
     OutputStream getOutputStream();
     
+    /**
+     * InputStram準拠
+     * @return 
+     */
     int read();
     int read(byte[] b, int offset, int length);
     int read(byte[] b);

@@ -12,7 +12,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 
 /**
- * BASE64エンコーダ/デコーダ
+ * BASE64エンコーダ/デコーダ。
  * RFC 2045
  * RFC 3548等もある
  * net.siisise.lang.String へ持っていっても可
@@ -101,6 +101,7 @@ public class BASE64 {
     public static final Type URL = Type.URL;
     
     /**
+     * 簡易版BASE64処理装置コンストラクタ。
      * 改行なしでエンコードされる
      */
     public BASE64() {
@@ -108,19 +109,28 @@ public class BASE64 {
     }
 
     /**
-     * 改行位置指定あり。
-     * 0以下だと改行なし
-     *
-     * @param size
+     * 改行位置指定ありBASE64処理装置コンストラクタ。
+     * @param size 出力時の1行のサイズ 0は改行なし
      */
     public BASE64(int size) {
         this(Type.BASE64, true, size);
     }
 
+    /**
+     * 符号の種類と改行幅の指定できるBASE64処理装置コンストラクタ。
+     * @param type 符号の種類 BASE64かPASSWORDかURL
+     * @param size 出力時の1行のサイズ 0は改行なし
+     */
     public BASE64(Type type, int size) {
         this(type, type != URL, size);
     }
     
+    /**
+     * 
+     * @param type BASE64,PASSWORD,URLなど指定可能
+     * @param padding パディングをつけるか?
+     * @param size 出力時の1行のサイズ 0は改行なし
+     */
     public BASE64(Type type, boolean padding, int size) {
         setCols(size);
         setPadding(padding);
@@ -128,13 +138,11 @@ public class BASE64 {
     }
 
     static BASE64 selectType(Type t) {
-        BASE64 b64 = new BASE64();
-        b64.setType(t);
-        return b64;
+        return new BASE64(t,0);
     }
 
     /**
-     * 種類の指定
+     * 種類の指定。
      * 初期値はBASE64
      *
      * @param type BASE64の種類
@@ -302,6 +310,11 @@ public class BASE64 {
         return out.toByteArray();
     }
     
+    /**
+     * バイト列のBASE64符号化時のサイズを計算するだけ。
+     * @param length 変換元バイト列の長さ
+     * @return BASE64符号化時のサイズ
+     */
     private final int b64size(int length) {
         int b64size = (length + 2) / 3 * 4; // 改行含まず
         if (cols > 0) {
@@ -398,35 +411,33 @@ public class BASE64 {
      * @return
      */
     public static byte[] decodeBase(String data) {
-        BASE64 b = new BASE64();
-        b.setType(BASE64);
+        BASE64 b = new BASE64(BASE64,0);
         return b.decode(data);
     }
 
     /**
      * URLエンコードのBASE64デコード
-     * @param data
-     * @return 
+     * @param data URL符号化データ
+     * @return 復元済みデータ
      */
     public static byte[] decodeURL(String data) {
-        BASE64 b = new BASE64();
-        b.setType(URL);
+        BASE64 b = new BASE64(URL,0);
         return b.decode(data);
     }
 
     /**
      * パスワードエンコードのデコード
      * 
-     * @param data
-     * @return 
+     * @param data PASSWORD符号化データ
+     * @return 復元済みデータ
      */
     public static byte[] decodePass(String data) {
-        BASE64 b = new BASE64();
-        b.setType(PASSWORD);
+        BASE64 b = new BASE64(PASSWORD,0);
         return b.decode(data);
     }
 
     /**
+     * BASE64文字列をデータに復元する。
      * 4文字 を 3パイトへ.
      * ヘッダフッタは仕様によって異なるので処理できません.
      * まだ3バイト単位でないと処理できないかも.
@@ -494,9 +505,9 @@ public class BASE64 {
      * 電子署名系で使用するヘッダフッタを付けます。
      * 64桁を指定しよう
      *
-     * @param data
-     * @param type
-     * @param fout
+     * @param data バイト列ソース
+     * @param type エンコードの名
+     * @param fout テキスト出力先
      * @throws java.io.IOException
      */
     public void encode(byte[] data, String type, Writer fout) throws IOException {
@@ -512,9 +523,9 @@ public class BASE64 {
     /**
      * ファイルに書き出します
      *
-     * @param data
-     * @param type
-     * @param fileName
+     * @param data データ
+     * @param type エンコードの名
+     * @param fileName 出力先ファイル名
      * @throws java.io.IOException
      */
     public void save(byte[] data, String type, String fileName) throws IOException {
@@ -530,8 +541,8 @@ public class BASE64 {
      * typeは1種類のみ指定可能
      * RFC 7468 にまとまっている 
      *
-     * @param type
-     * @param fin
+     * @param type エンコードの名
+     * @param fin テキストの入力
      * @return
      * @throws java.io.IOException
      */
@@ -567,8 +578,8 @@ public class BASE64 {
     /**
      * ファイルから読み込み
      *
-     * @param type BEGIN XXXXXXというところ
-     * @param fileName
+     * @param type エンコードの名 BEGIN XXXXXXというところ
+     * @param fileName ファイル名
      * @return
      * @throws java.io.IOException
      */

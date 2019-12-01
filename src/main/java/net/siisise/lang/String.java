@@ -1,22 +1,3 @@
-/**
- * 
- * Copyright (C) 2006 佐藤 雅俊/しいしせねっと <okome@siisise.net>
- * 
- * このプログラムはフリーソフトウェアです。あなたはこれを、フリーソフトウェ
- * ア財団によって発行された GNU 一般公衆利用許諾契約書(バージョン2か、希
- * 望によってはそれ以降のバージョンのうちどれか)の定める条件の下で再頒布
- * または改変することができます。
- *
- * このプログラムは有用であることを願って頒布されますが、*全くの無保証* 
- * です。商業可能性の保証や特定の目的への適合性は、言外に示されたものも含
- * め全く存在しません。詳しくはGNU 一般公衆利用許諾契約書をご覧ください。
- * 
- * あなたはこのプログラムと共に、GNU 一般公衆利用許諾契約書の複製物を一部
- * 受け取ったはずです。もし受け取っていなければ、フリーソフトウェア財団ま
- * で請求してください(宛先は the Free Software Foundation, Inc., 59
- * Temple Place, Suite 330, Boston, MA 02111-1307 USA)。
- *
- */
 package net.siisise.lang;
 
 /**
@@ -24,8 +5,7 @@ package net.siisise.lang;
  * UNICODE内文字列操作のstaticメソッドは、基本的にここに作成する。
  * 同一名称で違う機能に関わるメソッドのみ別クラスに実装する。
  * 商用ライセンスは、個別相談
- * コンパイル環境によって動作が異なってしまうため、Windows-31J環境でコンパイルすること。
- * @author 佐藤 雅俊 <okome@siisise.net>
+ * コンパイル環境によって動作が異なってしまう。
  */
 public class String {
 
@@ -317,6 +297,8 @@ public class String {
     /**
      * EUC-JP、ISO-2022-JP、Shift_JISに対応するコード位置に文字を変換する
      * MS932固有の文字は置き換えない
+     * @param c MS932系のコードマップ文字
+     * @return ShiftJIS系のコードマップ文字
      */
     public static char toSJISMap(char c) {
         int index;
@@ -344,7 +326,7 @@ public class String {
     /**
      * EUC-JP、ISO-2022-JP、Shift_JISに対応するコード位置に文字を変換する
      * MS932固有の文字は置き換えない
-     * @param str
+     * @param str MS932系のコードマップ文字
      * @return 
      */
     public static java.lang.String toSJISMap(java.lang.String str) {
@@ -358,8 +340,9 @@ public class String {
     }
 
     /**
-     * 文字コード互換変換
+     * 文字コード互換変換。
      * MS932固有の文字は置き換えない
+     * @param c
      */
     public static char toCP943CMap(char c) {
         int index;

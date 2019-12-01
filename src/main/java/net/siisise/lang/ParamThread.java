@@ -1,39 +1,16 @@
-/*
- * NameThread.java
- * 
- * Copyright (C) 2006 佐藤 雅俊/しいしせねっと <okome@siisise.net>
- * 
- * このプログラムはフリーソフトウェアです。あなたはこれを、フリーソフトウェ
- * ア財団によって発行された GNU 一般公衆利用許諾契約書(バージョン2か、希
- * 望によってはそれ以降のバージョンのうちどれか)の定める条件の下で再頒布
- * または改変することができます。
- *
- * このプログラムは有用であることを願って頒布されますが、*全くの無保証* 
- * です。商業可能性の保証や特定の目的への適合性は、言外に示されたものも含
- * め全く存在しません。詳しくはGNU 一般公衆利用許諾契約書をご覧ください。
- * 
- * あなたはこのプログラムと共に、GNU 一般公衆利用許諾契約書の複製物を一部
- * 受け取ったはずです。もし受け取っていなければ、フリーソフトウェア財団ま
- * で請求してください(宛先は the Free Software Foundation, Inc., 59
- * Temple Place, Suite 330, Boston, MA 02111-1307 USA)。
- *
- *
- * Created on 2002/05/17, 5:59
- */
 package net.siisise.lang;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * 柔軟スレッド
+ * パラメータ付き柔軟スレッド。
  * run()ではなく、特定メソッドを「パラメータ付き」で呼び出すことができる。
  * プリミティブ型のデータに対応する
  *
  * 1つのクラスで複数のスレッド用メソッドを用意したいことはよくあります。
  * 別のクラスを用意することなく利用できます。
  *
- * @author 佐藤 雅俊 <okome@siisise.net>
  * @version 1.03
  */
 public class ParamThread extends java.lang.Thread {
@@ -44,7 +21,7 @@ public class ParamThread extends java.lang.Thread {
     Object[] args;
     
     /**
-     * 複数パラメータでメソッドを起動する
+     * 複数パラメータでメソッドを起動する.
      *
      * @param obj 対象オブジェクト 
      * @param methodName メソッド名

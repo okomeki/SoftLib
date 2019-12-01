@@ -4,8 +4,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
+ * First In First Out Stream Packet.
  * 4回目くらいの実装
- * @author okome
  */
 public class PacketA implements Packet {
 

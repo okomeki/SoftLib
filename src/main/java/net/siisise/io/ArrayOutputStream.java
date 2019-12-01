@@ -3,11 +3,10 @@ package net.siisise.io;
 import java.io.*;
 
 /**
- * 固定サイズ配列へのStream
+ * 固定サイズ配列へのStream.
  *
  * Created on 2007/03/11, 1:22
  *
- * @author 佐藤 雅俊 <okome@siisise.net>
  */
 public class ArrayOutputStream extends OutputStream {
 
