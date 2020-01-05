@@ -38,6 +38,12 @@ public class FileIO {
         }
         return data;
     }
+    
+    public static byte[] binRead(InputStream in) throws IOException {
+        Packet pac = new PacketA();
+        io(in,pac.getOutputStream());
+        return pac.toByteArray();
+    }
 
     /**
      * inとoutを繋ぐだけ

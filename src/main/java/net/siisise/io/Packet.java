@@ -1,6 +1,5 @@
 package net.siisise.io;
 
-import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -12,18 +11,9 @@ import java.io.OutputStream;
  * 
  * @since JDK 1.1
  */
-public interface Packet {
-    InputStream getInputStream();
+public interface Packet extends FrontPacket {
+
     OutputStream getOutputStream();
-    
-    /**
-     * InputStram準拠
-     * @return 
-     */
-    int read();
-    int read(byte[] b, int offset, int length);
-    int read(byte[] b);
-    byte[] toByteArray();
     
     void write(int b);
     void write(byte[] b, int offset, int length);
@@ -32,10 +22,6 @@ public interface Packet {
     int backRead();
     int backRead(byte[] b, int offset, int length);
     int backRead(byte[] b);
-    
-    void backWrite(int b);
-    void backWrite(byte[] b, int offset, int length);
-    void backWrite(byte[] b);
     
     /**
      * 32ビットでは足りないかもと足してみた
