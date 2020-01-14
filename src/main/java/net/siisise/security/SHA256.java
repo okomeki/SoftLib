@@ -1,0 +1,205 @@
+package net.siisise.security;
+
+import java.security.MessageDigest;
+import net.siisise.io.PacketA;
+
+/**
+ * SHA-2.
+ * FIPS PUB 180-2
+ * FIPS PUB 180-3
+ * RFC 6234
+ */
+public class SHA256 extends MessageDigest {
+
+    public static int[] OBJECTIDENTIFIER = {2, 16, 840, 1, 101, 3, 4, 2, 1};
+
+    protected int[] H;
+    protected PacketA pac;
+    protected long length;
+
+    static final int[] K = {
+        0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
+        0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+        0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+        0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+        0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
+        0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+        0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+        0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+        0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+        0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+        0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
+        0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+        0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
+        0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+        0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+        0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+    };
+
+    @Override
+    protected void engineReset() {
+        H = new int[]{
+            0x6a09e667,
+            0xbb67ae85,
+            0x3c6ef372,
+            0xa54ff53a,
+            0x510e527f,
+            0x9b05688c,
+            0x1f83d9ab,
+            0x5be0cd19
+        };
+        pac = new PacketA();
+        length = 0;
+    }
+
+    public SHA256() {
+        super("SHA-256");
+        engineReset();
+    }
+
+    protected SHA256(String n) {
+        super(n);
+        engineReset();
+    }
+
+    private static int Ch(final int x, final int y, final int z) {
+        return (x & y) ^ ((~x) & z);
+    }
+
+    private static int Maj(final int x, final int y, final int z) {
+        return (x & y) ^ (x & z) ^ (y & z);
+    }
+
+    @Override
+    protected void engineUpdate(byte input) {
+        engineUpdate(new byte[]{input}, 0, 1);
+    }
+
+//    private static int SHR(final int x, final int n) {
+//        return x >>> n;
+//    }
+
+    private static int ROTR(final int x, final int n) {
+        return (x >>> n) | (x << (32 - n));
+    }
+
+    private static int Σ0(final int x) {
+        return ROTR(x, 2) ^ ROTR(x, 13) ^ ROTR(x, 22);
+    }
+
+    private static int Σ1(final int x) {
+        return ROTR(x, 6) ^ ROTR(x, 11) ^ ROTR(x, 25);
+    }
+
+    private static int σ0(final int x) {
+        return ROTR(x, 7) ^ ROTR(x, 18) ^ (x >>> 3);
+    }
+
+    private static int σ1(final int x) {
+        return ROTR(x, 17) ^ ROTR(x, 19) ^ (x >>> 10);
+    }
+
+    @Override
+    protected void engineUpdate(byte[] input, int offset, int len) {
+        pac.write(input, offset, len);
+        length += len * 8l;
+
+        int w[] = new int[64];
+        while (pac.length() >= 64) {
+            int a, b, c, d, e, f, g, h;
+//            int[] n = new int[8];
+
+            a = H[0];
+            b = H[1];
+            c = H[2];
+            d = H[3];
+            e = H[4];
+            f = H[5];
+            g = H[6];
+            h = H[7];
+//            System.arraycopy(H,0,n,0,8);
+
+            for (int t = 0; t < 16; t++) {
+                w[t] = (pac.read() << 24) + (pac.read() << 16) + (pac.read() << 8) + pac.read();
+                int temp1 = h + Σ1(e) + Ch(e, f, g) + K[t] + w[t];
+                int temp2 = Σ0(a) + Maj(a, b, c);
+                h = g;
+                g = f;
+                f = e;
+                e = d + temp1;
+                d = c;
+                c = b;
+                b = a;
+                a = temp1 + temp2;
+//                int addr = (4-t)&7;
+//                int temp1 = Σ1(n[addr]) + Ch(n[addr++&7],n[addr++&7],n[addr++&7]) + K[t] + w[t];
+//                int temp2 = Σ0(n[++addr&7]) + Maj(n[addr++&7],n[addr++&7],n[addr++&7]);
+//                n[addr&7] += n[(7-t)&7] + temp1;
+//                n[(7-t)&7] += temp1 + temp2;
+            }
+            
+            for (int t = 16; t < 64; t++) {
+                w[t] = σ1(w[t - 2]) + w[t - 7] + σ0(w[t - 15]) + w[t - 16];
+                int temp1 = h + Σ1(e) + Ch(e, f, g) + K[t] + w[t];
+                int temp2 = Σ0(a) + Maj(a, b, c);
+                h = g;
+                g = f;
+                f = e;
+                e = d + temp1;
+                d = c;
+                c = b;
+                b = a;
+                a = temp1 + temp2;
+
+//                int addr = (4-t)&7;
+//                int temp1 = Σ1(n[addr]) + Ch(n[addr++&7],n[addr++&7],n[addr++&7]) + K[t] + w[t];
+//                int temp2 = Σ0(n[++addr&7]) + Maj(n[addr++&7],n[addr++&7],n[addr++&7]);
+//                n[addr&7] += n[(7-t)&7] + temp1;
+//                n[(7-t)&7] += temp1 + temp2;
+            }
+            H[0] += a;//n[0];
+            H[1] += b;//n[1];
+            H[2] += c;//n[2];
+            H[3] += d;//n[3];
+            H[4] += e;//n[4];
+            H[5] += f;//n[5];
+            H[6] += g;//n[6];
+            H[7] += h;//n[7];
+        }
+    }
+    
+    static byte[] toB(int[] src) {
+        byte[] ret = new byte[src.length * 4];
+        for (int i = 0; i < src.length; i++) {
+            ret[i * 4] = (byte) ((src[i] >>> 24) & 0xff);
+            ret[i * 4 + 1] = (byte) ((src[i] >>> 16) & 0xff);
+            ret[i * 4 + 2] = (byte) ((src[i] >>> 8) & 0xff);
+            ret[i * 4 + 3] = (byte) (src[i] & 0xff);
+        }
+        return ret;
+    }
+
+    @Override
+    protected byte[] engineDigest() {
+
+        long len = length;
+
+        // ラスト周
+        // padding
+        pac.write(new byte[]{(byte) 0x80});
+        int padlen = 512 - (int) ((len + 64+8) % 512);
+        pac.write(new byte[padlen / 8]);
+        byte[] lena = new byte[8];
+        for ( int i = 0; i < 8; i++ ) {
+            lena[7-i] = (byte) (len & 0xff);
+            len >>>= 8;
+        }
+
+        engineUpdate(lena,0,lena.length);
+
+        byte[] ret = toB(H);
+        engineReset();
+        return ret;
+    }
+
+}

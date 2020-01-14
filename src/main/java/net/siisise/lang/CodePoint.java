@@ -3,7 +3,7 @@ package net.siisise.lang;
 import net.siisise.io.Packet;
 
 /**
- *
+ * RFC 3629
  */
 public class CodePoint {
     private final int[] chars;
@@ -52,10 +52,11 @@ public class CodePoint {
     }
 
     /**
-     * CodePoint-8をUCSに変換
-     *
+     * CodePoint-8をUCSに変換.
+     * 不正組は-1
+     * 
      * @param pac
-     * @return UCS-4または-1
+     * @return UCS-4または不正の場合-1
      */
     public static int utf8(Packet pac) {
         int rd = pac.read();
@@ -97,7 +98,7 @@ public class CodePoint {
     }
 
     /**
-     * 
+     * UCS to UTF-8
      * @param ch
      * @return 
      */
