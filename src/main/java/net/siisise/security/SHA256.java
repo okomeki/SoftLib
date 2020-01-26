@@ -11,7 +11,7 @@ import net.siisise.io.PacketA;
  */
 public class SHA256 extends MessageDigest {
 
-    public static int[] OBJECTIDENTIFIER = {2, 16, 840, 1, 101, 3, 4, 2, 1};
+    public static String OBJECTIDENTIFIER = "2.16.840.1.101.3.4.2.1";
 
     protected int[] H;
     protected PacketA pac;
@@ -36,6 +36,16 @@ public class SHA256 extends MessageDigest {
         0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
     };
 
+    public SHA256() {
+        super("SHA-256");
+        engineReset();
+    }
+
+    protected SHA256(String n) {
+        super(n);
+        engineReset();
+    }
+
     @Override
     protected void engineReset() {
         H = new int[]{
@@ -52,14 +62,9 @@ public class SHA256 extends MessageDigest {
         length = 0;
     }
 
-    public SHA256() {
-        super("SHA-256");
-        engineReset();
-    }
-
-    protected SHA256(String n) {
-        super(n);
-        engineReset();
+    @Override
+    protected int engineGetDigestLength() {
+        return 32;
     }
 
     private static int Ch(final int x, final int y, final int z) {

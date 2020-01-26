@@ -9,7 +9,7 @@ import net.siisise.io.PacketA;
  */
 public class SHA512 extends MessageDigest {
 
-    public static int[] OBJECTIDENTIFIER = {2, 16, 840, 1, 101, 3, 4, 2, 3};
+    public static String OBJECTIDENTIFIER = "2.16.840.1.101.3.4.2.3";
     protected long[] H;
     protected PacketA pac;
     protected BigInteger length;
@@ -36,6 +36,16 @@ public class SHA512 extends MessageDigest {
         0x4cc5d4becb3e42b6l, 0x597f299cfc657e2al, 0x5fcb6fab3ad6faecl, 0x6c44198c4a475817l
     };
 
+    public SHA512() {
+        super("SHA-512");
+        engineReset();
+    }
+
+    protected SHA512(String n) {
+        super(n);
+        engineReset();
+    }
+
     @Override
     protected void engineReset() {
         H = new long[]{
@@ -52,14 +62,9 @@ public class SHA512 extends MessageDigest {
         length = BigInteger.valueOf(0);
     }
 
-    public SHA512() {
-        super("SHA-512");
-        engineReset();
-    }
-
-    protected SHA512(String n) {
-        super(n);
-        engineReset();
+    @Override
+    protected int engineGetDigestLength() {
+        return 64;
     }
 
     static final long ch(final long x, final long y, final long z) {

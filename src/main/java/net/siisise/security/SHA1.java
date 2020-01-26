@@ -9,7 +9,7 @@ import net.siisise.io.PacketA;
  */
 public class SHA1 extends MessageDigest {
 
-    public static int[] OBJECTIDENTIFIER = {1, 3, 14, 3, 2, 26};
+    public static String OBJECTIDENTIFIER = "1.3.14.3.2.26";
     private int[] h = new int[5];
     private PacketA pac;
     private long length;
@@ -17,6 +17,11 @@ public class SHA1 extends MessageDigest {
     public SHA1() {
         super("SHA-1");
         engineReset();
+    }
+
+    @Override
+    protected int engineGetDigestLength() {
+        return 20;
     }
 
     @Override

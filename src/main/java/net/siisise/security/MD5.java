@@ -10,15 +10,34 @@ import net.siisise.io.PacketA;
  */
 public class MD5 extends MessageDigest {
 
-    public static int[] OBJECTIDENTIFIER = {1, 2, 840, 113549, 2, 5};
+    public static String OBJECTIDENTIFIER = "1.2.840.113549.2.5";
     
+    private int a;
+    private int b;
+    private int c;
+    private int d;
+
+    private PacketA pac = new PacketA();
+    private int length = 0;
+
     public MD5() {
         super("MD5");
+        engineReset();
     }
     
     @Override
     protected int engineGetDigestLength() {
         return 16;
+    }
+
+    @Override
+    protected void engineReset() {
+        a = 0x67452301;
+        b = 0xefcdab89;
+        c = 0x98badcfe;
+        d = 0x10325476;
+        length = 0;
+        pac = new PacketA();
     }
 
     private static int m(PacketA pac) {
@@ -29,44 +48,25 @@ public class MD5 extends MessageDigest {
         r |= (pac.read() & 0xff) << 24;
         return r;
     }
-
+    
     private static int abcdf(int b, int c, int d, int k, int s, int t) {
         int a = ((b & c) | ((~b) & d)) + k + t;
         return (a << s) + (a >>> (32 - s)) + b;
     }
 
     private static int abcdg(int a, int b, int c, int d, int k, int s, int t) {
-        a = a + ((b & d) | (c & (~d))) + k + t;
+        a += ((b & d) | (c & (~d))) + k + t;
         return (a << s) + (a >>> (32 - s)) + b;
     }
 
     private static int abcdh(int a, int b, int c, int d, int k, int s, int t) {
-        a = a + (b ^ c ^ d) + k + t;
+        a += (b ^ c ^ d) + k + t;
         return (a << s) + (a >>> (32 - s)) + b;
     }
 
     private static int abcdi(int a, int b, int c, int d, int k, int s, int t) {
         a = a + (c ^ (b | (~d))) + k + t;
         return (a << s) + (a >>> (32 - s)) + b;
-    }
-
-    private int a = 0x67452301;
-    private int b = 0xefcdab89;
-    private int c = 0x98badcfe;
-    private int d = 0x10325476;
-
-    private PacketA pac = new PacketA();
-
-    private int length = 0;
-
-    @Override
-    protected void engineReset() {
-        a = 0x67452301;
-        b = 0xefcdab89;
-        c = 0x98badcfe;
-        d = 0x10325476;
-        length = 0;
-        pac = new PacketA();
     }
     
     @Override

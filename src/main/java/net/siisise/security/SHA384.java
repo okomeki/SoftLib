@@ -8,7 +8,7 @@ import net.siisise.io.PacketA;
  */
 public class SHA384 extends SHA512 {
     
-    public static int[] OBJECTIDENTIFIER = {2,16,840,1,101,3,4,2,2};
+    public static String OBJECTIDENTIFIER = "2.16.840.1.101.3.4.2.2";
 
     public SHA384() {
         super("SHA-384");
@@ -28,6 +28,11 @@ public class SHA384 extends SHA512 {
         };
         pac = new PacketA();
         length = BigInteger.valueOf(0);
+    }
+
+    @Override
+    protected int engineGetDigestLength() {
+        return 48;
     }
 
     @Override

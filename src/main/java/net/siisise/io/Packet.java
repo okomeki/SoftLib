@@ -11,18 +11,8 @@ import java.io.OutputStream;
  * 
  * @since JDK 1.1
  */
-public interface Packet extends FrontPacket {
+public interface Packet extends FrontPacket,BackPacket {
 
-    OutputStream getOutputStream();
-    
-    void write(int b);
-    void write(byte[] b, int offset, int length);
-    void write(byte[] b);
-    
-    int backRead();
-    int backRead(byte[] b, int offset, int length);
-    int backRead(byte[] b);
-    
     /**
      * 32ビットでは足りないかもと足してみた
      * @return 

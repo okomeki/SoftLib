@@ -7,12 +7,17 @@ import net.siisise.io.PacketA;
  */
 public class SHA224 extends SHA256 {
     
-    public static int[] OBJECTIDENTIFIER = {2,16,840,1,101,3,4,2,4};
+    public static String OBJECTIDENTIFIER = "2.16.840.1.101.3.4.2.4";
     
     public SHA224() {
         super("SHA-224");
     }
     
+    @Override
+    protected int engineGetDigestLength() {
+        return 28;
+    }
+
     @Override
     protected void engineReset() {
         H = new int[]{
