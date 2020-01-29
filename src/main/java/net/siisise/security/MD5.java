@@ -17,7 +17,7 @@ public class MD5 extends MessageDigest {
     private int c;
     private int d;
 
-    private PacketA pac = new PacketA();
+    private PacketA pac;
     private int length = 0;
 
     public MD5() {
@@ -203,7 +203,7 @@ public class MD5 extends MessageDigest {
         pac.write(new byte[padlen / 8]);
         byte[] lena = new byte[8];
         for ( int i = 0; i < 8; i++ ) {
-            lena[7-i] = (byte) (len & 0xff);
+            lena[i] = (byte) (len & 0xff);
             len >>>= 8;
         }
 

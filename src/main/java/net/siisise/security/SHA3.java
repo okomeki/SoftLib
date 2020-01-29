@@ -105,64 +105,9 @@ public class SHA3 extends MessageDigest {
         // Step 3.
         for (int b = 0; b < 25; b++) {
             int x = b % 5;
-            a[b] = a[b] ^ d[x];
+            a[b] ^= d[x];
         }
         return a;
-    }
-
-    /**
-     * 3.2.2
-     * Algorithm 2
-     * @param a
-     * @return 
-     */
-    static final long[] ρ(long a[]) {
-        // 3.2.2. ρ
-        long[] ad = new long[25];
-        ad[0] = a[0];
-        int x = 1;
-        int y = 0;
-        for (int t = 0; t < 24; t++) {
-            ad[x + y * 5] = ROTL(a[x + y * 5], ((t + 1) * (t + 2) / 2) % w);
-            int nx = y;
-            y = (2 * x + 3 * y) % 5;
-            x = nx;
-        }
-        return ad;
-    }
-
-    /**
-     * Algorithm 3.
-     *
-     * @param a
-     * @return
-     */
-    static final long[] π(long a[]) {
-        // 3.2.3 π
-        long[] ad = new long[25];
-        for (int y = 0; y < 5; y++) {
-            for (int x = 0; x < 5; x++) {
-                ad[x + 5*y] = a[((x + 3*y) % 5) + 5*x];
-            }
-        }
-        return ad;
-    }
-
-    /**
-     * 3.2.4. Algorithm 4
-     *
-     * @param a
-     * @return
-     */
-    static final long[] χ(long b[]) {
-        long[] ad = new long[25];
-        // 3.2.4 χ
-        for (int y = 0; y < 5; y++) {
-            for (int x = 0; x < 5; x++) {
-                ad[x + y*5] = b[x + y*5] ^ ((~b[((x+1) % 5) + y*5]) & b[((x+2) % 5) + y*5]);
-            }
-        }
-        return ad;
     }
 
     /**
@@ -182,44 +127,36 @@ public class SHA3 extends MessageDigest {
         return (R & 0x80) != 0;
     }
 
-    /**
-     * Algorithm 6.
-     *
-     * @param a
-     * @param ir
-     * @return
-     */
-    static final long[] ι(long a[], int ir) {
-        //long[] ad = new long[25];
-        // 1.
-//        System.arraycopy(a,1,ad,1,24);
-        
-        // 2.3. 計算済みのものを使える
-        //System.out.println("RC" + ir + ":" + Long.toHexString(RC[ir]));
-        // 4.
-        a[0] ^= RC[ir];
-        // 5.
-        return a;
-    }
-
-    /**
-     * デバッグ用
-     * @param src
-     * @return 
-     */
-    private static final long[] tr(long[] src) {
-        String l;
-        for (int i = 0; i < 25; i++) {
-            l = "000000000000000" + Long.toHexString(src[i]);
-            l = l.substring(l.length() - 16);
-            System.out.println(i % 5 + "," + i / 5 + ":" + l);
-        }
-        System.out.println("-");
-        return src;
-    }
-
     static final long[] rnd(long[] a, int ir) {
-        return ι(χ(π(ρ(Θ(a)))), ir);
+        long[] ad = new long[25];
+        a = Θ(a);
+        // 3.2.2. ρ
+        ad[0] = a[0];
+        int x = 1;
+        int y = 0;
+        for (int t = 0; t < 24; t++) {
+            ad[x + y * 5] = ROTL(a[x + y * 5], ((t + 1) * (t + 2) / 2) % w);
+            int nx = y;
+            y = (2 * x + 3 * y) % 5;
+            x = nx;
+        }
+
+        // 3.2.3 π
+        for (y = 0; y < 5; y++) {
+            for (x = 0; x < 5; x++) {
+                a[x + 5*y] = ad[((3*x + y) % 5) + 5*y];
+            }
+        }
+
+        // 3.2.4 χ
+        for (y = 0; y < 5; y++) {
+            for (x = 0; x < 5; x++) {
+                ad[x + y*5] = a[y + x*5] ^ ((~a[y + ((x+1) % 5)*5]) & a[y + ((x+2) % 5)*5]);
+            }
+        }
+        
+        ad[0] ^= RC[ir];
+        return ad;
     }
 
     /**
@@ -228,16 +165,12 @@ public class SHA3 extends MessageDigest {
      * @param nr
      * @return A' S'には変換しない
      */
-    final long[] keccak_p(long[] s, int nr) {
+    final long[] keccak_f(long[] s) {
 
-        for (int ir = 12 + 2*l - nr; ir < 12 + 2*l; ir++) {
+        for (int ir = 0; ir < 12 + 2*l; ir++) {
             s = rnd(s, ir);
         }
         return s;
-    }
-
-    final long[] keccak_f(long[] s) {
-        return keccak_p(s, 12 + 2*l);
     }
 
     /**
@@ -245,23 +178,13 @@ public class SHA3 extends MessageDigest {
      * @param b
      * @return 
      */
-    byte[] sponge(byte[] b) {
+    void sponge(byte[] b) {
         for (int c = 0; c < R; c++) {
-            long n = 0;
             for (int j = 0; j < 8; j++) {
-                n |= (((long) b[8 * c + j] & 0xff)) << (j * 8);
+                a[c] ^= (((long) b[8 * c + j] & 0xff)) << (j * 8);
             }
-            a[c] ^= n;
         }
         a = keccak_f(a);
-
-        byte[] o = new byte[R * 8];
-        for (int c = 0; c < R; c++) {
-            for (int j = 0; j < 8; j++) {
-                o[c * 8 + j] = (byte) (a[c] >>> (j * 8));
-            }
-        }
-        return o;
     }
     
     @Override
@@ -279,25 +202,25 @@ public class SHA3 extends MessageDigest {
     @Override
     protected byte[] engineDigest() {
 
-        long len = length;
-
         // padding バイト長で計算
         int rblen = R * 8;
-        int padlen = rblen - (int) ((len / 8 + 1) % rblen) + 1;
+        int padlen = rblen - (int) ((length / 8 + 1) % rblen) + 1;
         byte[] pad = new byte[padlen];
         pad[0] |= 0x06;
         pad[padlen - 1] |= 0x80;
 
         engineUpdate(pad, 0, pad.length);
 
-        byte[] rr = new byte[R * 8];
+        byte[] digest = new byte[n / 8];
+        int i = 0;
         for (int c = 0; c < R; c++) {
             for (int j = 0; j < 8; j++) {
-                rr[c * 8 + j] = (byte) (a[c] >>> ((j) * 8));
+                digest[i++] = (byte) (a[c] >>> ((j) * 8));
+                if ( i == n/8) {
+                    break;
+                }
             }
         }
-        byte[] digest = new byte[n / 8];
-        System.arraycopy(rr, 0, digest, 0, n / 8);
         engineReset();
         return digest;
     }

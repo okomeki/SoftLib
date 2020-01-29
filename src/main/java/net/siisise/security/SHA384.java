@@ -44,7 +44,7 @@ public class SHA384 extends SHA512 {
         // ラスト周
         // padding
         pac.write(new byte[]{(byte) 0x80});
-        int padlen = 1024 - (int) ((len.longValue() + lb.length*8+8) % 512);
+        int padlen = 1024 - (int) ((len.longValue() + lb.length*8+8) % 1024);
         pac.write(new byte[padlen / 8]);
 
         engineUpdate(lb,0,lb.length);
