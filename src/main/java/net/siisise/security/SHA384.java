@@ -11,7 +11,7 @@ public class SHA384 extends SHA512 {
     public static String OBJECTIDENTIFIER = "2.16.840.1.101.3.4.2.2";
 
     public SHA384() {
-        super("SHA-384");
+        super("SHA-384", 384);
     }
 
     @Override
@@ -28,31 +28,5 @@ public class SHA384 extends SHA512 {
         };
         pac = new PacketA();
         length = BigInteger.valueOf(0);
-    }
-
-    @Override
-    protected int engineGetDigestLength() {
-        return 48;
-    }
-
-    @Override
-    protected byte[] engineDigest() {
-
-        BigInteger len = length;
-        byte[] lb = len.toByteArray();
-
-        // ラスト周
-        // padding
-        pac.write(new byte[]{(byte) 0x80});
-        int padlen = 1024 - (int) ((len.longValue() + lb.length*8+8) % 1024);
-        pac.write(new byte[padlen / 8]);
-
-        engineUpdate(lb,0,lb.length);
-
-        long[] h2 = new long[6];
-        System.arraycopy(H,0,h2,0,6);
-        byte[] ret = toB(h2);
-        engineReset();
-        return ret;
     }
 }

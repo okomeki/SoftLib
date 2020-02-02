@@ -173,9 +173,9 @@ public class SHA256 extends MessageDigest {
         }
     }
     
-    static byte[] toB(int[] src) {
-        byte[] ret = new byte[src.length * 4];
-        for (int i = 0; i < src.length; i++) {
+    static byte[] toB(int[] src, int len) {
+        byte[] ret = new byte[len * 4];
+        for (int i = 0; i < len; i++) {
             ret[i * 4] = (byte) ((src[i] >>> 24) & 0xff);
             ret[i * 4 + 1] = (byte) ((src[i] >>> 16) & 0xff);
             ret[i * 4 + 2] = (byte) ((src[i] >>> 8) & 0xff);
@@ -202,7 +202,7 @@ public class SHA256 extends MessageDigest {
 
         engineUpdate(lena,0,lena.length);
 
-        byte[] ret = toB(H);
+        byte[] ret = toB(H, H.length);
         engineReset();
         return ret;
     }

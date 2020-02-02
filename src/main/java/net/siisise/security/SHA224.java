@@ -51,9 +51,7 @@ public class SHA224 extends SHA256 {
         }
         engineUpdate(lena,0,lena.length);
 
-        int[] h2 = new int[7];
-        System.arraycopy(H, 0, h2, 0, 7);
-        byte[] ret = SHA256.toB(h2);
+        byte[] ret = SHA256.toB(H,7);
         engineReset();
         return ret;
     }

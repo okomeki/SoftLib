@@ -7,7 +7,7 @@ import net.siisise.io.PacketA;
  * RFC 3174 SHA-1.
  * FIPS 180-1.
  */
-public class SHA1 extends MessageDigest {
+public final class SHA1 extends MessageDigest {
 
     public static String OBJECTIDENTIFIER = "1.3.14.3.2.26";
     private int[] h = new int[5];
@@ -122,7 +122,7 @@ public class SHA1 extends MessageDigest {
 
         engineUpdate(lena, 0, lena.length);
 
-        byte[] ret = SHA256.toB(h);
+        byte[] ret = SHA256.toB(h, h.length);
         engineReset();
         return ret;
     }

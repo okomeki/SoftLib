@@ -10,23 +10,20 @@ import net.siisise.io.PacketA;
  * Secure Hash Algorithm-3 (SHA-3) family. w=64 (long) で最適化したもの
  * SHA3-224, SHA3-256, SHA3-384, SHA3-512 に対応
  * 
- * @author okome
  */
 public class SHA3 extends MessageDigest {
 
     static final int l = 6;
-    protected static final int w = 1 << l; // 2^l bit l = 6
+    protected static final int w = 1 << l;
 
     // ハッシュ長
     protected int n;
     // 入出力分割ビット数?
     protected int r;
     protected int R;
-    // キャパシティ
-//    protected int c;
 
     protected Packet pac;
-    // bit
+    // byte
     protected long length;
 
     long[] a;
@@ -46,6 +43,7 @@ public class SHA3 extends MessageDigest {
     }
 
     /**
+     * r は 1152,1088,832,576
      *
      * @param n 224,256,384,512
      */
@@ -104,8 +102,7 @@ public class SHA3 extends MessageDigest {
         }
         // Step 3.
         for (int b = 0; b < 25; b++) {
-            int x = b % 5;
-            a[b] ^= d[x];
+            a[b] ^= d[b % 5];
         }
         return a;
     }
@@ -121,7 +118,7 @@ public class SHA3 extends MessageDigest {
         int R = 0x80;
         for (int i = 1; i <= t % 255; i++) {
 //            R = 0 | R; // 9bit?
-            R = (R & 0xe3) | ((R & 0x11c) ^ ((R & 1) * 0x11c));
+            R = (R & 0xe3) | ((R & 0x1c) ^ ((R & 1) * 0x11c));
             R >>>= 1;
         }
         return (R & 0x80) != 0;
@@ -151,7 +148,7 @@ public class SHA3 extends MessageDigest {
         // 3.2.4 χ
         for (y = 0; y < 5; y++) {
             for (x = 0; x < 5; x++) {
-                ad[x + y*5] = a[y + x*5] ^ ((~a[y + ((x+1) % 5)*5]) & a[y + ((x+2) % 5)*5]);
+                ad[x + y*5] = a[y + 5*x] ^ ((~a[y + ((x+1) % 5)*5]) & a[y + ((x+2) % 5)*5]);
             }
         }
         
@@ -178,7 +175,7 @@ public class SHA3 extends MessageDigest {
      * @param b
      * @return 
      */
-    void sponge(byte[] b) {
+    void keccak(byte[] b) {
         for (int c = 0; c < R; c++) {
             for (int j = 0; j < 8; j++) {
                 a[c] ^= (((long) b[8 * c + j] & 0xff)) << (j * 8);
@@ -189,13 +186,23 @@ public class SHA3 extends MessageDigest {
     
     @Override
     protected void engineUpdate(byte[] input, int offset, int len) {
-        pac.write(input, offset, len);
-        length += len * 8l;
-
         byte[] dd = new byte[R * 8];
+        while ( len > R*64) {
+            pac.write(input, offset, R*64);
+            offset += R*64;
+            length += R*64;
+            len -= R*64;
+            while (pac.length() >= R * 8) {
+                pac.read(dd);
+                keccak(dd);
+            }
+        }
+        pac.write(input, offset, len);
+        length += len;
+
         while (pac.length() >= R * 8) {
             pac.read(dd);
-            sponge(dd);
+            keccak(dd);
         }
     }
 
@@ -204,22 +211,17 @@ public class SHA3 extends MessageDigest {
 
         // padding バイト長で計算
         int rblen = R * 8;
-        int padlen = rblen - (int) ((length / 8 + 1) % rblen) + 1;
+        int padlen = rblen - (int) ((length + 1) % rblen) + 1;
         byte[] pad = new byte[padlen];
         pad[0] |= 0x06;
         pad[padlen - 1] |= 0x80;
 
         engineUpdate(pad, 0, pad.length);
 
-        byte[] digest = new byte[n / 8];
-        int i = 0;
-        for (int c = 0; c < R; c++) {
-            for (int j = 0; j < 8; j++) {
-                digest[i++] = (byte) (a[c] >>> ((j) * 8));
-                if ( i == n/8) {
-                    break;
-                }
-            }
+        byte[] digest = new byte[(n+7) / 8];
+
+        for (int i = 0; i < digest.length; i++) {
+            digest[i] = (byte) (a[i/8] >>> ((i%8) * 8));
         }
         engineReset();
         return digest;

@@ -5,6 +5,7 @@ import java.security.MessageDigest;
 import net.siisise.io.PacketA;
 
 /**
+ * RFC 4634
  * RFC 6234
  */
 public class SHA512 extends MessageDigest {
@@ -13,6 +14,8 @@ public class SHA512 extends MessageDigest {
     protected long[] H;
     protected PacketA pac;
     protected BigInteger length;
+    int digestLength;
+    
     static long[] K = {
         0x428a2f98d728ae22l, 0x7137449123ef65cdl, 0xb5c0fbcfec4d3b2fl, 0xe9b5dba58189dbbcl,
         0x3956c25bf348b538l, 0x59f111f1b605d019l, 0x923f82a4af194f9bl, 0xab1c5ed5da6d8118l,
@@ -38,11 +41,28 @@ public class SHA512 extends MessageDigest {
 
     public SHA512() {
         super("SHA-512");
+        digestLength = 512;
         engineReset();
     }
 
-    protected SHA512(String n) {
+    /**
+     * SHA-512/t
+     * @param t 64の倍数 384, 512禁止
+     */
+    protected SHA512(int t) {
+        super("SHA-512/" + t);
+        digestLength = t;
+        engineReset();
+    }
+
+    /**
+     * SHA-384
+     * @param n SHA-384
+     * @param l 384
+     */
+    protected SHA512(String n, int l) {
         super(n);
+        digestLength = l;
         engineReset();
     }
 
@@ -64,7 +84,7 @@ public class SHA512 extends MessageDigest {
 
     @Override
     protected int engineGetDigestLength() {
-        return 64;
+        return digestLength / 8;
     }
 
     static final long ch(final long x, final long y, final long z) {
@@ -185,8 +205,10 @@ public class SHA512 extends MessageDigest {
 
         engineUpdate(lb, 0, lb.length);
 
+        byte[] digest = new byte[digestLength/8];
         byte[] ret = toB(H);
+        System.arraycopy(ret, 0, digest, 0, digest.length);
         engineReset();
-        return ret;
+        return digest;
     }
 }
