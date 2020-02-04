@@ -1,22 +1,22 @@
 package net.siisise.security;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
+import java.util.HashMap;
+import java.util.Map;
 import net.siisise.io.PacketA;
 
 /**
+ * NIST FIPS PUB 180-4.
  * RFC 4634
  * RFC 6234
  */
 public class SHA512 extends MessageDigest {
 
     public static String OBJECTIDENTIFIER = "2.16.840.1.101.3.4.2.3";
-    protected long[] H;
-    protected PacketA pac;
-    protected BigInteger length;
-    int digestLength;
     
-    static long[] K = {
+    static final long[] K = {
         0x428a2f98d728ae22l, 0x7137449123ef65cdl, 0xb5c0fbcfec4d3b2fl, 0xe9b5dba58189dbbcl,
         0x3956c25bf348b538l, 0x59f111f1b605d019l, 0x923f82a4af194f9bl, 0xab1c5ed5da6d8118l,
         0xd807aa98a3030242l, 0x12835b0145706fbel, 0x243185be4ee4b28cl, 0x550c7dc3d5ffb4e2l,
@@ -39,45 +39,88 @@ public class SHA512 extends MessageDigest {
         0x4cc5d4becb3e42b6l, 0x597f299cfc657e2al, 0x5fcb6fab3ad6faecl, 0x6c44198c4a475817l
     };
 
-    public SHA512() {
-        super("SHA-512");
-        digestLength = 512;
+    static final long[] IV512 = {
+        0x6a09e667f3bcc908l,
+        0xbb67ae8584caa73bl,
+        0x3c6ef372fe94f82bl,
+        0xa54ff53a5f1d36f1l,
+        0x510e527fade682d1l,
+        0x9b05688c2b3e6c1fl,
+        0x1f83d9abfb41bd6bl,
+        0x5be0cd19137e2179l
+    };
+    
+    protected final long[] H = new long[8];
+    private final int digestLength;
+    private final long[] IV;
+    private PacketA pac;
+    private BigInteger length;
+
+    /**
+     * 汎用初期.
+     *
+     * @param n 名前 SHA-512, SHA-384, SHA-512/t
+     * @param l 512,384,t
+     * @param iv 初期のあれ
+     */
+    protected SHA512(String n, int l, long[] iv) {
+        super(n);
+        digestLength = l;
+        IV = iv;
         engineReset();
     }
+
+    public SHA512() {
+        this("SHA-512",512,IV512);
+    }
+
+    static Map<Integer,long[]> hi = new HashMap<>();
 
     /**
      * SHA-512/t
-     * @param t 64の倍数 384, 512禁止
+     *
+     * @param t 8の倍数 384, 512以上禁止
      */
     protected SHA512(int t) {
-        super("SHA-512/" + t);
-        digestLength = t;
-        engineReset();
+        this("SHA-512/" + t,t,iv(t));
+        if (t == 384 || t > 511) {
+            throw new SecurityException();
+        }
     }
 
     /**
-     * SHA-384
-     * @param n SHA-384
-     * @param l 384
+     * 
+     * @param n digestLength
+     * @return 
      */
-    protected SHA512(String n, int l) {
-        super(n);
-        digestLength = l;
-        engineReset();
+    static long[] iv(int n) {
+        long[] H0 = hi.get(n);
+        if ( H0 == null) {
+            SHA512 hdigest = new SHA512();
+            for ( int i = 0; i < 8; i++) {
+                hdigest.H[i] ^= 0xa5a5a5a5a5a5a5a5l;
+            }
+            byte[] h0b;
+            try {
+                h0b = hdigest.digest(("SHA-512/" + n).getBytes("utf-8"));
+                H0 = new long[8];
+                for ( int i = 0; i < 8; i++) {
+                    for ( int j = 0; j < 8; j++) {
+                        H0[i] <<= 8;
+                        H0[i] |= h0b[i*8 + j] & 0xff;
+                    }
+                }
+                hi.put(n, H0);
+            } catch (UnsupportedEncodingException ex) {
+                throw new SecurityException(ex);
+            }
+        }
+        return H0;
     }
 
     @Override
     protected void engineReset() {
-        H = new long[]{
-            0x6a09e667f3bcc908l,
-            0xbb67ae8584caa73bl,
-            0x3c6ef372fe94f82bl,
-            0xa54ff53a5f1d36f1l,
-            0x510e527fade682d1l,
-            0x9b05688c2b3e6c1fl,
-            0x1f83d9abfb41bd6bl,
-            0x5be0cd19137e2179l
-        };
+        System.arraycopy(IV, 0, H, 0, IV.length);
         pac = new PacketA();
         length = BigInteger.valueOf(0);
     }
@@ -88,7 +131,7 @@ public class SHA512 extends MessageDigest {
     }
 
     static final long ch(final long x, final long y, final long z) {
-        return (x & y) ^ ((~x) & z);
+        return (x & y) ^ (~x & z);
     }
 
     static final long maj(final long x, final long y, final long z) {
@@ -125,68 +168,73 @@ public class SHA512 extends MessageDigest {
         pac.write(input, offset, len);
         length = length.add(BigInteger.valueOf(len * 8l));
 
+        if (pac.length() >= 128) {
+            byte[] in = new byte[128];
         long w[] = new long[80];
-        while (pac.length() >= 128) {
+            do {
             long a, b, c, d, e, f, g, h;
+                pac.read(in);
 
-            a = H[0];
-            b = H[1];
-            c = H[2];
-            d = H[3];
-            e = H[4];
-            f = H[5];
-            g = H[6];
-            h = H[7];
+                a = H[0];
+                b = H[1];
+                c = H[2];
+                d = H[3];
+                e = H[4];
+                f = H[5];
+                g = H[6];
+                h = H[7];
 
-            for (int t = 0; t < 16; t++) {
-                w[t] = (((long) pac.read()) << 56) + (((long) pac.read()) << 48)
-                        + (((long) pac.read()) << 40) + (((long) pac.read()) << 32)
-                        + (((long) pac.read()) << 24) + (pac.read() << 16)
-                        + (pac.read() << 8) + pac.read();
-                long temp1 = h + Σ1(e) + ch(e, f, g) + K[t] + w[t];
-                long temp2 = Σ0(a) + maj(a, b, c);
-                h = g;
-                g = f;
-                f = e;
-                e = d + temp1;
-                d = c;
-                c = b;
-                b = a;
-                a = temp1 + temp2;
-            }
+                for (int t = 0; t < 16; t++) {
+                    w[t] = (((long) in[t * 8] & 0xff) << 56)
+                            + (((long) in[t * 8 + 1] & 0xff) << 48)
+                            + (((long) in[t * 8 + 2] & 0xff) << 40)
+                            + (((long) in[t * 8 + 3] & 0xff) << 32)
+                            + (((long) in[t * 8 + 4] & 0xff) << 24)
+                            + ((in[t * 8 + 5] & 0xff) << 16)
+                            + ((in[t * 8 + 6] & 0xff) << 8)
+                            + (in[t * 8 + 7] & 0xff);
 
-            for (int t = 16; t < 80; t++) {
-                w[t] = σ1(w[t - 2]) + w[t - 7] + σ0(w[t - 15]) + w[t - 16];
-                long temp1 = h + Σ1(e) + ch(e, f, g) + K[t] + w[t];
-                long temp2 = Σ0(a) + maj(a, b, c);
-                h = g;
-                g = f;
-                f = e;
-                e = d + temp1;
-                d = c;
-                c = b;
-                b = a;
-                a = temp1 + temp2;
-            }
-            H[0] += a;
-            H[1] += b;
-            H[2] += c;
-            H[3] += d;
-            H[4] += e;
-            H[5] += f;
-            H[6] += g;
-            H[7] += h;
+                    long temp1 = h + Σ1(e) + ch(e, f, g) + K[t] + w[t];
+                    long temp2 = Σ0(a) + maj(a, b, c);
+                    h = g;
+                    g = f;
+                    f = e;
+                    e = d + temp1;
+                    d = c;
+                    c = b;
+                    b = a;
+                    a = temp1 + temp2;
+                }
+
+                for (int t = 16; t < 80; t++) {
+                    w[t] = σ1(w[t - 2]) + w[t - 7] + σ0(w[t - 15]) + w[t - 16];
+                    long temp1 = h + Σ1(e) + ch(e, f, g) + K[t] + w[t];
+                    long temp2 = Σ0(a) + maj(a, b, c);
+                    h = g;
+                    g = f;
+                    f = e;
+                    e = d + temp1;
+                    d = c;
+                    c = b;
+                    b = a;
+                    a = temp1 + temp2;
+                }
+                H[0] += a;
+                H[1] += b;
+                H[2] += c;
+                H[3] += d;
+                H[4] += e;
+                H[5] += f;
+                H[6] += g;
+                H[7] += h;
+            } while (pac.length() >= 128);
         }
     }
 
-    static byte[] toB(long[] src) {
-        byte[] ret = new byte[src.length * 8];
-        for (int i = 0; i < src.length; i++) {
-            long a = src[i];
-            for ( int j = 7; j >= 0; j-- ) {
-                ret[i*8+j] = (byte)(a & 0xff);
-                a >>>= 8;
-            }
+    static byte[] toB(long[] src, int len) {
+        byte[] ret = new byte[len];
+        for (int i = 0; i < len; i++) {
+            ret[i] = (byte) (src[i / 8] >>> (((7 - i) % 8) * 8));
         }
         return ret;
     }
@@ -195,19 +243,17 @@ public class SHA512 extends MessageDigest {
     protected byte[] engineDigest() {
 
         BigInteger len = length;
-        byte[] lb = len.toByteArray();
+        byte[] lb = len.toByteArray(); // 128bit
 
         // ラスト周
         // padding
         pac.write(new byte[]{(byte) 0x80});
-        int padlen = 1024 - (int) ((len.longValue() + lb.length * 8 + 8) % 1024);
-        pac.write(new byte[padlen / 8]);
+        int padlen = 1024 - ((len.mod(BigInteger.valueOf(1024)).intValue() + 16 * 8 + 8) % 1024);
+        pac.write(new byte[padlen / 8 + (16 - lb.length)]);
 
         engineUpdate(lb, 0, lb.length);
 
-        byte[] digest = new byte[digestLength/8];
-        byte[] ret = toB(H);
-        System.arraycopy(ret, 0, digest, 0, digest.length);
+        byte[] digest = toB(H, digestLength / 8);
         engineReset();
         return digest;
     }

@@ -54,10 +54,6 @@ public final class SHA1 extends MessageDigest {
         engineUpdate(new byte[]{input}, 0, 1);
     }
 
-    /**
-     *
-     * @param src
-     */
     @Override
     protected void engineUpdate(byte[] src, int offset, int len) {
         pac.write(src, offset, len);
@@ -122,7 +118,7 @@ public final class SHA1 extends MessageDigest {
 
         engineUpdate(lena, 0, lena.length);
 
-        byte[] ret = SHA256.toB(h, h.length);
+        byte[] ret = SHA256.toB(h, 20);
         engineReset();
         return ret;
     }

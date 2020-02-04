@@ -24,9 +24,9 @@ public class SHA3 extends MessageDigest {
 
     protected Packet pac;
     // byte
-    protected long length;
+    private long length;
 
-    long[] a;
+    private long[] a;
 
     static final long[] RC = new long[24];
     
@@ -36,8 +36,6 @@ public class SHA3 extends MessageDigest {
             for (int j = 0; j <= l; j++) { // l = 6
                 // little endian
                 RC[ir] |= rc(j + 7 * ir) ? (1l << ((1<<j) -1)) : 0;
-                // big endian
-//                RC |= rc(j + 7 * ir) ? (1l << (64 - (1<<j))) : 0;
             }
         }
     }
@@ -206,6 +204,20 @@ public class SHA3 extends MessageDigest {
         }
     }
 
+    /**
+     * SHA-512と逆
+     * @param src
+     * @param len
+     * @return 
+     */
+    static byte[] toB(long[] src, int len) {
+        byte[] ret = new byte[len];
+        for (int i = 0; i < len; i++) {
+            ret[i] = (byte) (src[i / 8] >>> ((i % 8) * 8));
+        }
+        return ret;
+    }
+
     @Override
     protected byte[] engineDigest() {
 
@@ -218,11 +230,7 @@ public class SHA3 extends MessageDigest {
 
         engineUpdate(pad, 0, pad.length);
 
-        byte[] digest = new byte[(n+7) / 8];
-
-        for (int i = 0; i < digest.length; i++) {
-            digest[i] = (byte) (a[i/8] >>> ((i%8) * 8));
-        }
+        byte[] digest = toB(a,(n+7) / 8);
         engineReset();
         return digest;
     }

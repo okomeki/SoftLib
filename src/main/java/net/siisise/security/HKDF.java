@@ -19,7 +19,7 @@ public class HKDF {
 
     /**
      *
-     * @param salt 塩
+     * @param salt 塩 (HMAC鍵)
      * @param ikm 秘密鍵
      * @param info 付加
      * @param length リクエスト鍵長 (HMACの255倍まで)
@@ -32,7 +32,7 @@ public class HKDF {
 
     /**
      *
-     * @param salt 塩
+     * @param salt 塩 (HMAC鍵)
      * @param ikm 秘密鍵
      * @return 中間鍵
      */
@@ -61,12 +61,11 @@ public class HKDF {
         PacketA pt = new PacketA();
         byte[] t = new byte[0];
         HMAC mac = new HMAC(sha, prk);
+        byte[] d = new byte[1];
         for (int i = 1; i <= n; i++) {
-            // d = t(i-1) + info + (byte)i
-            byte[] d = new byte[t.length + info.length + 1];
-            System.arraycopy(t, 0, d, 0, t.length);
-            System.arraycopy(info, 0, d, t.length, info.length);
-            d[d.length - 1] = (byte) i;
+            mac.update(t);
+            mac.update(info);
+            d[0] = (byte) i;
             t = mac.hmac(d);
             pt.write(t);
         }

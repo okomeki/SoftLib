@@ -13,9 +13,16 @@ public class SHA256 extends MessageDigest {
 
     public static String OBJECTIDENTIFIER = "2.16.840.1.101.3.4.2.1";
 
-    protected int[] H;
-    protected PacketA pac;
-    protected long length;
+    static final int[] IV256 = new int[]{
+        0x6a09e667,
+        0xbb67ae85,
+        0x3c6ef372,
+        0xa54ff53a,
+        0x510e527f,
+        0x9b05688c,
+        0x1f83d9ab,
+        0x5be0cd19
+    };
 
     static final int[] K = {
         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
@@ -36,28 +43,26 @@ public class SHA256 extends MessageDigest {
         0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
     };
 
+    final int[] H = new int[8];
+    protected PacketA pac;
+    protected long length;
+    private final int[] IV;
+
     public SHA256() {
         super("SHA-256");
+        IV = IV256;
         engineReset();
     }
 
-    protected SHA256(String n) {
+    protected SHA256(String n, int[] iv) {
         super(n);
+        IV = iv;
         engineReset();
     }
 
     @Override
     protected void engineReset() {
-        H = new int[]{
-            0x6a09e667,
-            0xbb67ae85,
-            0x3c6ef372,
-            0xa54ff53a,
-            0x510e527f,
-            0x9b05688c,
-            0x1f83d9ab,
-            0x5be0cd19
-        };
+        System.arraycopy(IV, 0, H, 0, IV.length);
         pac = new PacketA();
         length = 0;
     }
@@ -79,10 +84,6 @@ public class SHA256 extends MessageDigest {
     protected void engineUpdate(byte input) {
         engineUpdate(new byte[]{input}, 0, 1);
     }
-
-//    private static int SHR(final int x, final int n) {
-//        return x >>> n;
-//    }
 
     private static int ROTR(final int x, final int n) {
         return (x >>> n) | (x << (32 - n));
@@ -109,77 +110,68 @@ public class SHA256 extends MessageDigest {
         pac.write(input, offset, len);
         length += len * 8l;
 
-        int w[] = new int[64];
-        while (pac.length() >= 64) {
+        if (pac.length() >= 64) {
+            int w[] = new int[64];
+            byte in[] = new byte[64];
             int a, b, c, d, e, f, g, h;
-//            int[] n = new int[8];
+            do {
+                pac.read(in);
 
-            a = H[0];
-            b = H[1];
-            c = H[2];
-            d = H[3];
-            e = H[4];
-            f = H[5];
-            g = H[6];
-            h = H[7];
-//            System.arraycopy(H,0,n,0,8);
+                a = H[0];
+                b = H[1];
+                c = H[2];
+                d = H[3];
+                e = H[4];
+                f = H[5];
+                g = H[6];
+                h = H[7];
 
-            for (int t = 0; t < 16; t++) {
-                w[t] = (pac.read() << 24) + (pac.read() << 16) + (pac.read() << 8) + pac.read();
-                int temp1 = h + Σ1(e) + Ch(e, f, g) + K[t] + w[t];
-                int temp2 = Σ0(a) + Maj(a, b, c);
-                h = g;
-                g = f;
-                f = e;
-                e = d + temp1;
-                d = c;
-                c = b;
-                b = a;
-                a = temp1 + temp2;
-//                int addr = (4-t)&7;
-//                int temp1 = Σ1(n[addr]) + Ch(n[addr++&7],n[addr++&7],n[addr++&7]) + K[t] + w[t];
-//                int temp2 = Σ0(n[++addr&7]) + Maj(n[addr++&7],n[addr++&7],n[addr++&7]);
-//                n[addr&7] += n[(7-t)&7] + temp1;
-//                n[(7-t)&7] += temp1 + temp2;
-            }
-            
-            for (int t = 16; t < 64; t++) {
-                w[t] = σ1(w[t - 2]) + w[t - 7] + σ0(w[t - 15]) + w[t - 16];
-                int temp1 = h + Σ1(e) + Ch(e, f, g) + K[t] + w[t];
-                int temp2 = Σ0(a) + Maj(a, b, c);
-                h = g;
-                g = f;
-                f = e;
-                e = d + temp1;
-                d = c;
-                c = b;
-                b = a;
-                a = temp1 + temp2;
+                for (int t = 0; t < 16; t++) {
+                    w[t] = ((in[t * 4] & 0xff) << 24)
+                            + ((in[t * 4 + 1] & 0xff) << 16)
+                            + ((in[t * 4 + 2] & 0xff) << 8)
+                            + (in[t * 4 + 3] & 0xff);
+                    int temp1 = h + Σ1(e) + Ch(e, f, g) + K[t] + w[t];
+                    int temp2 = Σ0(a) + Maj(a, b, c);
+                    h = g;
+                    g = f;
+                    f = e;
+                    e = d + temp1;
+                    d = c;
+                    c = b;
+                    b = a;
+                    a = temp1 + temp2;
+                }
 
-//                int addr = (4-t)&7;
-//                int temp1 = Σ1(n[addr]) + Ch(n[addr++&7],n[addr++&7],n[addr++&7]) + K[t] + w[t];
-//                int temp2 = Σ0(n[++addr&7]) + Maj(n[addr++&7],n[addr++&7],n[addr++&7]);
-//                n[addr&7] += n[(7-t)&7] + temp1;
-//                n[(7-t)&7] += temp1 + temp2;
-            }
-            H[0] += a;//n[0];
-            H[1] += b;//n[1];
-            H[2] += c;//n[2];
-            H[3] += d;//n[3];
-            H[4] += e;//n[4];
-            H[5] += f;//n[5];
-            H[6] += g;//n[6];
-            H[7] += h;//n[7];
+                for (int t = 16; t < 64; t++) {
+                    w[t] = σ1(w[t - 2]) + w[t - 7] + σ0(w[t - 15]) + w[t - 16];
+                    int temp1 = h + Σ1(e) + Ch(e, f, g) + K[t] + w[t];
+                    int temp2 = Σ0(a) + Maj(a, b, c);
+                    h = g;
+                    g = f;
+                    f = e;
+                    e = d + temp1;
+                    d = c;
+                    c = b;
+                    b = a;
+                    a = temp1 + temp2;
+                }
+                H[0] += a;
+                H[1] += b;
+                H[2] += c;
+                H[3] += d;
+                H[4] += e;
+                H[5] += f;
+                H[6] += g;
+                H[7] += h;
+            } while (pac.length() >= 64);
         }
     }
-    
+
     static byte[] toB(int[] src, int len) {
-        byte[] ret = new byte[len * 4];
+        byte[] ret = new byte[len];
         for (int i = 0; i < len; i++) {
-            ret[i * 4] = (byte) ((src[i] >>> 24) & 0xff);
-            ret[i * 4 + 1] = (byte) ((src[i] >>> 16) & 0xff);
-            ret[i * 4 + 2] = (byte) ((src[i] >>> 8) & 0xff);
-            ret[i * 4 + 3] = (byte) (src[i] & 0xff);
+            ret[i] = (byte) (src[i / 4] >>> (((3 - i) % 4) * 8));
         }
         return ret;
     }
@@ -192,17 +184,17 @@ public class SHA256 extends MessageDigest {
         // ラスト周
         // padding
         pac.write(new byte[]{(byte) 0x80});
-        int padlen = 512 - (int) ((len + 64+8) % 512);
+        int padlen = 512 - (int) ((len + 64 + 8) % 512);
         pac.write(new byte[padlen / 8]);
         byte[] lena = new byte[8];
-        for ( int i = 0; i < 8; i++ ) {
-            lena[7-i] = (byte) (len & 0xff);
+        for (int i = 0; i < 8; i++) {
+            lena[7 - i] = (byte) len;
             len >>>= 8;
         }
 
-        engineUpdate(lena,0,lena.length);
+        engineUpdate(lena, 0, lena.length);
 
-        byte[] ret = toB(H, H.length);
+        byte[] ret = toB(H, engineGetDigestLength());
         engineReset();
         return ret;
     }
