@@ -170,7 +170,7 @@ public class SHA512 extends MessageDigest {
 
         if (pac.length() >= 128) {
             byte[] in = new byte[128];
-        long w[] = new long[80];
+            long w[] = new long[80];
             do {
             long a, b, c, d, e, f, g, h;
                 pac.read(in);
