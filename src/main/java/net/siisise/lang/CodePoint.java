@@ -1,23 +1,32 @@
 package net.siisise.lang;
 
-import net.siisise.io.Packet;
+import net.siisise.io.FrontPacket;
 
 /**
  * RFC 3629
+ * 拡張漢字、補助文字、補助漢字?
+ * String のcodePoint(UCS-4)系をchar(UCS-2)風にする
  */
 public class CodePoint {
     private final int[] chars;
+    private final java.lang.String org;
 
     public CodePoint() {
         chars = new int[0];
+        org = "";
     }
 
     public CodePoint( java.lang.String src ) {
+        org = src;
         int size = src.codePointCount( 0, src.length() );
         chars = new int[size];
         for ( int index = 0; index < size; index++ ) {
             chars[index] = src.codePointAt( index );
         }
+    }
+
+    public int length() {
+        return chars.length;
     }
     
     /**
@@ -26,7 +35,7 @@ public class CodePoint {
      * @return 文字
      */
     public int charAt(int index) {
-        return chars[index];
+        return org.codePointAt( index );
     }
     
     /**
@@ -35,16 +44,7 @@ public class CodePoint {
      * @return 位置
      */
     public int indexOf(int cp) {
-        for ( int i = 0; i < chars.length; i++ ) {
-            if ( chars[i] == cp ) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    public int length() {
-        return chars.length;
+        return org.codePointAt( org.indexOf( cp ));
     }
     
     public boolean isEmpty() {
@@ -58,7 +58,7 @@ public class CodePoint {
      * @param pac
      * @return UCS-4または不正の場合-1
      */
-    public static int utf8(Packet pac) {
+    public static int utf8(FrontPacket pac) {
         int rd = pac.read();
         int len;
         int min;
