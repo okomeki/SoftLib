@@ -1,6 +1,7 @@
 package net.siisise.security;
 
 import java.security.MessageDigest;
+import javax.crypto.spec.SecretKeySpec;
 import net.siisise.io.PacketA;
 
 /**
@@ -40,8 +41,9 @@ public class HKDF {
         if (salt == null) {
             salt = new byte[0];
         }
-        HMAC mac = new HMAC(sha, salt);
-        return mac.hmac(ikm);
+        SecretKeySpec sk = new SecretKeySpec(salt, "HMAC-" + sha.getAlgorithm());
+        HMAC mac = new HMAC(sk);
+        return mac.doFinal(ikm);
     }
 
     /**
@@ -66,7 +68,7 @@ public class HKDF {
             mac.update(t);
             mac.update(info);
             d[0] = (byte) i;
-            t = mac.hmac(d);
+            t = mac.doFinal(d);
             pt.write(t);
         }
         byte[] r = new byte[length];

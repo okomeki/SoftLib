@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 
 /**
  * 便利につかえる仮のクラス
@@ -54,6 +56,27 @@ public class FileIO {
      */
     public static int io(InputStream in, OutputStream out) throws IOException {
         byte[] data = new byte[10200];
+        int size = 0;
+        int len;
+        len = in.read(data);
+        while (len >= 0) {
+            out.write(data, 0, len);
+            size += len;
+            len = in.read(data);
+        }
+        out.flush();
+        return size;
+    }
+    
+    /**
+     * 
+     * @param in
+     * @param out
+     * @return
+     * @throws IOException 
+     */
+    public static int io(Reader in, Writer out) throws IOException {
+        char[] data = new char[10000];
         int size = 0;
         int len;
         len = in.read(data);

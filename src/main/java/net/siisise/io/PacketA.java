@@ -68,10 +68,11 @@ public class PacketA implements Packet {
      * ちょっと違うので分けたい (未使用?)
      */
     enum Mode {
-        /** 1バイト待たない */
+        /** 1バイト待たない. */
         STREAM,
         /** 1バイトデータが用意されるまでブロックする? */
         BLOCK,
+        /** 終了しました. */
         EOF,
         CLOSE
     }
@@ -325,7 +326,7 @@ public class PacketA implements Packet {
 
     @Override
     public byte[] toByteArray() {
-        byte[] d = new byte[(int) length()];
+        byte[] d = new byte[size()];
         read(d);
         return d;
     }

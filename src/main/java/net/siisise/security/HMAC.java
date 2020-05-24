@@ -1,11 +1,15 @@
 package net.siisise.security;
 
+import net.siisise.security.digest.MessageDigestSpec;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
+ * The Keyed-Hash Message Authentication Code (HMAC) FIPS 198-1.
  * Java標準ではない仮の鍵付きハッシュの形.
  * あとで標準に寄せる。
- * 
+ *
  * H 暗号ハッシュ関数.
  * K 秘密鍵 / 認証鍵.
  * B Hのブロックバイト長 512 / 8
@@ -13,13 +17,30 @@ import java.security.MessageDigest;
  * ipad 0x36をB回繰り返したもの
  * opad 0x5c をB回繰り返したもの
  *
- * MD5 B 512bit L 128bit
- * 
+ * 対応可能なアルゴリズム
+ * HMAC-MD5         B  512bit L 128bit
+ * HMAC-MD5-96      B  512bit L  96bit
+ * HMAC-SHA-1       B  512bit L 160bit
+ * HMAC-SHA-1-96    B  512bit L  96bit
+ * HMAC-SHA-224     B  512bit L 224bit
+ * HMAC-SHA-256     B  512bit L 256bit
+ * HMAC-SHA-384     B 1024bit L 384bit
+ * HMAC-SHA-512     B 1024bit L 512bit
+ * HMAC-SHA-512/224 B 1024bit L 224bit
+ * HMAC-SHA-512/256 B 1024bit L 256bit
+ * HMAC-SHA3-224    B 1024bit L 224bit
+ * HMAC-SHA3-256    B 1024bit L 256bit
+ * HMAC-SHA3-384    B 1024bit L 384bit
+ * HMAC-SHA3-512    B 1024bit L 512bit
+ *
+ * FIPS PUB 198-1
  * RFC 2104 HMAC: Keyed-Hashing for Message Authentication.
  * RFC 2202 テスト
+ * RFC 4231 Identifiers and Test Vector for HMAC-SHA-224, HMAC-SHA-256,
+ *                          HMAC-SHA-384, and HMAC-SHA-512
  */
 public class HMAC {
-    
+
     public static final String rsadsi = "1.2.840.113549";
     public static final String digestAlgorithm = rsadsi + ".2";
     public static final String idhmacWithSHA224 = digestAlgorithm + ".8";
@@ -28,37 +49,99 @@ public class HMAC {
     public static final String idhmacWithSHA512 = digestAlgorithm + ".11";
 
     private MessageDigest md;
+    int blockLength;
     private byte[] k_ipad;
     private byte[] k_opad;
 
     /**
+     * ブロック長 512ビット または Spec対応用.
      *
-     * @param md MD5, SHA-1, SHA-256 など512bitブロックのもの
-     * @param key 鍵
+     * @param md MD5, SHA-1, SHA-256 など(汎用)512bitブロックのもの または
+     * MessageDigestSpec対応版
+     * @param key 鍵 ブロック長 512bitのもの.
      */
     public HMAC(MessageDigest md, byte[] key) {
         this.md = md;
-        genPad(key, 512);
+        if (md instanceof MessageDigestSpec) {
+            blockLength = ((MessageDigestSpec) md).getBlockLength();
+        } else {
+            blockLength = 512;
+        }
+        init(key);
     }
 
+    /**
+     * HMACの初期設定.
+     * アルゴリズムが指定可能なのでkeyのみでdigestも指定可能.
+     *
+     * @param key アルゴリズムと鍵.
+     */
+    public HMAC(SecretKeySpec key) {
+        blockLength = 512;
+        init(key);
+    }
+
+    /**
+     * ブロック長 1024ビットなど用(仮).
+     *
+     * @param md SHA-384, SHA-512, SHA-512/224, SHA-512/256, SHA-3
+     * @param blockBitLength
+     * @param key
+     */
     public HMAC(MessageDigest md, int blockBitLength, byte[] key) {
         this.md = md;
-        genPad(key, blockBitLength);
+        blockLength = blockBitLength;
+        init(key);
+    }
+
+    public HMAC(MessageDigest md, int blockBitLength, SecretKeySpec key) {
+        this.md = md;
+        blockLength = blockBitLength;
+        init(key);
+    }
+
+    /**
+     * 鍵とアルゴリズムの指定.
+     *
+     * @param key
+     */
+    public void init(SecretKeySpec key) {
+        String alg = key.getAlgorithm();
+        if (alg.startsWith("HMAC-")) { // RFC系の名前?
+            md = (MessageDigest) MessageDigestSpec.getInstance(key.getAlgorithm().substring(5));
+        } else if (alg.startsWith("Hmac")) {
+            try {  // Java系の名前
+                md = MessageDigest.getInstance(alg);
+            } catch (NoSuchAlgorithmException ex) {
+                if (md == null) {
+                    throw new SecurityException(ex);
+                }
+            }
+
+        } else {
+            throw new java.lang.UnsupportedOperationException();
+        }
+        this.md = md;
+        if (md instanceof MessageDigestSpec) {
+            blockLength = ((MessageDigestSpec) md).getBlockLength();
+        }
+        init(key.getEncoded());
     }
 
     /**
      * 鍵.
      * L以上の長さが必要.
      * B以上の場合はハッシュ値に置き換える.
+     *
      * @param key 鍵
      */
-    void genPad(byte[] key, int blockLength) {
+    public void init(byte[] key) {
         int b = blockLength / 8;
         md.reset();
-        if ( key.length > b) {
+        if (key.length > b) {
             key = md.digest(key);
         }
-        
+
         k_ipad = new byte[b];
         k_opad = new byte[b];
 
@@ -71,9 +154,9 @@ public class HMAC {
         }
         md.update(k_ipad);
     }
-    
+
     public void update(byte[] src) {
-        md.update(src);
+        md.update(src, 0, src.length);
     }
 
     public void update(byte[] src, int offset, int len) {
@@ -85,7 +168,7 @@ public class HMAC {
      * @param src
      * @return HMAC値
      */
-    public byte[] hmac(byte[] src) {
+    public byte[] doFinal(byte[] src) {
         byte[] m = md.digest(src);
 
         md.update(k_opad);

@@ -1,7 +1,5 @@
 package net.siisise.io;
 
-import java.io.OutputStream;
-
 /**
  * First In First Out Stream Packet.
  * 配列のような固定長でもなく、リストのような細切れでもないものを作ってみた。
@@ -18,5 +16,9 @@ public interface Packet extends FrontPacket,BackPacket {
      * @return 
      */
     long length();
+    /**
+     * 32ビット内であればそのサイズ、それ以上はIntegerの最大値
+     * @return 
+     */
     int size();
 }
