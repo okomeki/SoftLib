@@ -157,7 +157,7 @@ public class FrontPacketF implements FrontPacket {
     
     /**
      * サイズ取得。
-     * abailableしか使えないので不確定な要素.
+     * availableしか使えないので不確定な要素.
      * @return 
      */
     @Override
@@ -170,6 +170,11 @@ public class FrontPacketF implements FrontPacket {
         return 0;
     }
     
+    /**
+     * 連結した入力を閉じる.
+     * Packetには特殊な要素.
+     * @throws IOException 
+     */
     public void close() throws IOException {
         in.close();
     }

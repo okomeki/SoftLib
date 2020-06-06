@@ -68,6 +68,7 @@ public class CodePoint {
         if (rd < 0x80) {        // 0xxx xxxx 1バイト 7bit 00 - 7f
             return rd;
         } else if (rd < 0xc0) { // 10xx xxxx 80 - 7ff 2バイト目以降
+            pac.backWrite(rd);
             return -1;
         } else if (rd < 0xe0) { // 110x xxxx 2バイト 11bit
             rd &= 0x1f;
@@ -84,11 +85,20 @@ public class CodePoint {
         }
 
         for (int i = 0; i < len; i++) {
-            rd <<= 6;
             int c = pac.read();
+            
             if ((c & 0xc0) != 0x80) {
+                if ( c >= 0) {
+                    pac.backWrite(c);
+                }
+                for ( int x = 0; x < i; x++ ) {
+                    pac.backWrite((rd & 0x3f) | 0x80);
+                    rd >>>= 6;
+                }
+                pac.backWrite(rd | (0xf0 & (0xf80 >> len)));
                 return -1;
             }
+            rd <<= 6;
             rd |= (c & 0x3f);
         }
         if (rd < min || rd > 0x10ffff) {
