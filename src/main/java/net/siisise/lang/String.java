@@ -118,18 +118,13 @@ public class String {
      */
     public static java.lang.String kanaLower(java.lang.String str) {
         StringBuffer str2;
-        //        char[] str2;
-        str2 = new StringBuffer();
-        char ch;
-        //str = kanaconv(str);
-        for (int i = 0; i < str.length(); i++) {
-            ch = str.charAt(i);
-            //idx = kana2.indexOf(ch);
-            if (ch >= 0x3040 && ch <= 0x309A) {
-                ch += 0x60;
+        str2 = new StringBuffer(str.length());
+        str.chars().forEach(ch -> {
+            if ( ch >= 0x3040 && ch <= 0x309A) {
+                ch+= 0x60;
             }
-            str2.append(ch);
-        }
+            str2.append((char)ch);
+        });
         return str2.toString();
     }
     // Windows で記述する場合
