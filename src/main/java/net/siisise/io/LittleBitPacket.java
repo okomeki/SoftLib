@@ -204,12 +204,10 @@ public class LittleBitPacket extends BaseBitPac {
          * @return 
          */
         @Override
-        public long readBit(byte[] data, long offsetBit, long length) {
-            long retLength;
+        public long readBit(byte[] data, final long offsetBit, long length) {
             if (length > bitLength()) {
                 length = bitLength();
             }
-            retLength = length;
             int of = (int) ((offsetBit + length) / 8);
             int ofbit = (int) ((offsetBit + length) % 8);
 
