@@ -21,6 +21,11 @@ public interface FrontPacket {
      */
     OutputStream getBackOutputStream();
 
+    /**
+     * InputStreamとの違い
+     * 入力ブロックせずに データ:0-255 または データ無し:-1 を返す
+     * @return -1 または 0-255
+     */
     int read();
     int read(byte[] data, int offset, int length);
     int read(byte[] data);
@@ -41,6 +46,12 @@ public interface FrontPacket {
      */
     void backWrite(byte[] data, int offset, int length);
     void backWrite(byte[] data);
+
+    /**
+     * 複製しない(可能な場合)
+     * @param data 
+     */
+    void dbackWrite(byte[] data);
 
     long length();
     int size();

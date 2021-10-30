@@ -11,7 +11,6 @@ import java.lang.reflect.Method;
  * 1つのクラスで複数のスレッド用メソッドを用意したいことはよくあります。
  * 別のクラスを用意することなく利用できます。
  *
- * @version 1.03
  */
 public class ParamThread extends java.lang.Thread {
 

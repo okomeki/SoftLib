@@ -15,10 +15,12 @@ public interface Packet extends FrontPacket,BackPacket {
      * 32ビットでは足りないかもと足してみた
      * @return 
      */
+    @Override
     long length();
     /**
      * 32ビット内であればそのサイズ、それ以上はIntegerの最大値
      * @return 
      */
+    @Override
     int size();
 }

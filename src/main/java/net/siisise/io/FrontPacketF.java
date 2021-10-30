@@ -155,6 +155,11 @@ public class FrontPacketF implements FrontPacket {
         inpac.backWrite(data);
     }
     
+    @Override
+    public void dbackWrite(byte[] data) {
+        inpac.dbackWrite(data);
+    }
+    
     /**
      * サイズ取得。
      * availableしか使えないので不確定な要素.

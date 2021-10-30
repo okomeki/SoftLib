@@ -54,7 +54,7 @@ public class PacketA implements Packet {
             prev = pre;
         }
 
-        void delete() {
+        private void delete() {
 //            addPrev(next);
             next.prev = prev;
             prev.next = next;
@@ -70,7 +70,10 @@ public class PacketA implements Packet {
     enum Mode {
         /** 1バイト待たない. */
         STREAM,
-        /** 1バイトデータが用意されるまでブロックする? */
+        /**
+         * 1バイトデータが用意されるまでブロックする? 
+         * 未実装
+         */
         BLOCK,
         /** 終了しました. */
         EOF,
@@ -82,12 +85,7 @@ public class PacketA implements Packet {
      */
     private class PacketBaseInputStream extends InputStream {
 
-        PacketIn base;
-        Mode mode = Mode.STREAM;
-
-        PacketBaseInputStream(PacketIn nullPac) {
-            base = nullPac;
-        }
+//        private Mode mode = Mode.STREAM;
 
         @Override
         public int read() {
@@ -108,8 +106,8 @@ public class PacketA implements Packet {
         public int read(byte[] b, int offset, int length) {
             PacketIn n;
             int len = 0;
-            while (base.next != nullPack) {
-                n = base.next;
+            while (nullPack.next != nullPack) {
+                n = nullPack.next;
                 if (length >= n.length) {
                     System.arraycopy(n.data, n.offset, b, offset, n.length);
                     length -= n.length;
@@ -125,7 +123,7 @@ public class PacketA implements Packet {
                 }
             }
             // 
-            mode = Mode.EOF;
+//            mode = Mode.EOF;
             return len;
         }
 
@@ -137,11 +135,9 @@ public class PacketA implements Packet {
 
     private class PacketBackInputStream extends InputStream {
 
-        PacketIn base;
-        Mode mode = Mode.STREAM;
+//        private Mode mode = Mode.STREAM;
 
-        PacketBackInputStream(PacketIn nullPac) {
-            base = nullPac;
+        PacketBackInputStream() {
         }
 
         @Override
@@ -163,8 +159,8 @@ public class PacketA implements Packet {
         public int read(byte[] b, int offset, int length) {
             PacketIn n;
             int len = 0;
-            while (base.prev != nullPack) {
-                n = base.prev;
+            while (nullPack.prev != nullPack) {
+                n = nullPack.prev;
                 if (length >= n.length) {
                     System.arraycopy(n.data, n.offset, b, offset + length - n.length, n.length);
                     length -= n.length;
@@ -178,7 +174,7 @@ public class PacketA implements Packet {
                 }
             }
             // 
-            mode = Mode.EOF;
+//            mode = Mode.EOF;
             return len;
         }
 
@@ -256,21 +252,21 @@ public class PacketA implements Packet {
         }
     }
 
-    PacketBaseInputStream in;
-    PacketBackInputStream bin;
-    PacketBaseOutputStream out;
-    PacketBackOutputStream bout;
+    private final PacketBaseInputStream in;
+    private final PacketBackInputStream bin;
+    private final PacketBaseOutputStream out;
+    private final PacketBackOutputStream bout;
 
     public PacketA() {
-        in = new PacketBaseInputStream(nullPack);
-        bin = new PacketBackInputStream(nullPack);
+        in = new PacketBaseInputStream();
+        bin = new PacketBackInputStream();
         out = new PacketBaseOutputStream();
         bout = new PacketBackOutputStream();
     }
 
     public PacketA(byte[] b) {
-        in = new PacketBaseInputStream(nullPack);
-        bin = new PacketBackInputStream(nullPack);
+        in = new PacketBaseInputStream();
+        bin = new PacketBackInputStream();
         out = new PacketBaseOutputStream();
         bout = new PacketBackOutputStream();
         write(b);
@@ -281,6 +277,7 @@ public class PacketA implements Packet {
         return in;
     }
 
+    @Override
     public InputStream getBackInputStream() {
         return bin;
     }
@@ -289,7 +286,8 @@ public class PacketA implements Packet {
     public OutputStream getOutputStream() {
         return out;
     }
-    
+
+    @Override
     public OutputStream getBackOutputStream() {
         return bout;
     }
@@ -345,6 +343,10 @@ public class PacketA implements Packet {
     public void write(byte[] b) {
         out.write(b);
     }
+    
+    public void dwrite(byte[] d) {
+        nullPack.addPrev(new PacketIn(d));        
+    }
 
     @Override
     public void backWrite(int b) {
@@ -359,6 +361,10 @@ public class PacketA implements Packet {
     @Override
     public void backWrite(byte[] b) {
         bout.write(b);
+    }
+
+    public void dbackWrite(byte[] d) {
+        nullPack.next.addPrev(new PacketIn(d));
     }
 
     @Override

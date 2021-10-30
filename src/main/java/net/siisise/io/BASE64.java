@@ -15,7 +15,6 @@ import java.io.Writer;
  * BASE64エンコーダ/デコーダ。
  * RFC 2045
  * RFC 3548等もある
- * net.siisise.lang.String へ持っていっても可
  * ApacheにBASE64もあるらしいがちょっと違う
  *
  * 改行コードはOSに依存せず通信の標準である\r\nに統一します。
@@ -26,11 +25,6 @@ import java.io.Writer;
  * 2006/11/09 GPLライセンス適用
  * 2006/10/25 0.3 RFCヘッダフッタ処理機能追加
  *
- * このコードのライセンスはGPLですが、他のソフトウェアに組み込みたい場合は、ご連絡ください。
- * 寄付歓迎
- *
- * @version 0.5
- * @author okome 佐藤 雅俊
  */
 public class BASE64 {
 
@@ -315,7 +309,7 @@ public class BASE64 {
      * @param length 変換元バイト列の長さ
      * @return BASE64符号化時のサイズ
      */
-    private final int b64size(int length) {
+    private int b64size(int length) {
         int b64size = (length + 2) / 3 * 4; // 改行含まず
         if (cols > 0) {
             b64size += (b64size + cols - 1) / cols * 2; // 字数は4の倍数のみ想定

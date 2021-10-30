@@ -101,10 +101,10 @@ public abstract class BaseBitPac implements BitPacket {
         public abstract void writeBit(byte[] data, long bitOffset, long bitLength);
     }
 
-    BitInputStream in;
-    BitOutputStream out;
-    BitInputStream backIn;
-    BitOutputStream backOut;
+    protected BitInputStream in;
+    protected BitOutputStream out;
+    protected BitInputStream backIn;
+    protected BitOutputStream backOut;
 
     @Override
     public BitInputStream getInputStream() {
@@ -287,6 +287,11 @@ public abstract class BaseBitPac implements BitPacket {
 
     @Override
     public void backWrite(byte[] data) {
+        backOut.write(data, 0, data.length);
+    }
+
+    @Override
+    public void dbackWrite(byte[] data) {
         backOut.write(data, 0, data.length);
     }
 
