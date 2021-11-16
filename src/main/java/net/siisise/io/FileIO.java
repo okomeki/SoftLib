@@ -14,7 +14,6 @@ import java.io.Writer;
  * 便利につかえる仮のクラス
  * URL系にまとめたい
  *
- * @author okome
  */
 public class FileIO {
 

@@ -15,11 +15,11 @@ public abstract class BaseBitPac implements BitPacket {
     /**
      * 前方空白量
      */
-    int readPadding;
+    protected int readPadding;
     /**
      * 後方空白量
      */
-    int writePadding;
+    protected int writePadding;
 
     abstract public class BitInputStream extends InputStream {
 

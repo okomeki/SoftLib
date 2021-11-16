@@ -30,6 +30,10 @@ public interface FrontPacket {
     int read(byte[] data, int offset, int length);
     int read(byte[] data);
 
+    /**
+     * byte配列に変換する。
+     * @return 全データの配列
+     */
     byte[] toByteArray();
 
     /**
@@ -37,6 +41,7 @@ public interface FrontPacket {
      * @param data 下位8ビットのみ
      */
     void backWrite(int data);
+
     /**
      * 読み出しの手前にデータを足す.
      * 読んだデータを戻すのに便利.
@@ -45,11 +50,17 @@ public interface FrontPacket {
      * @param length データ長
      */
     void backWrite(byte[] data, int offset, int length);
+    
+    /**
+     * 読み出しの手前にデータを足す.
+     * 読んだデータを戻すのに便利.
+     * @param data データを含む配列.
+     */
     void backWrite(byte[] data);
 
     /**
      * 複製しない(可能な場合)
-     * @param data 
+     * @param data データ列
      */
     void dbackWrite(byte[] data);
 
