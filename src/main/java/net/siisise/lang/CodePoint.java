@@ -1,14 +1,26 @@
 package net.siisise.lang;
 
+import java.util.Arrays;
+import java.util.stream.IntStream;
 import net.siisise.io.FrontPacket;
 
 /**
  * RFC 3629
  * 拡張漢字、補助文字、補助漢字?
  * String のcodePoint(UCS-4)系をchar(UCS-2)風にする
+ * 想定範囲は当面 UTF-32 (U+0-U+10FFFF) の範囲内
+ * CharSequence は charAtの戻り値型がchar/intで異なるため継承できないのでcodePointAtにしようかな
  */
 public class CodePoint {
+
+    /**
+     * CodePoint(UCS-4)化した文字列
+     * UTF-32として扱っても問題ない範囲
+     */
     private final int[] chars;
+    /**
+     * 元のUTF-16の文字列
+     */
     private final java.lang.String org;
 
     public CodePoint() {
@@ -16,6 +28,10 @@ public class CodePoint {
         org = "";
     }
 
+    /**
+     * 文字列をUCS-4で扱う方向に初期化
+     * @param src Java(UTF-16)の文字列
+     */
     public CodePoint( java.lang.String src ) {
         org = src;
         int size = src.codePointCount( 0, src.length() );
@@ -25,28 +41,45 @@ public class CodePoint {
         }
     }
 
+    /**
+     * code point 長
+     * @return code point(UCS-4/UTF-32) 単位の文字数
+     */
     public int length() {
         return chars.length;
     }
     
     /**
      * 位置の文字を返す
+     * codePointAt で揃えた方がいい気がした
      * @param index 位置
-     * @return 文字
+     * @return UCS-4/UTF-32文字
      */
     public int charAt(int index) {
-        return org.codePointAt( index );
+        return chars[index];
+//        return org.codePointAt( index ); // 同じ結果のはず
     }
     
     /**
+     * 文字の位置を返すはずだったもの
+     * cpがucs-2の0-0xffffときcharsにUCS-4が混ざっているとString#indexOfと結果が違う予定
      * 
      * @param cp 文字
      * @return 位置
      */
     public int indexOf(int cp) {
-        return org.codePointAt( org.indexOf( cp ));
+        for ( int i = 0; i < chars.length; i++ ) {
+            if ( chars[i] == cp ) {
+                return i;
+            }
+        }
+        return -1;
     }
     
+    /**
+     * String互換 空文字列?
+     * @return 
+     */
     public boolean isEmpty() {
         return chars.length == 0;
     }
@@ -136,4 +169,23 @@ public class CodePoint {
         }
         throw new java.lang.UnsupportedOperationException();
     }
+    
+    @Override
+    public java.lang.String toString() {
+        return org;
+    }
+    
+    /**
+     * CharSequenceとして振る舞う?
+     * codePointsと同じ結果を返す?
+     * @return 
+     */
+    public IntStream chars() {
+        return Arrays.stream(chars);
+    }
+    
+    public IntStream codePoints() {
+        return Arrays.stream(chars);
+    }
+
 }

@@ -259,6 +259,11 @@ public abstract class BaseBitPac implements BitPacket {
     public void write(byte[] data, int offset, int length) {
         out.write(data, offset, length);
     }
+    
+    @Override
+    public void write(FrontPacket pac) {
+        write(pac.toByteArray());
+    }
 
     @Override
     public void writeBit(int data, int bitLength) {

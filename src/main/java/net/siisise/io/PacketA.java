@@ -5,6 +5,7 @@ import java.io.OutputStream;
 
 /**
  * First In First Out Stream Packet.
+ * 参照型リストのようなもの
  * 4回目くらいの実装
  */
 public class PacketA implements Packet {
@@ -32,7 +33,7 @@ public class PacketA implements Packet {
             length = 0;
         }
 
-        PacketIn(byte[] data) {
+        private PacketIn(byte[] data) {
             prev = this;
             next = this;
             this.data = data;
@@ -40,13 +41,21 @@ public class PacketA implements Packet {
             length = data.length;
         }
 
+        final void addPrev(byte[] data) {
+            PacketIn pac = new PacketIn(data);
+            addPrev(pac);
+        }
+
         /**
+         * PacketInをリングに追加する.
+         * 2つのPacketを繋ぐことも可
+         * 
          * this = B pac = D this A // B pac C // D B.prev = C C.next = B D.prev
          * = A pac が nextのとき 自分が輪から切れる
          *
          * @param pac
          */
-        void addPrev(PacketIn pac) {
+        final void addPrev(PacketIn pac) {
             prev.next = pac;
             pac.prev.next = this;
             PacketIn pre = pac.prev;
@@ -54,6 +63,9 @@ public class PacketA implements Packet {
             prev = pre;
         }
 
+        /**
+         * 自分から前後の参照は残しつつ切り離す
+         */
         private void delete() {
 //            addPrev(next);
             next.prev = prev;
@@ -62,7 +74,7 @@ public class PacketA implements Packet {
 
     }
 
-    PacketIn nullPack = new PacketIn();
+    final PacketIn nullPack = new PacketIn();
 
     /**
      * ちょっと違うので分けたい (未使用?)
@@ -209,14 +221,14 @@ public class PacketA implements Packet {
             while (length > MAXLENGTH) {
                 d = new byte[MAXLENGTH];
                 System.arraycopy(src, offset, d, 0, MAXLENGTH);
-                nullPack.addPrev(new PacketIn(d));
+                nullPack.addPrev(d);
                 length -= MAXLENGTH;
                 offset += MAXLENGTH;
             }
             if (length > 0) {
                 d = new byte[length];
                 System.arraycopy(src, offset, d, 0, length);
-                nullPack.addPrev(new PacketIn(d));
+                nullPack.addPrev(d);
             }
         }
     }
@@ -237,17 +249,23 @@ public class PacketA implements Packet {
         public void write(byte[] src, int offset, int length) {
             PacketIn nn = nullPack.next;
             byte[] d;
+            if (nn.offset >= length) { // 空いているところに詰め込むことにしてみたり nullPackはoffset 0なので判定しなくて問題ない
+                nn.offset -= length;
+                nn.length += length;
+                System.arraycopy(src, offset, nn.data, nn.offset, length);
+                return;
+            }
             while (length > MAXLENGTH) {
                 d = new byte[MAXLENGTH];
                 System.arraycopy(src, offset, d, 0, MAXLENGTH);
-                nn.addPrev(new PacketIn(d));
+                nn.addPrev(d);
                 length -= MAXLENGTH;
                 offset += MAXLENGTH;
             }
             if (length > 0) {
                 d = new byte[length];
                 System.arraycopy(src, offset, d, 0, length);
-                nn.addPrev(new PacketIn(d));
+                nn.addPrev(d);
             }
         }
     }
@@ -330,6 +348,17 @@ public class PacketA implements Packet {
     }
 
     @Override
+    public void write(FrontPacket pac) {
+        if (pac instanceof PacketA) {
+            PacketIn an = ((PacketA)pac).nullPack;
+            nullPack.addPrev(an);
+            an.addPrev(an.next);
+        } else {
+            write(pac.toByteArray());
+        }
+    }
+
+    @Override
     public void write(int b) {
         out.write(b);
     }
@@ -345,7 +374,7 @@ public class PacketA implements Packet {
     }
     
     public void dwrite(byte[] d) {
-        nullPack.addPrev(new PacketIn(d));        
+        nullPack.addPrev(d);        
     }
 
     @Override
@@ -363,8 +392,9 @@ public class PacketA implements Packet {
         bout.write(b);
     }
 
+    @Override
     public void dbackWrite(byte[] d) {
-        nullPack.next.addPrev(new PacketIn(d));
+        nullPack.next.addPrev(d);
     }
 
     @Override

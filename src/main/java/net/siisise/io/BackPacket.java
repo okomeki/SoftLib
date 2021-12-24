@@ -15,6 +15,7 @@ public interface BackPacket {
     void write(int data);
     void write(byte[] data, int offset, int length);
     void write(byte[] data);
+    void write(FrontPacket pac);
 
     int backRead();
     int backRead(byte[] data, int offset, int length);
