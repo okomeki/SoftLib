@@ -249,7 +249,7 @@ public class PacketA implements Packet {
         public void write(byte[] src, int offset, int length) {
             PacketIn nn = nullPack.next;
             byte[] d;
-            if (nn.offset >= length) { // 空いているところに詰め込むことにしてみたり nullPackはoffset 0なので判定しなくて問題ない
+            if (length > 0 && nn.offset >= length) { // 空いているところに詰め込むことにしてみたり nullPackはoffset 0なので判定しなくて問題ない
                 nn.offset -= length;
                 nn.length += length;
                 System.arraycopy(src, offset, nn.data, nn.offset, length);
