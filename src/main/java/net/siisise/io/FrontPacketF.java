@@ -3,6 +3,7 @@ package net.siisise.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,6 +18,10 @@ public class FrontPacketF implements FrontPacket {
     
     public FrontPacketF(InputStream in) {
         this.in = new FrontInputStream(in);
+    }
+
+    public FrontPacketF(Reader reader) {
+        this(new ReaderInputStream(reader));
     }
 
     @Override
