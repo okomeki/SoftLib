@@ -54,7 +54,7 @@ public class FileIO {
      * @throws IOException 
      */
     public static int io(InputStream in, OutputStream out) throws IOException {
-        byte[] data = new byte[10200];
+        byte[] data = new byte[102400];
         int size = 0;
         int len;
         len = in.read(data);

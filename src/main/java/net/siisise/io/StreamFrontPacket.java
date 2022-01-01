@@ -12,17 +12,17 @@ import java.util.logging.Logger;
  * Packet を InputStream の頭につけたい。
  * Streamとして振る舞うのがメイン。
  */
-public class FrontPacketF implements FrontPacket {
+public class StreamFrontPacket implements FrontPacket {
 
     private final FrontPacket inpac = new PacketA();
 
     private final FrontInputStream in;
 
-    public FrontPacketF(InputStream in) {
+    public StreamFrontPacket(InputStream in) {
         this.in = new FrontInputStream(in);
     }
 
-    public FrontPacketF(Reader reader) {
+    public StreamFrontPacket(Reader reader) {
         this(new ReaderInputStream(reader));
     }
 
@@ -103,7 +103,7 @@ public class FrontPacketF implements FrontPacket {
                 return -1;
             }
         } catch (IOException ex) {
-            Logger.getLogger(FrontPacketF.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(StreamFrontPacket.class.getName()).log(Level.SEVERE, null, ex);
         }
         return -1;
     }
@@ -125,7 +125,7 @@ public class FrontPacketF implements FrontPacket {
             return len;
 
         } catch (IOException ex) {
-            Logger.getLogger(FrontPacketF.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(StreamFrontPacket.class.getName()).log(Level.SEVERE, null, ex);
         }
         return 0;
     }
@@ -140,7 +140,7 @@ public class FrontPacketF implements FrontPacket {
         try {
             return FileIO.binRead(in);
         } catch (IOException ex) {
-            Logger.getLogger(FrontPacketF.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(StreamFrontPacket.class.getName()).log(Level.SEVERE, null, ex);
             throw new UnsupportedOperationException(ex);
         }
     }
@@ -176,7 +176,7 @@ public class FrontPacketF implements FrontPacket {
         try {
             return in.available();
         } catch (IOException ex) {
-            Logger.getLogger(FrontPacketF.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(StreamFrontPacket.class.getName()).log(Level.SEVERE, null, ex);
         }
         return 0;
     }
