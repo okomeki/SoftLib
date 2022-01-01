@@ -22,38 +22,33 @@ public class ReaderInputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        if ( pac.size() >= 1) {
-            return pac.read();
-        }
-        int ch = rd.read();
-        if ( ch < 0 ) return -1;
-        if ( ch >= 0xd800 && ch <= 0xdbff ) {
-            if ( pair != null ) {
-                ch = pair[0];
-                byte[] bytes = CodePoint.utf8(ch);
-                pac.write(bytes);
-            }
-            pair = new char[] {(char)ch,0};
-            return read();
-        } else if ( ch >= 0xdc00 && ch <= 0xdfff ) {
-            if ( pair != null ) {
-                pair[1] = (char)ch;
-                byte[] bytes = String.valueOf(pair).getBytes(StandardCharsets.UTF_8);
+        if ( pac.size() == 0 ) {
+            int ch = rd.read();
+            if ( ch < 0 ) return -1;
+            if ( ch >= 0xd800 && ch <= 0xdbff ) {
+                if ( pair != null ) {
+                    ch = pair[0];
+                    byte[] bytes = CodePoint.utf8(ch);
+                    pac.write(bytes);
+                }
+                pair = new char[] {(char)ch,0};
+                return read();
+            } else if ( ch >= 0xdc00 && ch <= 0xdfff ) {
+                byte[] bytes;
+                if ( pair != null ) {
+                    pair[1] = (char)ch;
+                    bytes = String.valueOf(pair).getBytes(StandardCharsets.UTF_8);
+                } else {
+                    bytes = CodePoint.utf8(ch);
+                }
                 pac.write(bytes);
             } else {
+                pair = null;
                 byte[] bytes = CodePoint.utf8(ch);
                 pac.write(bytes);
             }
-            return read();
-        } else {
-            pair = null;
         }
-        byte[] bytes = CodePoint.utf8(ch);
-        if ( bytes.length > 1 ) {
-            pac.write(bytes);
-            return read();
-        }
-        return bytes[0] & 0xff;
+        return pac.read();
     }
     
     @Override

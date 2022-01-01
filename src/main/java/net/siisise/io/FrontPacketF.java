@@ -8,14 +8,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * PacketのふりをするStream
  * Packet を InputStream の頭につけたい。
  * Streamとして振る舞うのがメイン。
  */
 public class FrontPacketF implements FrontPacket {
+
     private final FrontPacket inpac = new PacketA();
-    
+
     private final FrontInputStream in;
-    
+
     public FrontPacketF(InputStream in) {
         this.in = new FrontInputStream(in);
     }
@@ -28,17 +30,16 @@ public class FrontPacketF implements FrontPacket {
     public long length() {
         return size();
     }
-    
+
     class FrontInputStream extends java.io.FilterInputStream {
-        InputStream fin;
+
         // タイミングを逃したEOF
         boolean eof = false;
+
         FrontInputStream(InputStream in) {
             super(in);
-            this.fin = in;
-            
         }
-        
+
         @Override
         public int read() throws IOException {
             if ( inpac.size() > 0 ) {
@@ -49,11 +50,11 @@ public class FrontPacketF implements FrontPacket {
                 return -1;
             }
 //            if ( fin.available() > 0 ) {  // ToDo: いらない?
-                return fin.read();
+            return in.read();
 //            }
 //            return -1; // fin.read();
         }
-        
+
         @Override
         public int read(byte[] data, int offset, int length) throws IOException {
             int len = inpac.read(data, offset, length);
@@ -64,7 +65,7 @@ public class FrontPacketF implements FrontPacket {
                     eof = false;
                     return -1;
                 }
-                int l2 = fin.read(data,offset,length);
+                int l2 = in.read(data,offset,length);
                 if ( l2 >= 0 ) {
                     return len + l2;
                 } else {
@@ -73,22 +74,21 @@ public class FrontPacketF implements FrontPacket {
             }
             return len;
         }
-        
+
         @Override
         public int available() throws IOException {
-            return inpac.size() + fin.available();
+            return inpac.size() + in.available();
         }
-        
     }
-    
+
     /**
-     * @return 
+     * @return
      */
     @Override
     public InputStream getInputStream() {
         return in;
     }
-    
+
     @Override
     public OutputStream getBackOutputStream() {
         return inpac.getBackOutputStream();
@@ -123,7 +123,7 @@ public class FrontPacketF implements FrontPacket {
                 }
             }
             return len;
-            
+
         } catch (IOException ex) {
             Logger.getLogger(FrontPacketF.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -159,16 +159,17 @@ public class FrontPacketF implements FrontPacket {
     public void backWrite(byte[] data) {
         inpac.backWrite(data);
     }
-    
+
     @Override
     public void dbackWrite(byte[] data) {
         inpac.dbackWrite(data);
     }
-    
+
     /**
      * サイズ取得。
      * availableしか使えないので不確定な要素.
-     * @return 
+     *
+     * @return
      */
     @Override
     public int size() {
@@ -179,14 +180,15 @@ public class FrontPacketF implements FrontPacket {
         }
         return 0;
     }
-    
+
     /**
      * 連結した入力を閉じる.
      * Packetには特殊な要素.
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     public void close() throws IOException {
         in.close();
     }
-    
+
 }
