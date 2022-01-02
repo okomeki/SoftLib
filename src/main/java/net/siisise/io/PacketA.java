@@ -1,3 +1,18 @@
+/*
+ * Copyright 2022 okomeki.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package net.siisise.io;
 
 import java.io.InputStream;
@@ -231,6 +246,11 @@ public class PacketA implements Packet {
                 nullPack.addPrev(d);
             }
         }
+        
+        @Override
+        public void flush() {
+            gc();
+        }
     }
 
     private class PacketBackOutputStream extends OutputStream {
@@ -250,9 +270,9 @@ public class PacketA implements Packet {
             PacketIn nn = nullPack.next;
             byte[] d;
             if (length > 0 && nn.offset >= length) { // 空いているところに詰め込むことにしてみたり nullPackはoffset 0なので判定しなくて問題ない
+                System.arraycopy(src, offset, nn.data, nn.offset - length, length);
                 nn.offset -= length;
                 nn.length += length;
-                System.arraycopy(src, offset, nn.data, nn.offset, length);
                 return;
             }
             while (length > MAXLENGTH) {
@@ -267,6 +287,11 @@ public class PacketA implements Packet {
                 System.arraycopy(src, offset, d, 0, length);
                 nn.addPrev(d);
             }
+        }
+        
+        @Override
+        public void flush() {
+            gc();
         }
     }
 
@@ -283,10 +308,7 @@ public class PacketA implements Packet {
     }
 
     public PacketA(byte[] b) {
-        in = new PacketBaseInputStream();
-        bin = new PacketBackInputStream();
-        out = new PacketBaseOutputStream();
-        bout = new PacketBackOutputStream();
+        this();
         write(b);
     }
 
@@ -420,5 +442,28 @@ public class PacketA implements Packet {
     @Override
     public String toString() {
         return super.toString() + "length:" + Long.toString(length());
+    }
+    
+    /**
+     * 試験的
+     */
+    public void gc() {
+        PacketIn nn;
+        for (nn = nullPack.next; nn.next != nullPack; nn = nn.next) {
+            if ( nn.length < nn.next.offset ) {
+                System.arraycopy(nn.data, nn.offset, nn.next.data, nn.next.offset - nn.length, nn.length);
+                nn.next.offset -= nn.length;
+                nn.next.length += nn.length;
+                nn.delete();
+                nn = nn.prev;
+                System.err.println("gc 1");
+            } else if ( nn.data.length > nn.offset + nn.length + nn.next.length ) {
+                System.arraycopy(nn.next.data, nn.next.offset, nn.data, nn.offset + nn.length, nn.next.length);
+                nn.length += nn.next.length;
+                nn.next.delete();
+                nn = nn.prev;
+                System.err.println("gc 2");
+            }
+        }
     }
 }
