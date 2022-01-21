@@ -54,7 +54,6 @@ public abstract class BaseBitPac implements BitPacket {
         }
 
         public abstract int readInt(int bit);
-
         public abstract long readBit(byte[] data, long offset, long bitLength);
         public abstract BitPacket readPac(int bitLength);
 
@@ -87,8 +86,9 @@ public abstract class BaseBitPac implements BitPacket {
 
         /**
          * ToDo: 端数のbig/littleが異なる場合
+         *
          * @param bp
-         * @param bitLength 
+         * @param bitLength
          */
         public void writeBit(BitPacket bp, long bitLength) {
             byte[] data = new byte[(int) (bitLength + 7) / 8];
@@ -97,7 +97,6 @@ public abstract class BaseBitPac implements BitPacket {
         }
 
         public abstract void writeBit(int data, int bitLength);
-
         public abstract void writeBit(byte[] data, long bitOffset, long bitLength);
     }
 
@@ -131,6 +130,11 @@ public abstract class BaseBitPac implements BitPacket {
         return pac.length() * 8 - readPadding - writePadding;
     }
 
+    /**
+     * 端数は含まないバイト列として返せる値.
+     *
+     * @return
+     */
     @Override
     public long length() {
         return bitLength() / 8;
@@ -144,7 +148,7 @@ public abstract class BaseBitPac implements BitPacket {
 
     /**
      *
-     * @param len
+     * @param len 0～32くらい
      * @return
      */
     static final int andMask(int len) {
@@ -164,7 +168,8 @@ public abstract class BaseBitPac implements BitPacket {
     }
 
     /**
-     * 8ビット単位で転送. 端数は残る。
+     * 8ビット単位で転送.
+     * 端数は残る。
      *
      * @param data 転送先配列
      * @return 転送可能なバイト長。
@@ -190,7 +195,8 @@ public abstract class BaseBitPac implements BitPacket {
     }
 
     /**
-     * readのビット版 入れ物はbyte列
+     * readのビット版
+     * 入れ物はbyte列
      * 左詰め |01234567|89ABCDEF|
      *
      * @param data 戻りデータ
@@ -259,7 +265,7 @@ public abstract class BaseBitPac implements BitPacket {
     public void write(byte[] data, int offset, int length) {
         out.write(data, offset, length);
     }
-    
+
     @Override
     public void write(FrontPacket pac) {
         write(pac.toByteArray());

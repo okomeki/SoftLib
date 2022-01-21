@@ -23,7 +23,7 @@ public class StreamFrontPacket implements FrontPacket {
     }
 
     public StreamFrontPacket(Reader reader) {
-        this(new ReaderInputStream(reader));
+        this(new ReaderInputStream(reader, 30));
     }
 
     @Override

@@ -7,19 +7,27 @@ import java.nio.charset.StandardCharsets;
 import net.siisise.lang.CodePoint;
 
 /**
+ * バイト列が必要な処理系にReader系を繋ぐ
  * InputStreamReaderの逆
  * とりあえずUTF-8出力前提
- * 1000文字程度読んでおく
+ * 100文字程度読んでおく
  */
 public class ReaderInputStream extends InputStream {
     
     final PacketA pac = new PacketA();
     char[] pair;
     final Reader rd;
+    final int bufferSize;
     boolean eof = false;
     
     ReaderInputStream(Reader r) {
         rd = r;
+        bufferSize = 100;
+    }
+    
+    ReaderInputStream(Reader r, int size) {
+        rd = r;
+        bufferSize = size;
     }
     
     private void buffering() throws IOException {
@@ -56,7 +64,7 @@ public class ReaderInputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        while ( !eof && pac.size() < 1024 ) {
+        while ( !eof && pac.size() < bufferSize ) {
             buffering();
         }
         return pac.read();
