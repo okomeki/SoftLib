@@ -1,20 +1,28 @@
+/*
+ * Copyright 2019-2022 Siisise Net.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package net.siisise.io;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Writer;
 
 /**
  * BASE64エンコーダ/デコーダ。
  * RFC 2045
  * RFC 3548等もある
+ * RFC 4648 Section 5 base64url
  * ApacheにBASE64もあるらしいがちょっと違う
  *
  * 改行コードはOSに依存せず通信の標準である\r\nに統一します。
@@ -491,96 +499,5 @@ public class BASE64 {
         tmp = new byte[len];
         pac.read(tmp);
         return tmp;
-    }
-
-    /**
-     * RFCエンコード.
-     * pemかなにかのテキスト形式
-     * 電子署名系で使用するヘッダフッタを付けます。
-     * 64桁を指定しよう
-     *
-     * @param data バイト列ソース
-     * @param type エンコードの名
-     * @param fout テキスト出力先
-     * @throws java.io.IOException
-     */
-    public void encode(byte[] data, String type, Writer fout) throws IOException {
-        PrintWriter out = new PrintWriter(
-                new BufferedWriter(fout));
-
-        out.print("-----BEGIN " + type + "-----\r\n");
-        out.print(encode(data));
-        out.print("-----END " + type + "-----\r\n");
-//        out.flush();
-    }
-
-    /**
-     * ファイルに書き出します
-     *
-     * @param data データ
-     * @param type エンコードの名
-     * @param fileName 出力先ファイル名
-     * @throws java.io.IOException
-     */
-    public void save(byte[] data, String type, String fileName) throws IOException {
-        java.io.Writer out = new OutputStreamWriter(
-                new FileOutputStream(fileName), "ASCII");
-        encode(data, type, out);
-        out.flush();
-        out.close();
-    }
-
-    /**
-     * PEMをReaderから1つだけ読み込んだり.
-     * typeは1種類のみ指定可能
-     * RFC 7468 にまとまっている 
-     *
-     * @param type エンコードの名
-     * @param fin テキストの入力
-     * @return
-     * @throws java.io.IOException
-     */
-    public static byte[] decode(String type, java.io.Reader fin) throws IOException {
-        BufferedReader in = new BufferedReader(fin);
-        String line;
-        String begin = "-----BEGIN " + type + "-----";
-        String end = "-----END " + type + "-----";
-        byte[] data = null;
-        StringBuilder src = new StringBuilder();
-
-        do { // 頭確認
-            line = in.readLine();
-        } while (line != null && !line.equals(begin));
-
-        if (line != null) {
-            line = in.readLine();
-            // 暗号化等のオプションには対応していないので読みとばす
-            while (line.contains(": ")) {
-
-                line = in.readLine();
-            }
-            // 本文
-            while (!line.equals(end)) {
-                src.append(line);
-                line = in.readLine();
-            }
-            data = decodeBase(src.toString());
-        }
-        return data;
-    }
-
-    /**
-     * ファイルから読み込み
-     *
-     * @param type エンコードの名 BEGIN XXXXXXというところ
-     * @param fileName ファイル名
-     * @return
-     * @throws java.io.IOException
-     */
-    public static byte[] load(String type, String fileName) throws IOException {
-        InputStreamReader in = new InputStreamReader(new FileInputStream(fileName), "ASCII");
-        byte[] data = decode(type, in);
-        in.close();
-        return data;
     }
 }

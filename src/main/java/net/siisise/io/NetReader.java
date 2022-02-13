@@ -1,3 +1,18 @@
+/*
+ * Copyright 2019-2022 Siisise Net.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package net.siisise.io;
 
 import java.io.CharConversionException;
@@ -6,7 +21,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.nio.charset.Charset;
 
 /**
  * BufferedReader が死ぬので
@@ -18,7 +32,6 @@ public class NetReader extends FilterReader {
     boolean lastCR = false;
     private final static char CR = '\r';
     private final static char LF = '\n';
-    Charset ucs2 = java.nio.charset.StandardCharsets.UTF_16;
 
     /**
      *
@@ -35,12 +48,9 @@ public class NetReader extends FilterReader {
      * @throws java.io.IOException
      */
     public String readLine() throws IOException {
-//        String encBak = this.encode;
-//        setEncode( encode ); // 文字コードによっては改行コードが変わる可能性があるので入れる方がいい?
         byte[] data = readByteLine();
         if ( data == null ) return null;
         String string = new String(data, "iso-10646-ucs-2");
-//        setEncode( encBak );
         if (string.indexOf('\r') >= 0 || string.indexOf('\n') >= 0) {
             // 偽UTF-8とかで改行コードが漏れた
             throw new CharConversionException();
