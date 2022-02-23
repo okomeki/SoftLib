@@ -45,28 +45,31 @@ public class CodePoint {
 
     /**
      * 文字列をUCS-4で扱う方向に初期化
+     *
      * @param src Java(UTF-16)の文字列
      */
-    public CodePoint( java.lang.String src ) {
+    public CodePoint(java.lang.String src) {
         org = src;
-        int size = src.codePointCount( 0, src.length() );
+        int size = src.codePointCount(0, src.length());
         chars = new int[size];
-        for ( int index = 0; index < size; index++ ) {
-            chars[index] = src.codePointAt( index );
+        for (int index = 0; index < size; index++) {
+            chars[index] = src.codePointAt(index);
         }
     }
 
     /**
      * code point 長
+     *
      * @return code point(UCS-4/UTF-32) 単位の文字数
      */
     public int length() {
         return chars.length;
     }
-    
+
     /**
      * 位置の文字を返す
      * codePointAt で揃えた方がいい気がした
+     *
      * @param index 位置
      * @return UCS-4/UTF-32文字
      */
@@ -74,26 +77,27 @@ public class CodePoint {
         return chars[index];
 //        return org.codePointAt( index ); // 同じ結果のはず
     }
-    
+
     /**
      * 文字の位置を返すはずだったもの
      * cpがucs-2の0-0xffffときcharsにUCS-4が混ざっているとString#indexOfと結果が違う予定
-     * 
+     *
      * @param cp 文字
      * @return 位置
      */
     public int indexOf(int cp) {
-        for ( int i = 0; i < chars.length; i++ ) {
-            if ( chars[i] == cp ) {
+        for (int i = 0; i < chars.length; i++) {
+            if (chars[i] == cp) {
                 return i;
             }
         }
         return -1;
     }
-    
+
     /**
      * String互換 空文字列?
-     * @return 
+     *
+     * @return
      */
     public boolean isEmpty() {
         return chars.length == 0;
@@ -102,7 +106,7 @@ public class CodePoint {
     /**
      * CodePoint-8をUCSに変換.
      * 不正組は-1
-     * 
+     *
      * @param pac
      * @return UCS-4または不正の場合-1
      */
@@ -134,12 +138,12 @@ public class CodePoint {
 
         for (int i = 0; i < len; i++) {
             int c = pac.read();
-            
+
             if ((c & 0xc0) != 0x80) {
-                if ( c >= 0) {
+                if (c >= 0) {
                     pac.backWrite(c);
                 }
-                for ( int x = 0; x < i; x++ ) {
+                for (int x = 0; x < i; x++) {
                     pac.backWrite((rd & 0x3f) | 0x80);
                     rd >>>= 6;
                 }
@@ -157,8 +161,9 @@ public class CodePoint {
 
     /**
      * UCS to UTF-8
+     *
      * @param ch
-     * @return 
+     * @return
      */
     public static byte[] utf8(int ch) {
         if (ch < 0x80) {
@@ -184,21 +189,22 @@ public class CodePoint {
         }
         throw new java.lang.UnsupportedOperationException();
     }
-    
+
     @Override
     public java.lang.String toString() {
         return org;
     }
-    
+
     /**
      * CharSequenceとして振る舞う?
      * codePointsと同じ結果を返す?
-     * @return 
+     *
+     * @return
      */
     public IntStream chars() {
         return Arrays.stream(chars);
     }
-    
+
     public IntStream codePoints() {
         return Arrays.stream(chars);
     }

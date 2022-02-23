@@ -22,8 +22,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * 便利につかえる仮のクラス
@@ -114,4 +117,18 @@ public class FileIO {
         out.close();
         dstFile.setLastModified(srcFile.lastModified());
     }
+
+    public static void dump(byte[] src) {
+        try {
+            OutputStream o;
+            o = new DumpOutputStream(new PrintWriter(System.out));
+            o.write(src);
+            o.flush();
+            System.out.println();
+        } catch (IOException ex) {
+            Logger.getLogger(FileIO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
 }

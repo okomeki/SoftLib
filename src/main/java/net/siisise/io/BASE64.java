@@ -54,7 +54,10 @@ public class BASE64 {
         /** crypt / password 用変換表 (予定) */
         PASSWORD,
         /** URL用修正付きBASE64 */
-        URL;
+        URL,
+        /** 16進数を拡張したもの */
+        HEX64;
+        
         char[] encsrc = new char[64];
         byte[] bytesrc = new byte[64];
         int[] decsrc = new int[128];
@@ -65,14 +68,14 @@ public class BASE64 {
 
     static {
         for (int i = 0; i <= 'z' - 'a'; i++) {
-            Type.BASE64.encsrc[i    ] = Type.URL.encsrc[i    ] = Type.PASSWORD.encsrc[i +12] = (char)('A' + i);
-            Type.BASE64.encsrc[i +26] = Type.URL.encsrc[i +26] = Type.PASSWORD.encsrc[i +38] = (char)('a' + i);
-            Type.BASE64.bytesrc[i   ] = Type.URL.bytesrc[i   ] = Type.PASSWORD.bytesrc[i+12] = (byte)('A' + i);
-            Type.BASE64.bytesrc[i+26] = Type.URL.bytesrc[i+26] = Type.PASSWORD.bytesrc[i+38] = (byte)('a' + i);
+            Type.BASE64.encsrc[i    ] = Type.URL.encsrc[i    ] = Type.PASSWORD.encsrc[i +12] = Type.HEX64.encsrc[i + 36] = (char)('A' + i);
+            Type.BASE64.encsrc[i +26] = Type.URL.encsrc[i +26] = Type.PASSWORD.encsrc[i +38] = Type.HEX64.encsrc[i + 10] = (char)('a' + i);
+            Type.BASE64.bytesrc[i   ] = Type.URL.bytesrc[i   ] = Type.PASSWORD.bytesrc[i+12] = Type.HEX64.bytesrc[i+ 36] = (byte)('A' + i);
+            Type.BASE64.bytesrc[i+26] = Type.URL.bytesrc[i+26] = Type.PASSWORD.bytesrc[i+38] = Type.HEX64.bytesrc[i+ 10] = (byte)('a' + i);
         }
         for (int i = 0; i < 10; i++) {
-            Type.BASE64.encsrc[i + 52] = Type.URL.encsrc[i + 52] = Type.PASSWORD.encsrc[i + 2] = (char)('0' + i);
-            Type.BASE64.bytesrc[i+ 52] = Type.URL.bytesrc[i+ 52] = Type.PASSWORD.bytesrc[i+ 2] = (byte)('0' + i);
+            Type.BASE64.encsrc[i + 52] = Type.URL.encsrc[i + 52] = Type.PASSWORD.encsrc[i + 2] = Type.HEX64.encsrc[i]  = (char)('0' + i);
+            Type.BASE64.bytesrc[i+ 52] = Type.URL.bytesrc[i+ 52] = Type.PASSWORD.bytesrc[i+ 2] = Type.HEX64.bytesrc[i] = (byte)('0' + i);
         }
         Type.BASE64.encsrc[62] = '+';
         Type.BASE64.encsrc[63] = '/';
@@ -86,14 +89,19 @@ public class BASE64 {
         Type.URL.encsrc[63] = '_';
         Type.URL.bytesrc[62] = '-';
         Type.URL.bytesrc[63] = '_';
+        Type.HEX64.encsrc[62] = '-';
+        Type.HEX64.encsrc[63] = '_';
+        Type.HEX64.bytesrc[62] = '-';
+        Type.HEX64.bytesrc[63] = '_';
 
         for (int i = 0; i < 128; i++) {
-            Type.BASE64.decsrc[i] = Type.URL.decsrc[i] = Type.PASSWORD.decsrc[i] = -1;
+            Type.BASE64.decsrc[i] = Type.URL.decsrc[i] = Type.PASSWORD.decsrc[i] = Type.HEX64.decsrc[i] = -1;
         }
         for (int i = 0; i < 64; i++) {
             Type.BASE64.decsrc[Type.BASE64.encsrc[i]] = i;
             Type.URL.decsrc[Type.URL.encsrc[i]] = i;
             Type.PASSWORD.decsrc[Type.PASSWORD.encsrc[i]] = i;
+            Type.HEX64.decsrc[Type.HEX64.encsrc[i]] = i;
         }
     }
 
@@ -101,7 +109,8 @@ public class BASE64 {
     public static final Type BASE64 = Type.BASE64;
     public static final Type PASSWORD = Type.PASSWORD;
     public static final Type URL = Type.URL;
-    
+    public static final Type HEX64 = Type.HEX64;
+
     /**
      * 簡易版BASE64処理装置コンストラクタ。
      * 改行なしでエンコードされる
@@ -124,7 +133,7 @@ public class BASE64 {
      * @param size 出力時の1行のサイズ 0は改行なし
      */
     public BASE64(Type type, int size) {
-        this(type, type != URL, size);
+        this(type, type != URL && type != HEX64, size);
     }
     
     /**
@@ -154,6 +163,7 @@ public class BASE64 {
             case PASSWORD:
             case URL:
             case BASE64:
+            case HEX64:
                 break;
             default:
                 type = Type.BASE64;
@@ -435,6 +445,17 @@ public class BASE64 {
      */
     public static byte[] decodePass(String data) {
         BASE64 b = new BASE64(PASSWORD,0);
+        return b.decode(data);
+    }
+
+    /**
+     * 独自HEX64エンコードのデコード
+     * 
+     * @param data HEX64符号化データ
+     * @return 復元済みデータ
+     */
+    public static byte[] decodeHex64(String data) {
+        BASE64 b = new BASE64(HEX64,0);
         return b.decode(data);
     }
 

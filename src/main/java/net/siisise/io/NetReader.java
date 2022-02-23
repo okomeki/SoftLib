@@ -25,7 +25,6 @@ import java.io.Writer;
 /**
  * BufferedReader が死ぬので
  * UTF-16固定
- * @author okome
  */
 public class NetReader extends FilterReader {
 
@@ -66,19 +65,19 @@ public class NetReader extends FilterReader {
         if ( ch == -1) return null;
         do {
             if (ch == CR) { // 改行なのでLFがあろうがなかろうが
-                lastCR = true;
+                    lastCR = true;
                 break;
             } else if (ch == LF) {
                 if (!lastCR) { // LF単体
                     break;
                 } else { // CRLFセット  前がCRなら改行済なので何もしない
-                    lastCR = false;
-                }
+                        lastCR = false;
+                    }
             } else {
-                lastCR = false;
-                //pac2.write(ch);
-                opw.write(ch);
-                opw.flush();
+                    lastCR = false;
+                    //pac2.write(ch);
+                    opw.write(ch);
+                    opw.flush();
             }
             ch = super.read();
         } while ( ch != -1 );
@@ -86,6 +85,5 @@ public class NetReader extends FilterReader {
         pac2.read(a);
         return a;
     }
-
 
 }
