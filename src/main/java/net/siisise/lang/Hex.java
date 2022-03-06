@@ -71,7 +71,7 @@ public class Hex {
      * @return バイト列
      */
     public static byte[] toByteArray(CharSequence src) {
-        return toByteArray(src.toString());
+        return toByteArray(src.toString().toCharArray());
     }
 
     /**
@@ -127,7 +127,7 @@ public class Hex {
     
     /**
      * n進数を変換する試み.
-     * 2進数からBASE64まで対応したりしなかったり
+     * 2進数からHEX64まで対応したりしなかったり
      * BigIntegerでまわすのでスピードは期待しない方向で
      * 
      * 36進数までは 0-9,a-z,A-Z
@@ -135,22 +135,26 @@ public class Hex {
      * 64進数までは記号をいくつか
      * 
      * @param txt baae64まで
-     * @param radix 64まで
+     * @param radixBase 6まで
      * @return 
      */
-    public static byte[] toByteArray(char[] txt, int radix) {
+    public static byte[] toByteArray(char[] txt, int radixBase) {
         int len = txt.length;
         BigInteger num = BigInteger.ZERO;
-        BigInteger rad = BigInteger.valueOf(radix);
+        BigInteger rad = BigInteger.valueOf(2).pow(radixBase);
+        final int pad = 8 - radixBase;
+        int b = 0;
 
         for (int i = 0; i < len; i++) {
             int a = txt[i];
+            b += pad;
+            b %= 8;
             if (a >= '0' && a <= '9') {
                 a -= '0';
             } else if (a >= 'a' && a <= 'z') { // 10 - 35
                 a -= 'a' - 10;
             } else if (a >= 'A' && a <= 'Z') { // 36 - 61
-                if ( radix > 36) { // てきとー
+                if ( radixBase > 5) { // てきとー
                     a -= 'A' - 36;
                 } else {
                     a -= 'A' - 10;
@@ -162,10 +166,12 @@ public class Hex {
             } else {
                 throw new java.lang.IllegalStateException();
             }
-            num = num.multiply(rad);
-            BigInteger n = BigInteger.valueOf(a);
-            num = num.add(n);
+            num = num.multiply(rad).add(BigInteger.valueOf(a));
         }
+        if ( b > 0 ) {
+            num = num.shiftRight(b);
+        }
+            
         return toByteArray(num, 1);
     }
 

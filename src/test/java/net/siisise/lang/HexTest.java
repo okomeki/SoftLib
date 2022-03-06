@@ -17,6 +17,7 @@ package net.siisise.lang;
 
 import java.math.BigInteger;
 import net.siisise.io.BASE64;
+import net.siisise.io.FileIO;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -134,17 +135,19 @@ public class HexTest {
      */
     @Test
     public void testToByteArray_charArr_int() {
-        System.out.println("toByteArray");
+        System.out.println("toByteArray(char[],radix)");
         byte[] exp = new byte[] {0x01,0x2f,(byte)0xe5,0x67};
         BigInteger num = new BigInteger(exp);
         BASE64 x64 = new BASE64(BASE64.HEX64,0);
         java.lang.String txt = x64.encode(exp);
-        int radix = 30;
-        txt = num.toString(radix);
+        int radix = 6;
+//        txt = num.toString(radix);
 //        java.lang.String txt = "0000012fe567";
         System.out.println("hex64: " + txt);
         byte[] expResult = exp;
         byte[] result = Hex.toByteArray(txt.toCharArray(), radix);
+        FileIO.dump(exp);
+        FileIO.dump(result);
         assertArrayEquals(expResult, result);
     }
     
