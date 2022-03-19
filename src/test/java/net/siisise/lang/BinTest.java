@@ -24,9 +24,9 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  *
  */
-public class HexTest {
+public class BinTest {
     
-    public HexTest() {
+    public BinTest() {
     }
 
     /**
@@ -37,7 +37,7 @@ public class HexTest {
         System.out.println("toHex");
         byte[] src = new byte[] {0x01,0x2f,(byte)0xe3,(byte)0x80};
         java.lang.String expResult = "012fe380";
-        java.lang.String result = Hex.toHex(src);
+        java.lang.String result = Bin.toHex(src);
         assertEquals(expResult, result);
     }
 
@@ -49,7 +49,7 @@ public class HexTest {
         System.out.println("toUpperHex");
         byte[] src = new byte[] {0x01,0x2f,(byte)0xe3,(byte)0x80};
         java.lang.String expResult = "012FE380";
-        java.lang.String result = Hex.toUpperHex(src);
+        java.lang.String result = Bin.toUpperHex(src);
         assertEquals(expResult, result);
     }
 
@@ -61,7 +61,7 @@ public class HexTest {
         System.out.println("toByteArray");
         java.lang.String src = "012fE567";
         byte[] expResult = new byte[] {0x01,0x2f,(byte)0xe5,0x67};
-        byte[] result = Hex.toByteArray(src);
+        byte[] result = Bin.toByteArray(src);
         assertArrayEquals(expResult, result);
     }
 
@@ -73,7 +73,7 @@ public class HexTest {
         System.out.println("toByteArray");
         CharSequence src = "01234567";
         byte[] expResult = new byte[] {0x01,0x23,0x45,0x67};
-        byte[] result = Hex.toByteArray(src);
+        byte[] result = Bin.toByteArray(src);
         assertArrayEquals(expResult, result);
     }
 
@@ -85,7 +85,7 @@ public class HexTest {
         System.out.println("toByteArray");
         char[] txt = "01234567".toCharArray();
         byte[] expResult = new byte[] {0x01,0x23,0x45,0x67};
-        byte[] result = Hex.toByteArray(txt);
+        byte[] result = Bin.toByteArray(txt);
         assertArrayEquals(expResult, result);
     }
 
@@ -99,7 +99,7 @@ public class HexTest {
         int offset = 1;
         int length = 4;
         byte[] expResult = new byte[] {0x12,0x34};
-        byte[] result = Hex.toByteArray(txt, offset, length);
+        byte[] result = Bin.toByteArray(txt, offset, length);
         assertArrayEquals(expResult, result);
     }
 
@@ -113,20 +113,20 @@ public class HexTest {
         BigInteger num = new BigInteger(exp);
         System.out.println(num.toString());
         System.out.println(num.toString(16));
-        System.out.println(Hex.toHex(exp));
+        System.out.println(Bin.toHex(exp));
         int length = exp.length;
         byte[] expResult = exp;
-        byte[] result = Hex.toByteArray(num, length);
+        byte[] result = Bin.toByteArray(num, length);
         assertArrayEquals(expResult, result);
 
         exp = new byte[] {(byte)0xff, (byte)0xff, 0x01,0x2f,(byte)0xe5,0x67};
         num = new BigInteger(exp);
         System.out.println(num.toString());
         System.out.println(num.toString(16));
-        System.out.println(Hex.toHex(exp));
+        System.out.println(Bin.toHex(exp));
         length = exp.length;
         expResult = exp;
-        result = Hex.toByteArray(num, length);
+        result = Bin.toByteArray(num, length);
         assertArrayEquals(expResult, result);
     }
 
@@ -145,7 +145,7 @@ public class HexTest {
 //        java.lang.String txt = "0000012fe567";
         System.out.println("hex64: " + txt);
         byte[] expResult = exp;
-        byte[] result = Hex.toByteArray(txt.toCharArray(), radix);
+        byte[] result = Bin.toByteArray(txt.toCharArray(), radix);
         FileIO.dump(exp);
         FileIO.dump(result);
         assertArrayEquals(expResult, result);

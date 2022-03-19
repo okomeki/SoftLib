@@ -19,10 +19,12 @@ import java.math.BigInteger;
 import java.util.Arrays;
 
 /**
+ * 名前候補 BinかHex
  * Hexというよりバイト列変換の主なもの.
+ * HexとBASE64は統合したいかもしれない
  * Number べーす
  */
-public class Hex {
+public class Bin {
 
     /**
      * バイト列を16進数(小文字)に変換する.
@@ -193,4 +195,68 @@ public class Hex {
         return data;
     }
     
+    // Bin Byte系機能
+    
+    /**
+     * AND
+     * 左詰め
+     * c = a AND b
+     * returnでcとして返すタイプ
+     * @param a 長さの基準
+     * @param b
+     * @return a AND b
+     */
+    public static byte[] and(byte[] a, byte[] b) {
+        int len, min;
+        len = a.length;
+        min = ( len > b.length ) ? b.length : len;
+        byte[] ret = new byte[len];
+        for ( int i = 0; i < min; i++ ) {
+            ret[i] = (byte)(a[i] & b[i]);
+        }
+        if ( min < len ) {
+            System.arraycopy(a, min, ret, min, len - min);
+        }
+        return ret;
+    }
+
+    /**
+     * OR
+     * @param a 長さの基準
+     * @param b
+     * @return a OR b
+     */
+    public static byte[] or(byte[] a, byte[] b) {
+        int len, min;
+        len = a.length;
+        min = ( len > b.length ) ? b.length : len;
+        byte[] ret = new byte[len];
+        for ( int i = 0; i < min; i++ ) {
+            ret[i] = (byte)(a[i] | b[i]);
+        }
+        if ( min < len ) {
+            System.arraycopy(a, min, ret, min, len - min);
+        }
+        return ret;
+    }
+
+    /**
+     * XOR
+     * @param a 長さの基準
+     * @param b
+     * @return a XOR b
+     */
+    public static byte[] xor(byte[] a, byte[] b) {
+        int len, min;
+        len = a.length;
+        min = ( len > b.length ) ? b.length : len;
+        byte[] ret = new byte[len];
+        for ( int i = 0; i < min; i++ ) {
+            ret[i] = (byte)(a[i] ^ b[i]);
+        }
+        if ( min < len ) {
+            System.arraycopy(a, min, ret, min, len - min);
+        }
+        return ret;
+    }
 }
