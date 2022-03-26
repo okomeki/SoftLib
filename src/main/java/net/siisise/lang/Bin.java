@@ -93,24 +93,24 @@ public class Bin {
     /**
      * 16進数をバイト列に変換する。
      *
-     * @param txt 2の倍数の長さ限定 16進数文字列
+     * @param hex 2の倍数の長さ限定 16進数文字列
      * @param offset txt の16進数の位置
      * @param length txt の16進数の長さ
      * @return バイト列
      */
-    public static byte[] toByteArray(char[] txt, int offset, int length) {
+    public static byte[] toByteArray(char[] hex, int offset, int length) {
         int bit = 4;
         byte[] data = new byte[(length * bit + 7) / 8];
         int bd = 0;
         int bitlen = 0;
         int j = 0;
         for (int i = 0; i < length; i++) {
-            int a = txt[offset + i];
+            int a = hex[offset + i];
             if (a >= '0' && a <= '9') {
                 a -= '0';
-            } else if (a >= 'a' && a <= 'z') {
+            } else if (a >= 'a' && a <= 'f') {
                 a -= 'a' - 10;
-            } else if (a >= 'A' && a <= 'Z') {
+            } else if (a >= 'A' && a <= 'F') {
                 a -= 'A' - 10;
             } else {
                 throw new java.lang.IllegalStateException();
@@ -195,6 +195,47 @@ public class Bin {
         return data;
     }
     
+    public static byte[] toByte(short i) {
+        byte[] out = new byte[2];
+        out[0] = (byte) (i >>> 8);
+        out[1] = (byte) i;
+        return out;
+    }
+
+    public static byte[] toByte(short i, byte[] out, int offset) {
+        out[offset++] = (byte) (i >>> 8);
+        out[offset] = (byte) i;
+        return out;
+    }
+    
+    public static byte[] toByte(int i) {
+        return toByte(i, new byte[4], 0);
+    }
+
+    public static byte[] toByte(int i, byte[] out, int offset) {
+        out[offset++] = (byte) (i >>> 24);
+        out[offset++] = (byte) (i >> 16);
+        out[offset++] = (byte) (i >>> 8);
+        out[offset] = (byte) i;
+        return out;
+    }
+    
+    public static byte[] toByte(long l) {
+        byte[] out = new byte[8];
+        return toByte(l, out, 0);
+    }
+    public static byte[] toByte(long l, byte[] out, int offset) {
+        out[0] = (byte) (l >>> 56);
+        out[1] = (byte) (l >> 48);
+        out[2] = (byte) (l >> 40);
+        out[3] = (byte) (l >> 32);
+        out[4] = (byte) (l >> 24);
+        out[5] = (byte) (l >> 16);
+        out[6] = (byte) (l >>> 8);
+        out[7] = (byte) l;
+        return out;
+    }
+
     // Bin Byte系機能
     
     /**
@@ -259,4 +300,20 @@ public class Bin {
         }
         return ret;
     }
+    
+    /**
+     * MSB が 配列 0 側にある想定のシフト演算
+     * @param a 配列
+     * @param shift シフトビット数 とりあえず 0 から 7
+     * @return シフトされた列
+     */
+    public static byte[] left(byte[] a, int shift) {
+        byte[] b = new byte[a.length];
+        for ( int i = 0; i < a.length - 1 ; i++ ) {
+            b[i] = (byte)((a[i] & 0xff) << shift | ((a[i+1] & 0xff) >> (shift - 8)));
+        }
+        b[a.length - 1] = (byte)((a[a.length - 1] & 0xff) << shift);
+        return b;
+    }
+
 }
