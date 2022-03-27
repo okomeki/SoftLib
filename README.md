@@ -28,7 +28,7 @@ JSONまではほどほどに使えますが、他は実験感覚で作ってい�
 <dependency>
     <groupId>net.siisise</groupId>
     <artifactId>softlib</artifactId>
-    <version>1.1.5</version>
+    <version>1.1.6</version>
     <type>jar</type>
 </dependency>
 ~~~
