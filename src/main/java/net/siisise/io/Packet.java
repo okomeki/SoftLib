@@ -28,7 +28,7 @@ public interface Packet extends FrontPacket,BackPacket {
 
     /**
      * 32ビットでは足りないかもと足してみた
-     * @return 
+     * @return サイズ
      */
     @Override
     long length();

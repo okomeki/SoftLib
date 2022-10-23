@@ -206,4 +206,12 @@ public class StreamFrontPacket implements FrontPacket {
         in.close();
     }
 
+    @Override
+    public Packet split(int length) {
+        byte[] data = new byte[length];
+        read(data);
+        PacketA p = new PacketA();
+        p.dwrite(data);
+        return p;
+    }
 }

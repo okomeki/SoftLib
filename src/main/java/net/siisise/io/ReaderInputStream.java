@@ -35,12 +35,12 @@ public class ReaderInputStream extends InputStream {
     final int bufferSize;
     boolean eof = false;
     
-    ReaderInputStream(Reader r) {
+    public ReaderInputStream(Reader r) {
         rd = r;
         bufferSize = 100;
     }
     
-    ReaderInputStream(Reader r, int size) {
+    public ReaderInputStream(Reader r, int size) {
         rd = r;
         bufferSize = size;
     }

@@ -307,8 +307,6 @@ public class BigBitPacket extends BaseBitPac {
                 of--;
                 data[of] &= andMask(ofbit);
                 data[of] |= (byte)(backReadInt(8 - ofbit) << ofbit);
-                length -= 8 - ofbit;
-                ofbit = 0;
             }
             return retLength;
         }
@@ -407,4 +405,12 @@ public class BigBitPacket extends BaseBitPac {
         return sb.toString();
     }
 
+    @Override
+    public BigBitPacket split(int length) {
+        byte[] data = new byte[length];
+        read(data);
+        BigBitPacket b = new BigBitPacket();
+        b.dbackWrite(data);
+        return b;
+    }
 }

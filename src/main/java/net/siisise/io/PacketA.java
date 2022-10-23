@@ -63,26 +63,31 @@ public class PacketA implements Packet {
 
         /**
          * PacketInをリングに追加する.
-         * 2つのPacketを繋ぐことも可
+         * 二つの地点の組み合わせを交換するので追加、切り取りにも使える.
          * 
-         * this = B pac = D this A // B pac C // D B.prev = C C.next = B D.prev
-         * = A pac が nextのとき 自分が輪から切れる
-         *
-         * @param pac
+         * this A -> B pac C -> D
+         * this = B pac = D
+          
+         * B.prev = C
+         * C.next = B
+         * D.prev = A
+         * 
+         * pac が nextのとき 自分が輪から切れる
+         * 
+         * @param pac D
          */
         final void addPrev(PacketIn pac) {
-            prev.next = pac;
-            pac.prev.next = this;
-            PacketIn pre = pac.prev;
-            pac.prev = prev;
-            prev = pre;
+            prev.next = pac;            // A の次は D
+            pac.prev.next = this;       // C の次は B
+            PacketIn pre = pac.prev;    // pre = C
+            pac.prev = prev;            // D の前は A
+            prev = pre;                 // B の前は C
         }
 
         /**
          * 自分から前後の参照は残しつつ切り離す
          */
         private void delete() {
-//            addPrev(next);
             next.prev = prev;
             prev.next = next;
         }
@@ -129,6 +134,13 @@ public class PacketA implements Packet {
             return read(b, 0, b.length);
         }
 
+        /**
+         * 
+         * @param b
+         * @param offset
+         * @param length
+         * @return 
+         */
         @Override
         public int read(byte[] b, int offset, int length) {
             PacketIn n;
@@ -465,5 +477,32 @@ public class PacketA implements Packet {
                 System.err.println("gc 2");
             }
         }
+    }
+
+    /**
+     * ちょっと分割.
+     * @param length 長さ
+     * @return 
+     */
+    public PacketA split(int length) {
+        int limit = length;
+        PacketA newPac = new PacketA();
+        PacketIn n = nullPack.next;
+        while ( n != nullPack && n.length <= limit ) {
+            limit -= n.length;
+            n = n.next;
+        }
+        if ( nullPack.next != n ) {
+            PacketIn c = nullPack.next;
+            n.addPrev(c);
+            newPac.nullPack.addPrev(c);
+        }
+        
+        if ( limit > 0 ) {
+            byte[] d = new byte[length];
+            int size = read(d);
+            newPac.write(d, 0, size);
+        }
+        return newPac;
     }
 }

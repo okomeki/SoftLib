@@ -23,7 +23,7 @@ import java.io.OutputStream;
  *
  * 上位ビット優先(Big Endian)/下位ビット(Little Endian)優先共通実装
  */
-public abstract class BaseBitPac implements BitPacket {
+public abstract class BaseBitPac implements BitPacket, Packet {
 
     protected Packet pac = new PacketA();
 
@@ -160,7 +160,7 @@ public abstract class BaseBitPac implements BitPacket {
         long l = length();
         return l > ((long) Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) l;
     }
-
+    
     /**
      *
      * @param len 0～32くらい
@@ -285,6 +285,11 @@ public abstract class BaseBitPac implements BitPacket {
     public void write(FrontPacket pac) {
         write(pac.toByteArray());
     }
+    
+    @Override
+    public void dwrite(byte[] data) {
+        write(data);
+    }
 
     @Override
     public void writeBit(int data, int bitLength) {
@@ -313,17 +318,17 @@ public abstract class BaseBitPac implements BitPacket {
 
     @Override
     public void backWrite(byte[] data) {
-        backOut.write(data, 0, data.length);
+        backOut.writeBit(data, 0, data.length * 8l);
     }
 
     @Override
     public void dbackWrite(byte[] data) {
-        backOut.write(data, 0, data.length);
+        backOut.writeBit(data, 0, data.length * 8l);
     }
 
     @Override
     public void backWrite(byte[] data, int offset, int length) {
-        backOut.write(data, offset, length);
+        backOut.writeBit(data, offset * 8l, length * 8l);
     }
 
     @Override

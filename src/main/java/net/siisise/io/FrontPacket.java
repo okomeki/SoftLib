@@ -43,6 +43,13 @@ public interface FrontPacket {
      * @return -1 または 0-255
      */
     int read();
+    /**
+     * ないときは サイズ0
+     * @param data
+     * @param offset
+     * @param length
+     * @return 
+     */
     int read(byte[] data, int offset, int length);
     int read(byte[] data);
 
@@ -81,5 +88,13 @@ public interface FrontPacket {
     void dbackWrite(byte[] data);
 
     long length();
+
+    /**
+     * サイズ.
+     * StreamのFrontの場合は信用しない方がいい
+     * @return サイズ
+     */
     int size();
+    
+    Packet split(int length);
 }
