@@ -87,7 +87,6 @@ public class PEM {
         String line;
         String begin = "-----BEGIN " + type + "-----";
         String end = "-----END " + type + "-----";
-        byte[] data = null;
         StringBuilder src = new StringBuilder();
 
         do { // 頭確認
@@ -110,8 +109,7 @@ public class PEM {
                 src.append(line);
                 line = in.readLine();
             }
-            data = BASE64.decodeBase(src.toString());
-            m.put(null, data);
+            m.put(null, BASE64.decodeBase(src.toString()));
         }
         return m;
     }
