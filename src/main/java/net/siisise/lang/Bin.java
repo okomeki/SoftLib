@@ -315,5 +315,4 @@ public class Bin {
         b[a.length - 1] = (byte)((a[a.length - 1] & 0xff) << shift);
         return b;
     }
-
 }

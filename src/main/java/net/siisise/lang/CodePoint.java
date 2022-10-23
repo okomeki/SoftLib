@@ -18,6 +18,7 @@ package net.siisise.lang;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 import net.siisise.io.FrontPacket;
+import net.siisise.pac.ReadableBlock;
 
 /**
  * RFC 3629
@@ -135,25 +136,89 @@ public class CodePoint {
             len = 3;
             min = 0x10000;
         }
+        
+        byte[] d = new byte[len];
+        int s = pac.read(d);
+        if ( s < len ) {
+            if ( s >= 0 ) {
+                pac.backWrite(d,0,s);
+            }
+            pac.backWrite(rd);
+            return -1;
+        }
 
         for (int i = 0; i < len; i++) {
-            int c = pac.read();
+            int c = d[i] & 0xff;
 
             if ((c & 0xc0) != 0x80) {
-                if (c >= 0) {
-                    pac.backWrite(c);
-                }
-                for (int x = 0; x < i; x++) {
-                    pac.backWrite((rd & 0x3f) | 0x80);
-                    rd >>>= 6;
-                }
-                pac.backWrite(rd | (0xf0 & (0xf80 >> len)));
+                pac.backWrite(d);
+                pac.backWrite(rd);
                 return -1;
             }
             rd <<= 6;
             rd |= (c & 0x3f);
         }
-        if (rd < min || rd > 0x10ffff) {
+        if (rd < min || rd > 0x10ffff) { // ToDo: 要戻り
+            pac.backWrite(d);
+            pac.backWrite(rd);
+            return -1;
+        }
+        return rd;
+    }
+
+    /**
+     * CodePoint-8をUCSに変換.
+     * 不正組は-1
+     *
+     * @param pac
+     * @return UCS-4または不正の場合-1
+     */
+    public static int utf8(ReadableBlock pac) {
+        int of = pac.getOffset();
+        int rd = pac.read();
+        int len;
+        int min;
+        if (rd < 0) {
+            return -1;
+        }
+        if (rd < 0x80) {        // 0xxx xxxx 1バイト 7bit 00 - 7f
+            return rd;
+        } else if (rd < 0xc0) { // 10xx xxxx 80 - 7ff 2バイト目以降
+            pac.seek(of);
+            return -1;
+        } else if (rd < 0xe0) { // 110x xxxx 2バイト 11bit
+            rd &= 0x1f;
+            len = 1;
+            min = 0x80;
+        } else if (rd < 0xf0) { // 1110 xxxx 3バイト 16bit
+            rd &= 0xf;
+            len = 2;
+            min = 0x800;
+        } else {                  // 1111 0xxx 4バイト 21bit
+            rd &= 0x7;
+            len = 3;
+            min = 0x10000;
+        }
+
+        byte[] d = new byte[len];
+        int s = pac.read(d);
+        if ( s < len ) {
+            pac.seek(of);
+            return -1;
+        }
+
+        for (int i = 0; i < len; i++) {
+            int c = d[i] & 0xff;
+
+            if ((c & 0xc0) != 0x80) {
+                pac.seek(of);
+                return -1;
+            }
+            rd <<= 6;
+            rd |= (c & 0x3f);
+        }
+        if (rd < min || rd > 0x10ffff) { // ToDo: 戻らないのか?
+            pac.seek(of);
             return -1;
         }
         return rd;
