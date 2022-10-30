@@ -388,9 +388,9 @@ public class PacketA implements Packet {
         }
 
         if ( limit > 0 ) {
-            byte[] d = new byte[length];
-            int size = read(d);
-            newPac.write(d, 0, size);
+            byte[] d = new byte[Integer.min(limit, size())];
+            read(d);
+            newPac.dwrite(d);
         }
         return newPac;
     }

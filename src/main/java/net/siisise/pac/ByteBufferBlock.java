@@ -15,9 +15,7 @@
  */
 package net.siisise.pac;
 
-import java.io.InputStream;
 import java.nio.ByteBuffer;
-import net.siisise.io.InputInputStream;
 
 /**
  *
@@ -45,7 +43,7 @@ public class ByteBufferBlock extends AbstractReadableBlock {
 
     @Override
     public ReadableBlock readBlock(int length) {
-        length = size() > length ? size() : length;
+        length = Integer.min(size(), length);
         int pos = buff.position();
         ByteBuffer bb = buff.slice();
         bb.limit(length);

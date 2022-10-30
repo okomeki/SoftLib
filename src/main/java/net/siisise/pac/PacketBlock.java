@@ -19,7 +19,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import net.siisise.io.FrontPacket;
 import net.siisise.io.Input;
-import net.siisise.io.Packet;
 import net.siisise.io.PacketA;
 
 /**
@@ -31,7 +30,7 @@ import net.siisise.io.PacketA;
 public class PacketBlock implements EditBlock {
 
     // 読み済み
-    private final Packet front;
+    private final PacketA front;
     private final FrontPacket back;
 
     public PacketBlock() {
@@ -51,25 +50,11 @@ public class PacketBlock implements EditBlock {
 
     @Override
     public int seek(int offset) {
-        if (front.size() + back.size() < offset) {
-            offset = front.size() + back.size();
+        if (front.backSize() + back.size() < offset) {
+            offset = front.backSize() + back.size();
         }
-        while (front.size() < offset) {
-            int size = offset - front.size();
-            if (size > 0x1000000) {
-                size = 0x1000000;
-            }
-            readBlock(size);
-        }
-        while (front.size() > offset) {
-            int size = front.size() - offset;
-            if (size > 0x100000) {
-                size = 0x100000;
-            }
-            byte[] tmp = new byte[size];
-            backRead(tmp);
-            
-        }
+        int size = offset - front.backSize();
+        skip(size);
         return offset;
     }
     
@@ -86,11 +71,23 @@ public class PacketBlock implements EditBlock {
 
     @Override
     public int back(int length) {
+/*
         byte[] d = new byte[length];
 
         int size = front.backRead(d);
         back.backWrite(d, 0, size);
         return size;
+*/
+        int fss = front.backSize();
+        int bs = Integer.min(fss, length);
+        
+        FrontPacket ff = front.split(fss - bs);
+        //bs = front.backSize();
+        back.backWrite(front.toByteArray());
+        front.write(ff);
+
+        return bs;
+
     }
 
     @Override
@@ -119,7 +116,10 @@ public class PacketBlock implements EditBlock {
     @Override
     public ReadableBlock readBlock(int size) {
         size = Integer.min(size(), size);
-        return new SubXReadableBlock(backSize(), backSize() + size, this);
+        FrontPacket p = back.split(size);
+        front.write(p);
+        int fs = front.size();
+        return new SubXReadableBlock(fs - size, fs, this);
     }
 
     /**

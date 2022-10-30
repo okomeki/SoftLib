@@ -22,6 +22,7 @@ import net.siisise.io.RevInput;
 
 /**
  * Buffer の読み込み専用 っぽいものをStream風メソッドで実装したもの.
+ * position() は backSize()
  */
 public interface ReadableBlock extends Block, Input, RevInput {
     
@@ -42,6 +43,11 @@ public interface ReadableBlock extends Block, Input, RevInput {
         return new ByteBlock(b, offset, length);
     }
     
+    /**
+     * 使いやすそうなのでラップする.
+     * @param bb ByteBuffer
+     * @return ReadableBlock
+     */
     public static ReadableBlock wrap(ByteBuffer bb) {
         return new ByteBufferBlock(bb);
     }
@@ -49,10 +55,13 @@ public interface ReadableBlock extends Block, Input, RevInput {
     public static ReadableBlock wrap(FrontPacket pac) {
         return new PacketBlock(pac);
     }
-    
+
+    /**
+     * ちょっと分割したいときのBlock
+     */
     static class SubXReadableBlock extends SubReadableBlock {
         
-        ReadableBlock pa;
+        private final ReadableBlock pa;
         
         SubXReadableBlock(int min, int max, ReadableBlock p) {
             super(min,max);

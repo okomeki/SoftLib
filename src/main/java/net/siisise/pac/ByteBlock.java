@@ -15,9 +15,7 @@
  */
 package net.siisise.pac;
 
-import java.io.InputStream;
 import java.nio.ByteBuffer;
-import net.siisise.io.InputInputStream;
 
 /**
  * ブロック.
