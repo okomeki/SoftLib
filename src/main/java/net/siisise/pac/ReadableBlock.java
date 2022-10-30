@@ -15,30 +15,85 @@
  */
 package net.siisise.pac;
 
-import java.io.InputStream;
+import java.nio.ByteBuffer;
+import net.siisise.io.FrontPacket;
+import net.siisise.io.Input;
+import net.siisise.io.RevInput;
 
 /**
- *
+ * Buffer の読み込み専用 っぽいものをStream風メソッドで実装したもの.
  */
-public interface ReadableBlock extends Block {
+public interface ReadableBlock extends Block, Input, RevInput {
     
     /**
-     * データなし -1
+     * 部分切り出し.
+     * メモリ空間は可能な場合共有する.
+     * 
+     * @param length
      * @return 
      */
-    int read();
-    int read(byte[] data);
-    int read(byte[] data, int offset, int length);
+    ReadableBlock readBlock(int length);
+
+    public static ReadableBlock wrap(byte[] b) {
+        return new ByteBlock(b);
+    }
     
-    int backRead();
-    int backRead(byte[] data);
-    int backRead(byte[] data, int offset, int length);
+    public static ReadableBlock wrap(byte[] b, int offset, int length) {
+        return new ByteBlock(b, offset, length);
+    }
     
-    // Packet互換のあれこれ
-    long length();
-    int size();
-    byte[] toByteArray();
-    InputStream getInputStream();
-    InputStream getBackInputStream();
+    public static ReadableBlock wrap(ByteBuffer bb) {
+        return new ByteBufferBlock(bb);
+    }
     
+    public static ReadableBlock wrap(FrontPacket pac) {
+        return new PacketBlock(pac);
+    }
+    
+    static class SubXReadableBlock extends SubReadableBlock {
+        
+        ReadableBlock pa;
+        
+        SubXReadableBlock(int min, int max, ReadableBlock p) {
+            super(min,max);
+            pa = p;
+        }
+
+        @Override
+        public ReadableBlock readBlock(int length) {
+            int p = pa.backSize();
+            pa.seek(pos);
+            ReadableBlock rb = pa.readBlock(length);
+            pos = pa.backSize();
+            pa.seek(p);
+            return rb;
+        }
+
+        @Override
+        public int read(byte[] d, int offset, int length) {
+            int pp = pa.backSize();
+            pa.seek(pos);
+            length = Integer.min(d.length - offset, length);
+            int s = pa.read(d, offset, length);
+            pa.seek(pp);
+            if ( s > 0 ) {
+                pos += s;
+            }
+            return s;
+        }
+
+
+        @Override
+        public int backRead(byte[] data, int offset, int length) {
+            int pp = pa.backSize();
+            pa.seek(pos);
+            length = Integer.min(data.length - offset, length);
+            int s = pa.backRead(data,offset,length);
+            pa.seek(pp);
+            if ( s > 0 ) {
+                pos -= s;
+            }
+            return s;
+        }
+    }
 }

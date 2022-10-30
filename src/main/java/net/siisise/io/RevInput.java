@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Siisise Net.
+ * Copyright 2022 okome.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,22 @@
  */
 package net.siisise.io;
 
-/**
- * Last in first out.
- * 入力と書き戻しをまとめたもの.
- * BackPacket と メソッド名が重複しないのでいろいろな用途で.
- * Packet と InputStream の共通のものにしたい
- */
-public interface FrontPacket extends Input, RevOutput {
+import java.io.InputStream;
 
+/**
+ *
+ */
+public interface RevInput {
+    
+    InputStream getBackInputStream();
+    
+    int backRead();
+    int backRead(byte[] data, int offset, int length);
+    int backRead(byte[] data);
+
+    /**
+     * RevInput で読めるサイズ.
+     * @return size
+     */
+    int backSize();
 }

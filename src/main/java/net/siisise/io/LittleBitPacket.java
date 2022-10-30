@@ -371,9 +371,9 @@ public class LittleBitPacket extends BaseBitPac {
     @Override
     public LittleBitPacket split(int length) {
         byte[] data = new byte[length];
-        read(data);
+        int size = read(data);
         LittleBitPacket b = new LittleBitPacket();
-        b.write(data);
+        b.write(data,0,size);
         return b;
     }
 }

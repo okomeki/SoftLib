@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Siisise Net.
+ * Copyright 2022 okome.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.siisise.io;
 
 /**
- * Last in first out.
- * 入力と書き戻しをまとめたもの.
- * BackPacket と メソッド名が重複しないのでいろいろな用途で.
- * Packet と InputStream の共通のものにしたい
+ * java.nio っぽくなっている気がする.
  */
-public interface FrontPacket extends Input, RevOutput {
-
-}
+package net.siisise.pac;

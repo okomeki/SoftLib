@@ -69,25 +69,13 @@ public class GF {
         return exp[e];
     }
 
-/*/
-    public int mul(int a, byte bs) {
-        if ( a == 0 || b == 0 )
-            return 0;
-        a &= size;
-        int b = bs & size;
-        
-        int e = log[a] + log[b];
-        if ( e >= size ) {
-            e -= size;
-        }
-        return exp[e];
-    }
-//*/
     /*
     public int mul(int x, int y) {
         int m = 0;
+    
         x &= size;
         y &= size;
+
         while (x > 0) {
             if ((x & 1) != 0) {
                 m ^= y;

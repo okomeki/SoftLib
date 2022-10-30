@@ -408,9 +408,9 @@ public class BigBitPacket extends BaseBitPac {
     @Override
     public BigBitPacket split(int length) {
         byte[] data = new byte[length];
-        read(data);
+        int size = read(data);
         BigBitPacket b = new BigBitPacket();
-        b.dbackWrite(data);
+        b.backWrite(data, 0, size);
         return b;
     }
 }

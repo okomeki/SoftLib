@@ -45,6 +45,12 @@ public class ReaderInputStream extends InputStream {
         bufferSize = size;
     }
     
+    private void cacheIn() throws IOException {
+        while (!eof ) {
+            buffering();
+        }
+    }
+    
     private void buffering() throws IOException {
         if ( eof ) return;
         int ch = rd.read();
@@ -60,7 +66,6 @@ public class ReaderInputStream extends InputStream {
             }
             pair = new char[] {(char)ch,0};
             buffering();
-            return;
         } else if ( ch >= 0xdc00 && ch <= 0xdfff ) {
             byte[] bytes;
             if ( pair != null ) {
@@ -97,7 +102,8 @@ public class ReaderInputStream extends InputStream {
      */
     @Override
     public int available() throws IOException {
-        return pac.size() + (rd.ready() ? 1 : 0);
+        cacheIn();
+        return pac.size();
     }
     
 }

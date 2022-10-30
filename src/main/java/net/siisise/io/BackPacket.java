@@ -15,26 +15,11 @@
  */
 package net.siisise.io;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-
 /**
- * flushとcloseは持っていない、Exceptionも発生しない。
+ * closeは持っていない、Exceptionも発生しない。
  * InputStream, OutputStream と少し仕様/動作が異なる。
+ * FrontPacket の裏の存在。メソッドは重複しない.
  */
-public interface BackPacket {
-
-    OutputStream getOutputStream();
-    InputStream getBackInputStream();
-
-    void write(int data);
-    void write(byte[] data, int offset, int length);
-    void write(byte[] data);
-    void write(FrontPacket pac);
-    void dwrite(byte[] data);
-
-    int backRead();
-    int backRead(byte[] data, int offset, int length);
-    int backRead(byte[] data);
- 
+public interface BackPacket extends Output,RevInput {
 }
+

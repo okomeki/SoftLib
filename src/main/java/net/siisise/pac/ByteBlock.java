@@ -15,171 +15,107 @@
  */
 package net.siisise.pac;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import net.siisise.io.InputInputStream;
 
 /**
  * ブロック.
  * バイト列は複製しない.
+ * 部分集合にも対応する。
+ * ByteBuffer 相当.
  */
-public class ByteBlock implements ReadableBlock {
-    
+public class ByteBlock extends SubReadableBlock {
+
+    /**
+     * 参照のみできる配列.
+     */
     private final byte[] block;
-    
-    private int offset;
-    
+
+    /**
+     * 配列全体.
+     * @param src 
+     */
     public ByteBlock(byte[] src) {
+        super(0,src.length);
         block = src;
+    }
+    
+    /**
+     * 配列の部分集合.
+     * @param src 更新しない前提の配列.
+     * @param start 開始位置
+     * @param length サイズ
+     */
+    public ByteBlock(byte[] src, int start, int length) {
+        super(start,start + length);
+        block = src;
+        pos = start;
     }
 
     @Override
     public int read() {
-        if ( offset >= block.length) {
-            return -1;
-        }
-        return block[offset++] & 0xff;
+        return ( pos >= max) ? -1 : block[pos++] & 0xff;
     }
-
+    
+    /**
+     * 指定サイズの部分集合を作る.
+     * offsetは読み込んだ分進む.
+     * @param size サイズ
+     * @return 部分集合 subblock
+     */
     @Override
-    public int read(byte[] data) {
-        return read(data,0, data.length);
+    public ByteBlock readBlock(int size) {
+        size = Integer.min( max - pos, size );
+        ByteBlock b = new ByteBlock(block, pos, size);
+        pos += size;
+        return b;
     }
 
     /**
      * 
-     * @param data
+     * @param dst
      * @param offset
      * @param length
      * @return 
      */
     @Override
-    public int read(byte[] data, int offset, int length) {
-        int size = block.length - this.offset;
-        if ( length < size) { // 最大 と 指定サイズの小さい方
-            size = length;
+    public int read(byte[] dst, int offset, int length) {
+        if ( offset < 0 || offset > dst.length || length < 0 ) {
+            throw new java.lang.IndexOutOfBoundsException();
         }
-        if ( data.length < offset + size ) { // dataサイズと小さい方
-            size = data.length - offset;
-        }
-        System.err.println("block offset:" + this.offset + " offset:" + offset + " size: " + size);
-        System.arraycopy(block, this.offset, data, offset, size);
-        this.offset += size;
+        // dataサイズと小さい方
+        int size = Integer.min(dst.length - offset, length);
+        int p = pos;
+        size = skip(size);
+        System.arraycopy(block, p, dst, offset, size);
         return size;
-    }
-
-    @Override
-    public int getOffset() {
-        return offset;
-    }
-
-    /**
-     * 
-     * @param offset
-     * @return 
-     */
-    @Override
-    public int seek(int offset) {
-        if (offset < block.length) {
-            this.offset = offset;
-        } else {
-            this.offset = block.length;
-        }
-        return this.offset;
-    }
-
-    /**
-     * 
-     * @param length マイナスも使えるといい
-     * @return 
-     */
-    @Override
-    public int skip(int length) {
-        if ( length < 0) { // back
-            if ( offset >= -length) {
-                offset += length;
-                return length;
-            } else {
-                int size = offset;
-                offset = 0;
-                return size;
-            }
-        }
-        int size = block.length - offset > length ? length : (block.length - offset);
-        offset += size;
-        return size;
-    }
-
-    @Override
-    public int back(int length) {
-        if ( length <= offset ) {
-            offset -= length;
-        } else {
-            length = offset;
-            offset = 0;
-        }
-        return length;
-    }
-
-    /**
-     * Packet と互換にすること.
-     * @return 読んでいない部分のみ.
-     */
-    @Override
-    public byte[] toByteArray() {
-        byte[] tmp = new byte[block.length - offset];
-        read(tmp);
-        return tmp;
-    }
-
-    @Override
-    public long length() {
-        return block.length - offset;
-    }
-
-    @Override
-    public int size() {
-        return block.length - offset;
-    }
-
-    /**
-     * 仮対応.
-     * まだまともには使えない
-     * @return 仮
-     */
-    @Override
-    public InputStream getInputStream() {
-        ByteArrayInputStream in = new ByteArrayInputStream(block);
-        in.skip(offset);
-        return in;
-    }
-
-    @Override
-    public InputStream getBackInputStream() {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public int backRead() {
-        if ( offset > 0 ) {
-            return block[--offset] & 0xff;
+        if ( pos > min ) {
+            return block[--pos] & 0xff;
         }
         return -1;
     }
 
     @Override
-    public int backRead(byte[] data, int offset, int length) {
-        int size = this.offset > length ? length : this.offset;
-        if ( data.length - offset < size) {
-            size = data.length - offset;
+    public int backRead(byte[] dst, int offset, int length) {
+        if ( offset < 0 || offset >= dst.length || length < 0 ) {
+            throw new java.lang.IndexOutOfBoundsException();
         }
-        this.offset -= size;
-        System.arraycopy(block, this.offset, data, offset, size);
+        length = Integer.min( dst.length - offset, length );
+        int size = back(length);
+        System.arraycopy(block, pos, dst, offset, size);
         return size;
     }
 
-    @Override
-    public int backRead(byte[] data) {
-        return backRead(data, 0, data.length);
+    /**
+     * position から残りを position と limit に設定したByteBuffer
+     * @return 
+     */
+    public ByteBuffer asByteBuffer() {
+        return ByteBuffer.wrap(block, pos, max - pos);
     }
-
 }

@@ -174,7 +174,7 @@ public class CodePoint {
      * @return UCS-4または不正の場合-1
      */
     public static int utf8(ReadableBlock pac) {
-        int of = pac.getOffset();
+        int mark = pac.backSize();
         int rd = pac.read();
         int len;
         int min;
@@ -184,7 +184,7 @@ public class CodePoint {
         if (rd < 0x80) {        // 0xxx xxxx 1バイト 7bit 00 - 7f
             return rd;
         } else if (rd < 0xc0) { // 10xx xxxx 80 - 7ff 2バイト目以降
-            pac.seek(of);
+            pac.seek(mark);
             return -1;
         } else if (rd < 0xe0) { // 110x xxxx 2バイト 11bit
             rd &= 0x1f;
@@ -203,7 +203,7 @@ public class CodePoint {
         byte[] d = new byte[len];
         int s = pac.read(d);
         if ( s < len ) {
-            pac.seek(of);
+            pac.seek(mark);
             return -1;
         }
 
@@ -211,14 +211,14 @@ public class CodePoint {
             int c = d[i] & 0xff;
 
             if ((c & 0xc0) != 0x80) {
-                pac.seek(of);
+                pac.seek(mark);
                 return -1;
             }
             rd <<= 6;
             rd |= (c & 0x3f);
         }
         if (rd < min || rd > 0x10ffff) { // ToDo: 戻らないのか?
-            pac.seek(of);
+            pac.seek(mark);
             return -1;
         }
         return rd;

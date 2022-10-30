@@ -161,6 +161,11 @@ public abstract class BaseBitPac implements BitPacket, Packet {
         return l > ((long) Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) l;
     }
     
+    @Override
+    public int backSize() {
+        return size();
+    }
+    
     /**
      *
      * @param len 0～32くらい
@@ -282,7 +287,7 @@ public abstract class BaseBitPac implements BitPacket, Packet {
     }
 
     @Override
-    public void write(FrontPacket pac) {
+    public void write(Input pac) {
         write(pac.toByteArray());
     }
     
@@ -349,5 +354,10 @@ public abstract class BaseBitPac implements BitPacket, Packet {
     @Override
     public void backWriteBit(byte[] data, long bitOffset, long bitLength) {
         backOut.writeBit(data, bitOffset, bitLength);
+    }
+    
+    @Override
+    public void flush() {
+        
     }
 }

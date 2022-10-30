@@ -25,17 +25,4 @@ package net.siisise.io;
  * @since JDK 1.1
  */
 public interface Packet extends FrontPacket,BackPacket {
-
-    /**
-     * 32ビットでは足りないかもと足してみた
-     * @return サイズ
-     */
-    @Override
-    long length();
-    /**
-     * 32ビット内であればそのサイズ、それ以上はIntegerの最大値
-     * @return 
-     */
-    @Override
-    int size();
 }

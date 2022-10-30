@@ -26,6 +26,7 @@ import java.util.logging.Logger;
  * PacketのふりをするStream
  * Packet を InputStream の頭につけたい。
  * Streamとして振る舞うのがメイン。
+ * 使い終わったStreamは閉じる.
  */
 public class StreamFrontPacket implements FrontPacket {
 
@@ -46,13 +47,12 @@ public class StreamFrontPacket implements FrontPacket {
         return size();
     }
 
-    class FrontInputStream extends java.io.FilterInputStream {
+    private class FrontInputStream extends java.io.InputStream {
 
-        // タイミングを逃したEOF
-        boolean eof = false;
+        private InputStream in;
 
         FrontInputStream(InputStream in) {
-            super(in);
+            this.in = in;
         }
 
         @Override
@@ -60,31 +60,41 @@ public class StreamFrontPacket implements FrontPacket {
             if ( inpac.size() > 0 ) {
                 return inpac.read();
             }
-            if ( eof ) {
-                eof = false;
-                return -1;
+            if ( in == null ) { // streamが終わるとPacketとして振る舞うのでExceptionは吐かない.
+                throw new IOException();
+//                return -1;
             }
-//            if ( fin.available() > 0 ) {  // ToDo: いらない?
-            return in.read();
-//            }
-//            return -1; // fin.read();
+            
+            int v = in.read();
+            if ( v < 0 ) {
+                in.close();
+                in = null;
+            }
+            return v;
+        }
+        
+        @Override
+        public int read(byte[] d) throws IOException {
+            return read(d,0,d.length);
         }
 
         @Override
         public int read(byte[] data, int offset, int length) throws IOException {
             int len = inpac.read(data, offset, length);
-            if ( len >= 0 && len < length) {
-                offset += len;
-                length -= len;
-                if ( eof ) {
-                    eof = false;
-                    return -1;
+            if ( len < length && in != null ) { // Streamに頼る.
+                if ( len >= 0 ) {
+                    offset += len;
+                    length -= len;
                 }
                 int l2 = in.read(data,offset,length);
-                if ( l2 >= 0 ) {
-                    return len + l2;
+                if ( l2 < 0 ) {
+                    in.close();
+                    in = null;
+                    if ( len == 0 ) {
+                        len = -1;
+                    }
                 } else {
-                    eof = true;
+                    return len + l2;
                 }
             }
             return len;
@@ -92,7 +102,15 @@ public class StreamFrontPacket implements FrontPacket {
 
         @Override
         public int available() throws IOException {
+            if ( in == null ) {
+                return inpac.size();
+            }
             return inpac.size() + in.available();
+        }
+        
+        @Override
+        public void close() throws IOException {
+            in.close();
         }
     }
 
@@ -149,7 +167,7 @@ public class StreamFrontPacket implements FrontPacket {
     public int read(byte[] data) {
         return read(data, 0, data.length);
     }
-
+    
     @Override
     public byte[] toByteArray() {
         try {
@@ -178,6 +196,11 @@ public class StreamFrontPacket implements FrontPacket {
     @Override
     public void dbackWrite(byte[] data) {
         inpac.dbackWrite(data);
+    }
+    
+    @Override
+    public void flush() {
+        inpac.flush();
     }
 
     /**
@@ -213,5 +236,15 @@ public class StreamFrontPacket implements FrontPacket {
         PacketA p = new PacketA();
         p.dwrite(data);
         return p;
+    }
+    
+    /**
+     * for Debug.
+     * でばっぐ用なのでてきとう
+     * @return 
+     */
+    @Override
+    public String toString() {
+        return "StreamFrontPacket size:" + size();
     }
 }
