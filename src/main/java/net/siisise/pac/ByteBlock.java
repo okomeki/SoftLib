@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
  * 部分集合にも対応する。
  * ByteBuffer 相当.
  */
-public class ByteBlock extends SubReadableBlock {
+public class ByteBlock extends AbstractSubReadableBlock {
 
     /**
      * 参照のみできる配列.
@@ -48,7 +48,6 @@ public class ByteBlock extends SubReadableBlock {
     public ByteBlock(byte[] src, int start, int length) {
         super(start,start + length);
         block = src;
-        pos = start;
     }
 
     @Override

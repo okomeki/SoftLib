@@ -16,9 +16,9 @@
 package net.siisise.pac;
 
 /**
- *
+ * 部分集合用の軽い実装.
  */
-public abstract class SubReadableBlock extends AbstractReadableBlock {
+public abstract class AbstractSubReadableBlock extends AbstractReadableBlock {
     /**
      * 最小位置.
      * java.nio.Buffer の arrayOffset()
@@ -30,10 +30,15 @@ public abstract class SubReadableBlock extends AbstractReadableBlock {
      * java.nio.Buffer の limit
      */
     protected final int max;
-    protected int pos = 0;
-    
-    SubReadableBlock(int min, int max) {
-        this.min = min;
+    protected int pos;
+
+    /**
+     * pos は未指定
+     * @param min
+     * @param max 
+     */
+    protected AbstractSubReadableBlock(int min, int max) {
+        this.min = pos = min;
         this.max = max;
     }
 
@@ -51,7 +56,7 @@ public abstract class SubReadableBlock extends AbstractReadableBlock {
         } else {
             pos = min;
         }
-        
+
         return pos - min;
     }
 
@@ -90,7 +95,7 @@ public abstract class SubReadableBlock extends AbstractReadableBlock {
     public int size() {
         return max - pos;
     }
-    
+
     /**
      * position だったもの.
      * @return 読み込み済みのサイズ position

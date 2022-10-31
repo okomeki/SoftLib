@@ -119,12 +119,12 @@ public class PacketBlock implements EditBlock {
         FrontPacket p = back.split(size);
         front.write(p);
         int fs = front.size();
-        return new SubXReadableBlock(fs - size, fs, this);
+        return new SubReadableBlock(fs - size, fs, this);
     }
 
     /**
      * 切り取り.
-     * 切り取った部分はなくなる。
+     * 切り取った部分はなくなる。 (仮
      * @param length
      * @return 
      */

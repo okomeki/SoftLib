@@ -16,6 +16,7 @@
 package net.siisise.pac;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import net.siisise.io.FrontPacket;
 import net.siisise.io.Input;
 import net.siisise.io.RevInput;
@@ -27,22 +28,26 @@ import net.siisise.io.RevInput;
 public interface ReadableBlock extends Block, Input, RevInput {
     
     /**
-     * 部分切り出し.
+     * 現在値から部分的な切り出し.
      * メモリ空間は可能な場合共有する.
      * 
      * @param length
-     * @return 
+     * @return 部分要素.
      */
     ReadableBlock readBlock(int length);
+
+    public static ReadableBlock wrap(String s) {
+        return new ByteBlock(s.getBytes(StandardCharsets.UTF_8));
+    }
 
     public static ReadableBlock wrap(byte[] b) {
         return new ByteBlock(b);
     }
-    
+
     public static ReadableBlock wrap(byte[] b, int offset, int length) {
         return new ByteBlock(b, offset, length);
     }
-    
+
     /**
      * 使いやすそうなのでラップする.
      * @param bb ByteBuffer
@@ -51,19 +56,25 @@ public interface ReadableBlock extends Block, Input, RevInput {
     public static ReadableBlock wrap(ByteBuffer bb) {
         return new ByteBufferBlock(bb);
     }
-    
+
     public static ReadableBlock wrap(FrontPacket pac) {
         return new PacketBlock(pac);
     }
 
     /**
-     * ちょっと分割したいときのBlock
+     * ちょっと分割したいときのBlock.
      */
-    static class SubXReadableBlock extends SubReadableBlock {
-        
+    static class SubReadableBlock extends AbstractSubReadableBlock {
+
         private final ReadableBlock pa;
-        
-        SubXReadableBlock(int min, int max, ReadableBlock p) {
+
+        /**
+         *  部分集合.
+         * @param min 最小位置
+         * @param max 最大位置
+         * @param p parent block
+         */
+        SubReadableBlock(int min, int max, ReadableBlock p) {
             super(min,max);
             pa = p;
         }
@@ -72,6 +83,7 @@ public interface ReadableBlock extends Block, Input, RevInput {
         public ReadableBlock readBlock(int length) {
             int p = pa.backSize();
             pa.seek(pos);
+            length = Integer.min(max - pos, length);
             ReadableBlock rb = pa.readBlock(length);
             pos = pa.backSize();
             pa.seek(p);
@@ -83,6 +95,7 @@ public interface ReadableBlock extends Block, Input, RevInput {
             int pp = pa.backSize();
             pa.seek(pos);
             length = Integer.min(d.length - offset, length);
+            length = Integer.min(max - pos, length);
             int s = pa.read(d, offset, length);
             pa.seek(pp);
             if ( s > 0 ) {
@@ -91,12 +104,12 @@ public interface ReadableBlock extends Block, Input, RevInput {
             return s;
         }
 
-
         @Override
         public int backRead(byte[] data, int offset, int length) {
             int pp = pa.backSize();
             pa.seek(pos);
             length = Integer.min(data.length - offset, length);
+            length = Integer.min(pos - min, length);
             int s = pa.backRead(data,offset,length);
             pa.seek(pp);
             if ( s > 0 ) {

@@ -35,6 +35,7 @@ JSONまではほどほどに使えますが、他は実験感覚で作ってい�
 時々変わることがあるので特定バージョンを指定するか、SoftLibJSONなど使用したい機能経由で指定するのがおすすめです。
 
 リリース版 1.1.6 ぐらい。
+次版 1.1.7-SNAPSHOT
 
 ~~~
 <version>[1.1.4,)</version>
@@ -51,9 +52,24 @@ JSONまではほどほどに使えますが、他は実験感覚で作ってい�
 
 ## Packet
 
+net.siisise.io.Packet
+net.siisise.io.FrontPacket
+net.siisise.io.BackPacket
+net.siisise.io.PacketA
+
 可変長配列、のようなものを目指してみたらこうなった。
 
 FrontPacket, BackPacketが頭と尻のようなもので双方でInputStream,OutputStreamっぽいものが使える。
 FIFOでもLIFOでもできるような抽象構造。
 中身は配列のチェーンだがTEMPファイルなどにすると巨大化も期待できる。
 BitStreamも扱えるようにしてみたが、まだ片方しか実装していない。
+
+## Block (仮
+
+net.siisise.pac.Block
+net.siisise.pac.ReadableBlock
+net.siisise.pac.ByteBlock
+net.siisise.pac.BufferBlock
+net.siisise.pac.PacketBlock
+
+FrontPacket, BackPacket を byte[], nioのByteBufferなどの固定長ブロックで利用できるようにしたもの
