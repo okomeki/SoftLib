@@ -18,16 +18,61 @@ package net.siisise.io;
 import java.io.OutputStream;
 
 /**
- *
+ * OutputStream風のなにか.
  */
 public interface Output {
 
     OutputStream getOutputStream();
     
     void write(int data);
-    void write(byte[] data, int offset, int length);
     void write(byte[] data);
+    void write(byte[] data, int offset, int length);
 
     void dwrite(byte[] data);
+    /**
+     * 中身の移動.
+     * @param pac null不可.
+     */
     void write(Input pac);
+
+    /**
+     * Block 上書き.
+     * Packet 追加. writeと同じ.
+     * @param data
+     * @return 
+     */
+    Output put(byte data);
+    Output put(byte[] data);
+    Output put(byte[] data, int offset, int length);
+
+    /**
+     * データを小分けにしながら移動。
+     * 同じ実装が多そうなのでまとめる。
+     * @param out 先 null不可
+     * @param in 元 null不可
+     * @param length データサイズ
+     * @return 移動したサイズ
+     */
+    public static long write(Output out, Input in, long length) {
+        if ( in instanceof PacketA && out instanceof PacketA ) {
+            return ((PacketA)out).write(in, length);
+        }
+        byte[] d;
+        int size;
+        long x = length;
+        while (x > 0) {
+            d = new byte[(int)Math.min(x,PacketA.MAXLENGTH)];
+            size = in.read(d);
+            if ( size <= 0) {
+                return length - x;
+            }
+            if ( size == d.length) {
+                out.dwrite(d);
+            } else {
+                out.write(d,0,size);
+            }
+            x -= size;
+        }
+        return length - x;
+    }
 }

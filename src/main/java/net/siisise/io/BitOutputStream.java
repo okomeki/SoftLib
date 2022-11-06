@@ -41,10 +41,10 @@ public class BitOutputStream extends FilterOutputStream {
     @Override
     public void write(int b) throws java.io.IOException {
         // バイトとビットが独立している場合
-        flushBit();
-        super.write(b);
+        // flushBit();
+        // super.write(b);
         // バイトもビット境界で書き込む場合
-        // writeBit(b, 8);
+        writeBit(b, 8);
     }
     
     /**
@@ -154,5 +154,4 @@ public class BitOutputStream extends FilterOutputStream {
         flushBit();
         super.flush();
     }
-
 }

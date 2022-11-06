@@ -13,34 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.siisise.pac;
+package net.siisise.block;
 
-import net.siisise.io.BackPacket;
 import net.siisise.io.FrontPacket;
+import net.siisise.io.IndexEdit;
+import net.siisise.io.PacketA;
 
 /**
  * 編集点が中央になったPacket.
  * 先頭、終端が編集点とは別に存在する。
  * 上書き、切り取りの概念を追加する。
  */
-public interface EditBlock extends ReadableBlock, FrontPacket, BackPacket {
+public interface EditBlock extends OverBlock, IndexEdit {
 
-    /**
-     * 上書き
-     * @param data
-     * @return 
-     */
-    int overWrite(int data);
-    int overWrite(byte[] data);
-    int overWrite(byte[] data, int offset, int length);
-    
     /**
      * 切り取る.
      * 編集可能な場合のみ、不要なサイズを切り取る.
+     * del と類似.
      * @param length 長さ
      * @return 切り取ったデータ.
      */
     byte[] drop(int length);
     byte[] backDrop(int length);
+
+    public static EditBlock wrap(byte[] d) {
+        return new SinglePacketBlock(d);
+    }
+
+    public static EditBlock wrap(byte[] d, int offset, int length) {
+        SinglePacketBlock b = new SinglePacketBlock();
+        b.put(d,offset,length);
+        b.seek(0);
+        return b;
+    }
     
+    public static EditBlock wrap(FrontPacket p) {
+        return new PacketBlock(p);
+    }
+
+    public static EditBlock wrap(PacketA p) {
+        return new SinglePacketBlock(p);
+    }
 }

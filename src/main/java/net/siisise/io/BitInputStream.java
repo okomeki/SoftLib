@@ -37,16 +37,22 @@ public class BitInputStream extends FilterInputStream {
     }
 
     /**
+     * 8ビット単位まで捨てる.
+     */
+    public void resetBit() {
+        topbit = 0;
+        buff = 0;
+    }
+
+    /**
      * ビット処理をリセットしてしまいます
      * 読み込んでいない8ビット未満のビットデータは破棄されます。
      * @throws java.io.IOException
      */
     @Override
     public int read() throws IOException {
-        // 独立している場合
-        topbit = 0;
-        buff = 0;
-        return super.read();
+        byte[] d = new byte[1];
+        return readBit(d) < 1 ? -1 : d[0] & 0xff;
     }
     
     /**
@@ -63,9 +69,7 @@ public class BitInputStream extends FilterInputStream {
      */
     @Override
     public int read( byte[] data, int off, int length ) throws IOException {
-        topbit = 0;
-        buff = 0;
-        return super.read(data, off, length);
+        return readBit(data, off, length*8);
     }
 
     /**

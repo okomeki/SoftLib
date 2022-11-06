@@ -66,10 +66,10 @@ BitStreamも扱えるようにしてみたが、まだ片方しか実装して�
 
 ## Block (仮
 
-net.siisise.pac.Block
-net.siisise.pac.ReadableBlock
-net.siisise.pac.ByteBlock
-net.siisise.pac.BufferBlock
-net.siisise.pac.PacketBlock
+net.siisise.block.Block
+net.siisise.block.ReadableBlock
+net.siisise.block.ByteBlock
+net.siisise.block.BufferBlock
+net.siisise.block.PacketBlock
 
 FrontPacket, BackPacket を byte[], nioのByteBufferなどの固定長ブロックで利用できるようにしたもの

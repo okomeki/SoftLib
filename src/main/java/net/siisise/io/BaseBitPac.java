@@ -15,15 +15,13 @@
  */
 package net.siisise.io;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-
 /**
  * ビット操作用.
+ * index系まだつかえない.
  *
  * 上位ビット優先(Big Endian)/下位ビット(Little Endian)優先共通実装
  */
-public abstract class BaseBitPac implements BitPacket, Packet {
+public abstract class BaseBitPac extends BasePacket implements BitPacket {
 
     protected Packet pac = new PacketA();
 
@@ -36,7 +34,7 @@ public abstract class BaseBitPac implements BitPacket, Packet {
      */
     protected int writePadding;
 
-    abstract public class BitInputStream extends InputStream {
+    public abstract class BitInputStream extends AbstractInput {
 
         @Override
         public int read() {
@@ -44,11 +42,6 @@ public abstract class BaseBitPac implements BitPacket, Packet {
                 return -1;
             }
             return readInt(8);
-        }
-
-        @Override
-        public int read(byte[] data) {
-            return read(data, 0, data.length);
         }
 
         /**
@@ -71,28 +64,34 @@ public abstract class BaseBitPac implements BitPacket, Packet {
         public abstract int readInt(int bit);
         public abstract long readBit(byte[] data, long offset, long bitLength);
         public abstract BitPacket readPac(int bitLength);
-
+        
         @Override
-        public int available() {
-            return size();
+        public long length() {
+            return BaseBitPac.this.length();
         }
     }
 
-    abstract public class BitOutputStream extends OutputStream {
+    public abstract class BitOutputStream extends AbstractOutput {
 
         @Override
-        public void write(int data) {
-            writeBit(new byte[]{(byte) data}, (long) 0, (long) 8);
+        public void write(int d) {
+            writeBit(new byte[]{(byte) d}, (long) 0, (long) 8);
         }
 
         @Override
-        public void write(byte[] data) {
-            writeBit(data, 0, data.length * 8);
+        public void write(byte[] d) {
+            writeBit(d, 0, d.length * 8);
         }
 
         @Override
-        public void write(byte[] data, int offset, int length) {
+        public void write(byte[] d, int offset, int length) {
+            writeBit(d, offset * 8, length * 8);
+        }
+
+        @Override
+        public Output put(byte[] data, int offset, int length) {
             writeBit(data, offset * 8, length * 8);
+            return this;
         }
 
         public void writeBit(BitPacket pac) {
@@ -155,17 +154,6 @@ public abstract class BaseBitPac implements BitPacket, Packet {
         return bitLength() / 8;
     }
 
-    @Override
-    public int size() {
-        long l = length();
-        return l > ((long) Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int) l;
-    }
-    
-    @Override
-    public int backSize() {
-        return size();
-    }
-    
     /**
      *
      * @param len 0～32くらい
@@ -177,28 +165,12 @@ public abstract class BaseBitPac implements BitPacket, Packet {
     }
 
     /**
-     * 1バイトリード。
-     * 8ビット以上有効な場合に読み出し可能.
-     *
-     * @return 下位8ビットで1バイト -1でデータなし.
-     */
-    @Override
-    public int read() {
-        return in.read();
-    }
-
-    /**
      * 8ビット単位で転送.
      * 端数は残る。
      *
      * @param data 転送先配列
      * @return 転送可能なバイト長。
      */
-    @Override
-    public int read(byte[] data) {
-        return in.read(data, 0, data.length);
-    }
-
     @Override
     public int read(byte[] data, int offset, int length) {
         return in.read(data, offset, length);
@@ -234,28 +206,6 @@ public abstract class BaseBitPac implements BitPacket, Packet {
         return in.readPac(length);
     }
 
-    /**
-     * 端数切り捨て.
-     *
-     * @return
-     */
-    @Override
-    public byte[] toByteArray() {
-        byte[] data = new byte[size()];
-        read(data);
-        return data;
-    }
-
-    @Override
-    public int backRead() {
-        return backIn.read();
-    }
-
-    @Override
-    public int backRead(byte[] data) {
-        return backIn.read(data, 0, data.length);
-    }
-
     @Override
     public int backRead(byte[] data, int offset, int length) {
         return backIn.read(data, offset, length);
@@ -272,30 +222,10 @@ public abstract class BaseBitPac implements BitPacket, Packet {
     }
 
     @Override
-    public void write(int data) {
-        out.write(new byte[]{(byte) data});
-    }
-
-    @Override
-    public void write(byte[] data) {
-        writeBit(data, 0, data.length * 8);
-    }
-
-    @Override
     public void write(byte[] data, int offset, int length) {
         out.write(data, offset, length);
     }
-
-    @Override
-    public void write(Input pac) {
-        write(pac.toByteArray());
-    }
     
-    @Override
-    public void dwrite(byte[] data) {
-        write(data);
-    }
-
     @Override
     public void writeBit(int data, int bitLength) {
         out.writeBit(data, bitLength);
@@ -314,21 +244,6 @@ public abstract class BaseBitPac implements BitPacket, Packet {
     @Override
     public void writeBit(byte[] data, long bitOffset, long bitLength) {
         out.writeBit(data, bitOffset, bitLength);
-    }
-
-    @Override
-    public void backWrite(int data) {
-        backOut.write(new byte[]{(byte) data}, 0, 1);
-    }
-
-    @Override
-    public void backWrite(byte[] data) {
-        backOut.writeBit(data, 0, data.length * 8l);
-    }
-
-    @Override
-    public void dbackWrite(byte[] data) {
-        backOut.writeBit(data, 0, data.length * 8l);
     }
 
     @Override
@@ -355,9 +270,29 @@ public abstract class BaseBitPac implements BitPacket, Packet {
     public void backWriteBit(byte[] data, long bitOffset, long bitLength) {
         backOut.writeBit(data, bitOffset, bitLength);
     }
-    
+
     @Override
-    public void flush() {
-        
+    public IndexInput get(long index, byte[] b, int offset, int length) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void put(long index, byte[] d, int srcOffset, int length) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void add(long index, byte[] d, int srcOffset, int length) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void del(long index, long size) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public IndexEdit del(long index, byte[] d, int offset, int length) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

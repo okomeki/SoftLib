@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.siisise.pac;
+package net.siisise.block;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import net.siisise.io.Edit;
 import net.siisise.io.FrontPacket;
+import net.siisise.io.IndexEdit;
 import net.siisise.io.Input;
+import net.siisise.io.Packet;
 import net.siisise.io.PacketA;
+import net.siisise.io.RevOutput;
 
 /**
  * 編集点が中央になったPacket.
@@ -27,7 +31,7 @@ import net.siisise.io.PacketA;
  * 先頭、終端と編集点を別にしたもの.
  * Packet を継承すると BackPacket系が混乱するので継承しない方がいいのかも.
  */
-public class PacketBlock implements EditBlock {
+public class PacketBlock extends Edit implements EditBlock {
 
     // 読み済み
     private final PacketA front;
@@ -49,17 +53,17 @@ public class PacketBlock implements EditBlock {
     }
 
     @Override
-    public int seek(int offset) {
+    public long seek(long offset) {
         if (front.backSize() + back.size() < offset) {
             offset = front.backSize() + back.size();
         }
-        int size = offset - front.backSize();
+        long size = offset - front.backSize();
         skip(size);
         return offset;
     }
-    
+
     @Override
-    public int skip(int length) {
+    public long skip(long length) {
         if ( length < 0 ) {
             return -back(-length);
         }
@@ -70,41 +74,12 @@ public class PacketBlock implements EditBlock {
     }
 
     @Override
-    public int back(int length) {
-/*
-        byte[] d = new byte[length];
-
-        int size = front.backRead(d);
-        back.backWrite(d, 0, size);
-        return size;
-*/
-        int fss = front.backSize();
-        int bs = Integer.min(fss, length);
+    public long back(long length) {
+        long fss = front.backSize();
+        long bs = Long.min(fss, length);
         
-        FrontPacket ff = front.split(fss - bs);
-        //bs = front.backSize();
-        back.backWrite(front.toByteArray());
-        front.write(ff);
-
-        return bs;
-
-    }
-
-    @Override
-    public int read() {
-        if (back.size() > 0) {
-            int d = back.read();
-            front.write(d);
-            return d;
-        }
-        return -1;
-    }
-
-    @Override
-    public int read(byte[] data) {
-        int size = back.read(data);
-        front.write(data, 0, size);
-        return size;
+        Packet ff = front.backSplit(bs);
+        return RevOutput.backWrite(back, ff, ff.length());
     }
 
     /**
@@ -129,8 +104,17 @@ public class PacketBlock implements EditBlock {
      * @return 
      */
     @Override
-    public FrontPacket split(int length) {
+    public Packet split(long length) {
         return back.split(length);
+    }
+    
+    /**
+     * 編集可能なのでいろいろ違うかも
+     * @return 
+     */
+    @Override
+    public OverBlock flip() {
+        return new SubOverBlock(0, backSize(), this);
     }
 
     @Override
@@ -138,16 +122,6 @@ public class PacketBlock implements EditBlock {
         int size = back.read(data, offset, length);
         front.write(data, offset, size);
         return size;
-    }
-
-    @Override
-    public void write(int b) {
-        front.write(b);
-    }
-
-    @Override
-    public void write(byte[] data) {
-        front.write(data);
     }
 
     @Override
@@ -167,28 +141,27 @@ public class PacketBlock implements EditBlock {
 
     @Override
     public byte[] drop(int length) {
-        int size = length > back.size() ? back.size() : length;
-        byte[] tmp = new byte[size];
-        back.read(tmp);
+        length = Math.min(length, size());
+        byte[] tmp = new byte[length];
+        back.skip(length);
         return tmp;
     }
-    
+
     @Override
     public byte[] backDrop(int length) {
-        int size = length > front.size() ? front.size() : length;
-        byte[] tmp = new byte[size];
+        length = Math.min(length, backSize());
+        byte[] tmp = new byte[length];
         front.backRead(tmp);
         return tmp;
     }
     
     @Override
-    public int overWrite(int data) {
-        return overWrite(new byte[] {(byte)data});
-    }
-
-    @Override
-    public int overWrite(byte[] data) {
-        return overWrite(data, 0, data.length);
+    public PacketBlock get(long index, byte[] d, int offset, int length) {
+        int p = backSize();
+        seek(index);
+        get(d, offset, length);
+        seek(p);
+        return this;
     }
 
     /**
@@ -200,10 +173,46 @@ public class PacketBlock implements EditBlock {
      * @return 書き込めたサイズ
      */
     @Override
-    public int overWrite(byte[] data, int offset, int length) {
-        int size = back.read(new byte[length]);
+    public PacketBlock put(byte[] data, int offset, int length) {
+        if ( length > size() ) {
+            throw new java.nio.BufferOverflowException();
+        }
+        int size = (int)back.skip(length);
         front.write(data, offset, size);
-        return size;
+        return this;
+    }
+    
+    @Override
+    public void put(long index, byte[] d, int offset, int length) {
+        int p = backSize();
+        seek(index);
+        put(d,offset,length);
+        seek(p);
+    }
+
+    @Override
+    public void add(long index, byte[] d, int offset, int length) {
+        int p = backSize();
+        seek(index);
+        front.write(d,offset,length);
+        seek(p);
+    }
+
+    @Override
+    public void del(long index, long size) {
+        int p = backSize();
+        seek(index);
+        back.split(size);
+        seek(p);
+    }
+
+    @Override
+    public IndexEdit del(long index, byte[] d, int offset, int length) {
+        int p = backSize();
+        seek(index);
+        back.read(d,offset,length);
+        seek(p);
+        return this;
     }
 
     @Override
@@ -217,25 +226,8 @@ public class PacketBlock implements EditBlock {
     }
 
     @Override
-    public byte[] toByteArray() {
-        byte[] data = new byte[size()];
-        read(data);
-        return data;
-    }
-
-    @Override
-    public void backWrite(int data) {
-        back.backWrite(data);
-    }
-
-    @Override
     public void backWrite(byte[] data, int offset, int length) {
         back.backWrite(data, offset, length);
-    }
-
-    @Override
-    public void backWrite(byte[] data) {
-        back.backWrite(data);
     }
 
     @Override
@@ -249,11 +241,6 @@ public class PacketBlock implements EditBlock {
     }
 
     @Override
-    public int size() {
-        return back.size();
-    }
-    
-    @Override
     public int backSize() {
         return front.size();
     }
@@ -264,34 +251,12 @@ public class PacketBlock implements EditBlock {
     }
 
     @Override
-    public InputStream getBackInputStream() {
-        return front.getBackInputStream();
-    }
-
-    @Override
-    public int backRead() {
-        if ( front.length() == 0 ) {
-            return -1;
-        }
-        int v = front.backRead();
-        back.backWrite(v);
-        return v;
-    }
-
-    @Override
     public int backRead(byte[] data, int offset, int length) {
         int size = front.backRead(data, offset, length);
         back.backWrite(data, offset, size);
         return size;
     }
 
-    @Override
-    public int backRead(byte[] data) {
-        int size = front.backRead(data);
-        back.backWrite(data,0,size);
-        return size;
-    }
-    
     @Override
     public void flush() {
         front.flush();
@@ -301,5 +266,13 @@ public class PacketBlock implements EditBlock {
     @Override
     public String toString() {
         return "PacketBlock size:" + size() + "position: " + backSize();
+    }
+
+    @Override
+    public byte revGet() {
+        int b = front.backRead();
+        if ( b < 0 ) throw new java.nio.BufferUnderflowException();
+        back.backWrite(b);
+        return (byte)b;
     }
 }

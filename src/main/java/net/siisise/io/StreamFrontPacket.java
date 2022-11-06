@@ -23,7 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * PacketのふりをするStream
+ * PacketのふりをするStream.
  * Packet を InputStream の頭につけたい。
  * Streamとして振る舞うのがメイン。
  * 使い終わったStreamは閉じる.
@@ -32,10 +32,14 @@ public class StreamFrontPacket implements FrontPacket {
 
     private final FrontPacket inpac = new PacketA();
 
-    private final FrontInputStream in;
+    private final StreamFrontInputStream in;
 
+    /**
+     *
+     * @param in 入力
+     */
     public StreamFrontPacket(InputStream in) {
-        this.in = new FrontInputStream(in);
+        this.in = new StreamFrontInputStream(in);
     }
 
     public StreamFrontPacket(Reader reader) {
@@ -47,50 +51,71 @@ public class StreamFrontPacket implements FrontPacket {
         return size();
     }
 
-    private class FrontInputStream extends java.io.InputStream {
+    @Override
+    public byte get() {
+        byte[] d = new byte[1];
+        get(d,0,1);
+        return d[0];
+    }
+
+    @Override
+    public FrontInput get(byte[] d) {
+        return get(d,0,d.length);
+    }
+
+    @Override
+    public FrontInput get(byte[] d, int offset, int length) {
+        if ( size() < length ) {
+            throw new java.nio.BufferOverflowException();
+        }
+        read(d,offset,length);
+        return this;
+    }
+
+    private class StreamFrontInputStream extends InputStream {
 
         private InputStream in;
 
-        FrontInputStream(InputStream in) {
+        StreamFrontInputStream(InputStream in) {
             this.in = in;
         }
 
         @Override
         public int read() throws IOException {
-            if ( inpac.size() > 0 ) {
+            if (inpac.size() > 0) {
                 return inpac.read();
             }
-            if ( in == null ) { // streamが終わるとPacketとして振る舞うのでExceptionは吐かない.
+            if (in == null) { // streamが終わるとPacketとして振る舞うのでExceptionは吐かない.
                 throw new IOException();
 //                return -1;
             }
-            
+
             int v = in.read();
-            if ( v < 0 ) {
+            if (v < 0) {
                 in.close();
                 in = null;
             }
             return v;
         }
-        
+
         @Override
         public int read(byte[] d) throws IOException {
-            return read(d,0,d.length);
+            return read(d, 0, d.length);
         }
 
         @Override
         public int read(byte[] data, int offset, int length) throws IOException {
             int len = inpac.read(data, offset, length);
-            if ( len < length && in != null ) { // Streamに頼る.
-                if ( len >= 0 ) {
+            if (len < length && in != null) { // Streamに頼る.
+                if (len >= 0) {
                     offset += len;
                     length -= len;
                 }
-                int l2 = in.read(data,offset,length);
-                if ( l2 < 0 ) {
+                int l2 = in.read(data, offset, length);
+                if (l2 < 0) {
                     in.close();
                     in = null;
-                    if ( len == 0 ) {
+                    if (len == 0) {
                         len = -1;
                     }
                 } else {
@@ -99,15 +124,25 @@ public class StreamFrontPacket implements FrontPacket {
             }
             return len;
         }
+        
+        @Override
+        public long skip(long length) {
+            long min = inpac.skip(length);
+            try {
+                return min + in.skip(length - min);
+            } catch (IOException ex) {
+            }
+            return min;
+        }
 
         @Override
         public int available() throws IOException {
-            if ( in == null ) {
+            if (in == null) {
                 return inpac.size();
             }
             return inpac.size() + in.available();
         }
-        
+
         @Override
         public void close() throws IOException {
             in.close();
@@ -119,7 +154,8 @@ public class StreamFrontPacket implements FrontPacket {
      */
     @Override
     public InputStream getInputStream() {
-        return in;
+        return new FilterInput(this);
+//        return in;
     }
 
     @Override
@@ -130,7 +166,7 @@ public class StreamFrontPacket implements FrontPacket {
     @Override
     public int read() {
         try {
-            if ( in.available() > 0 ) {
+            if (in.available() > 0) {
                 return in.read();
             } else {
                 return -1;
@@ -145,9 +181,9 @@ public class StreamFrontPacket implements FrontPacket {
     public int read(byte[] data, int offset, int length) {
         try {
             int len = 0;
-            while ( in.available() > 0 && length > 0 ) {
-                int l = in.read(data,offset,length);
-                if ( l >= 0 ) {
+            while (in.available() > 0 && length > 0) {
+                int l = in.read(data, offset, length);
+                if (l >= 0) {
                     len += l;
                     offset += l;
                     length -= l;
@@ -167,7 +203,12 @@ public class StreamFrontPacket implements FrontPacket {
     public int read(byte[] data) {
         return read(data, 0, data.length);
     }
-    
+
+    @Override
+    public long skip(long size) {
+        return in.skip(size);
+    }
+
     @Override
     public byte[] toByteArray() {
         try {
@@ -185,7 +226,7 @@ public class StreamFrontPacket implements FrontPacket {
 
     @Override
     public void backWrite(byte[] data, int offset, int length) {
-        inpac.backWrite(data,offset,length);
+        inpac.backWrite(data, offset, length);
     }
 
     @Override
@@ -197,7 +238,7 @@ public class StreamFrontPacket implements FrontPacket {
     public void dbackWrite(byte[] data) {
         inpac.dbackWrite(data);
     }
-    
+
     @Override
     public void flush() {
         inpac.flush();
@@ -230,18 +271,18 @@ public class StreamFrontPacket implements FrontPacket {
     }
 
     @Override
-    public Packet split(int length) {
-        byte[] data = new byte[length];
-        read(data);
-        PacketA p = new PacketA();
-        p.dwrite(data);
-        return p;
+    public Packet split(long length) {
+        PacketA pp = new PacketA();
+        length -= pp.write(inpac, length);
+        pp.write(this,length);
+        return pp;
     }
-    
+
     /**
      * for Debug.
      * でばっぐ用なのでてきとう
-     * @return 
+     *
+     * @return
      */
     @Override
     public String toString() {

@@ -15,16 +15,14 @@
  */
 package net.siisise.io;
 
-import java.io.InputStream;
-
 /**
- *
+ * Input を InputStream に変える.
  */
-public class InputInputStream extends InputStream implements Input {
+public class FilterInput extends AbstractInput {
 
     private final Input in;
 
-    public InputInputStream(Input pac) {
+    public FilterInput(Input pac) {
         this.in = pac;
     }
 
@@ -34,43 +32,22 @@ public class InputInputStream extends InputStream implements Input {
     }
     
     @Override
-    public int read(byte[] d) {
-        return in.read(d,0,d.length);
-    }
-
-    @Override
     public int read(byte[] dst, int offset, int length) {
         return in.read(dst, offset, length);
     }
     
-    @Override
-    public byte[] toByteArray() {
-        return in.toByteArray();
-    }
-
-    @Override
-    public int available() {
-        return in.size();
-    }
-
-    @Override
-    public InputStream getInputStream() {
-        return this;
-    }
-
     @Override
     public long length() {
         return in.length();
     }
 
     @Override
-    public int size() {
-        return in.size();
-    }
-
-    @Override
-    public FrontPacket split(int length) {
+    public Packet split(long length) {
         return in.split(length);
     }
 
+    @Override
+    public long skip(long size) {
+        return in.skip(size);
+    }
 }

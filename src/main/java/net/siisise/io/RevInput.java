@@ -23,10 +23,63 @@ import java.io.InputStream;
 public interface RevInput {
     
     InputStream getBackInputStream();
-    
+
+    byte revGet();
+
+    /**
+     * 1バイト逆から読む.
+     * 読めないときは -1
+     * @return 1バイト または -1
+     */
     int backRead();
+    
+    /**
+     * 逆から読む.
+     * @param data
+     * @param offset
+     * @param length
+     * @return 
+     */
     int backRead(byte[] data, int offset, int length);
     int backRead(byte[] data);
+    /**
+     * 逆読み
+     * @param length
+     * @return 
+     */
+    Packet backSplit(long length);
+    /**
+     * Input#skip(long) の逆
+     * @param length 読みとばすサイズ skip size.
+     * @return skip size;
+     */
+    long back(long length);
+
+    public static Packet splitImpl(RevInput in, long length) {
+        Packet pac = new PacketA();
+        RevOutput.backWrite(pac, in, length);
+        return pac;
+    }
+
+    /**
+     * 実装用。物理移動が伴う場合。
+     * ポインタのみの場合は別のがいい
+     * @param in 入力元
+     * @param length 長さ
+     * @return 読めた長さ
+     */
+    public static long backImpl(RevInput in, long length) {
+        long r = length;
+        byte[] t = new byte[(int) Math.min(length, PacketA.MAXLENGTH)];
+        while (r > 0 && in.backSize() > 0) {
+            int s = in.backRead(t, 0, (int) Math.min(r, t.length));
+            if (s <= 0) {
+                break;
+            }
+            r -= s;
+        }
+        return length - r;
+    }
 
     /**
      * RevInput で読めるサイズ.

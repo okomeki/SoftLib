@@ -57,7 +57,26 @@ public interface RevOutput {
      * @param data データ列
      */
     void dbackWrite(byte[] data);
-    
+
     void flush();
-    
+
+    public static long backWrite(RevOutput out, RevInput in, long length) {
+        byte[] d;
+        int size;
+        long x = length;
+        while (x > 0) {
+            d = new byte[(int)Math.min(x,PacketA.MAXLENGTH)];
+            size = in.backRead(d);
+            if ( size <= 0) {
+                return length - x;
+            }
+            if ( size == d.length) {
+                out.dbackWrite(d);
+            } else {
+                out.backWrite(d,0,size);
+            }
+            x -= size;
+        }
+        return length - x;
+    }
 }

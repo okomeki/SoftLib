@@ -15,27 +15,20 @@
  */
 package net.siisise.io;
 
-import java.io.OutputStream;
-
 /**
- *
+ * Output を OutputとOutputStream に変える
  */
-public class OutputOutputStream extends OutputStream implements Output {
+public class FilterOutput extends AbstractOutput {
 
     private final Output out;
     
-    public OutputOutputStream(Output out) {
+    public FilterOutput(Output out) {
         this.out = out;
     }
 
     @Override
     public void write(int b) {
         out.write(b);
-    }
-    
-    @Override
-    public void write(byte[] b) {
-        out.write(b, 0, b.length);
     }
     
     @Override
@@ -54,7 +47,8 @@ public class OutputOutputStream extends OutputStream implements Output {
     }
 
     @Override
-    public OutputStream getOutputStream() {
-        return this;
+    public Output put(byte[] data, int offset, int length) {
+        return out.put(data, offset, length);
     }
+
 }

@@ -17,7 +17,7 @@ public class LittleBitPacket extends BaseBitPac {
             }
             LittleBitPacket bp = new LittleBitPacket();
             if (bit + readPadding >= 8) { // そのまま
-                //    bp.pac.write(d);
+                //    bp.block.write(d);
                 int d;
                 d = pac.read();
                 bp.pac.write(d);
@@ -369,11 +369,17 @@ public class LittleBitPacket extends BaseBitPac {
     }
 
     @Override
-    public LittleBitPacket split(int length) {
-        byte[] data = new byte[length];
-        int size = read(data);
-        LittleBitPacket b = new LittleBitPacket();
-        b.write(data,0,size);
-        return b;
+    public LittleBitPacket split(long length) {
+        LittleBitPacket lp = new LittleBitPacket();
+        Output.write(lp, this, length);
+        return lp;
+    }
+
+
+    @Override
+    public LittleBitPacket backSplit(long length) {
+        LittleBitPacket bp = new LittleBitPacket();
+        RevOutput.backWrite(bp, this, length);
+        return bp;
     }
 }

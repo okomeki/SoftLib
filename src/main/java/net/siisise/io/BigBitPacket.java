@@ -20,7 +20,7 @@ package net.siisise.io;
  * byte列は左詰め、intは右詰め
  */
 public class BigBitPacket extends BaseBitPac {
-    
+
     class BigBitInputStream extends BitInputStream {
         /**
          *
@@ -406,11 +406,17 @@ public class BigBitPacket extends BaseBitPac {
     }
 
     @Override
-    public BigBitPacket split(int length) {
-        byte[] data = new byte[length];
-        int size = read(data);
-        BigBitPacket b = new BigBitPacket();
-        b.backWrite(data, 0, size);
-        return b;
+    public BigBitPacket split(long length) {
+        BigBitPacket bb = new BigBitPacket();
+        Output.write(bb, this, length);
+        return bb;
     }
+
+    @Override
+    public Packet backSplit(long length) {
+        BigBitPacket bb = new BigBitPacket();
+        RevOutput.backWrite(bb, this, length);
+        return bb;
+    }
+
 }

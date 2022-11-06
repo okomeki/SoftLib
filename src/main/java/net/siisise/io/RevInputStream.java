@@ -28,11 +28,20 @@ public class RevInputStream extends InputStream implements RevInput {
         this.in = in;
     }
 
+    /**
+     * 逆に繋げるかもしれないので仮
+     * @return 
+     */
     @Override
     public int read() {
         return in.backRead();
     }
     
+    /**
+     *
+     * @param d
+     * @return
+     */
     @Override
     public int read(byte[] d) {
         return in.backRead(d);
@@ -66,5 +75,20 @@ public class RevInputStream extends InputStream implements RevInput {
     @Override
     public int backSize() {
         return in.backSize();
+    }
+
+    @Override
+    public Packet backSplit(long length) {
+        return in.backSplit(length);
+    }
+
+    @Override
+    public long back(long length) {
+        return in.back(length);
+    }
+
+    @Override
+    public byte revGet() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

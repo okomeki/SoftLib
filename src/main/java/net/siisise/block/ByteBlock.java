@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.siisise.pac;
+package net.siisise.block;
 
 import java.nio.ByteBuffer;
+import net.siisise.io.IndexInput;
 
 /**
  * ブロック.
  * バイト列は複製しない.
  * 部分集合にも対応する。
+ * add, delはできない。
  * ByteBuffer 相当.
  */
-public class ByteBlock extends AbstractSubReadableBlock {
+public class ByteBlock extends OverBlock.AbstractSubOverBlock {
 
     /**
      * 参照のみできる配列.
@@ -45,14 +47,14 @@ public class ByteBlock extends AbstractSubReadableBlock {
      * @param start 開始位置
      * @param length サイズ
      */
-    public ByteBlock(byte[] src, int start, int length) {
+    public ByteBlock(byte[] src, long start, long length) {
         super(start,start + length);
         block = src;
     }
 
     @Override
     public int read() {
-        return ( pos >= max) ? -1 : block[pos++] & 0xff;
+        return ( pos >= max) ? -1 : block[(int)pos++] & 0xff;
     }
     
     /**
@@ -63,7 +65,7 @@ public class ByteBlock extends AbstractSubReadableBlock {
      */
     @Override
     public ByteBlock readBlock(int size) {
-        size = Integer.min( max - pos, size );
+        size = (int)Math.min( max - pos, size );
         ByteBlock b = new ByteBlock(block, pos, size);
         pos += size;
         return b;
@@ -82,17 +84,17 @@ public class ByteBlock extends AbstractSubReadableBlock {
             throw new java.lang.IndexOutOfBoundsException();
         }
         // dataサイズと小さい方
-        int size = Integer.min(dst.length - offset, length);
-        int p = pos;
+        long size = Math.min(dst.length - offset, length);
+        int p = (int)pos;
         size = skip(size);
-        System.arraycopy(block, p, dst, offset, size);
-        return size;
+        System.arraycopy(block, p, dst, offset, (int) size);
+        return (int) size;
     }
 
     @Override
     public int backRead() {
         if ( pos > min ) {
-            return block[--pos] & 0xff;
+            return block[(int)--pos] & 0xff;
         }
         return -1;
     }
@@ -102,9 +104,9 @@ public class ByteBlock extends AbstractSubReadableBlock {
         if ( offset < 0 || offset >= dst.length || length < 0 ) {
             throw new java.lang.IndexOutOfBoundsException();
         }
-        length = Integer.min( dst.length - offset, length );
-        int size = back(length);
-        System.arraycopy(block, pos, dst, offset, size);
+        length = Math.min( dst.length - offset, length );
+        int size = (int)back(length);
+        System.arraycopy(block, (int)pos, dst, offset, size);
         return size;
     }
 
@@ -113,6 +115,37 @@ public class ByteBlock extends AbstractSubReadableBlock {
      * @return 
      */
     public ByteBuffer asByteBuffer() {
-        return ByteBuffer.wrap(block, pos, max - pos);
+        return ByteBuffer.wrap(block, (int)pos, (int)(max - pos));
+    }
+
+    @Override
+    public IndexInput get(long index, byte[] b, int offset, int length) {
+        if ( 0 > index ) {
+            throw new java.nio.BufferUnderflowException();
+        }
+        if ( index + length > length()) {
+            throw new java.nio.BufferOverflowException();
+        }
+        System.arraycopy(block, (int)(min + index), b, offset, length);
+        return this;
+    }
+
+    @Override
+    public void put(long index, byte[] d, int offset, int length) {
+        if ( 0 > index ) {
+            throw new java.nio.BufferUnderflowException();
+        }
+        if ( index + length > length()) {
+            throw new java.nio.BufferOverflowException();
+        }
+        System.arraycopy(d, offset, block, (int)(min + index), length);
+    }
+
+    @Override
+    public void write(byte[] data, int offset, int length) {
+        if ( pos + length > length()) {
+            throw new java.nio.BufferOverflowException();
+        }
+        System.arraycopy(data, offset, block, (int)(min + pos), length);
     }
 }

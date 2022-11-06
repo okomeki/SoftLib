@@ -13,25 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.siisise.pac;
+package net.siisise.block;
 
 import java.nio.ByteBuffer;
+import net.siisise.io.IndexInput;
 
 /**
- *
+ * limit が変えられない ByteBuffer っぽい.
+ * 
  */
-public class ByteBufferBlock extends AbstractReadableBlock {
+public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
 
     private final ByteBuffer buff;
 
+    /**
+     * バイト列をByteBufferにしてByteBlockにする二重構造.
+     * 仮なので使わないかも.
+     * 
+     * @param src バイト列
+     */
     public ByteBufferBlock(byte[] src) {
+        super(0,src.length);
         buff = ByteBuffer.wrap(src);
     }
 
+    /**
+     * src の 0 から limit までを共有する。
+     * position も同一.
+     * @param src Buffer
+     */
     public ByteBufferBlock(ByteBuffer src) {
+        super(0,src.limit());
         buff = src;
     }
-
+    
     @Override
     public int read(byte[] dst, int offset, int length) {
         int size = buff.remaining();
@@ -80,11 +95,6 @@ public class ByteBufferBlock extends AbstractReadableBlock {
 
     @Override
     public long length() {
-        return size();
-    }
-
-    @Override
-    public int size() {
         return buff.remaining();
     }
 
@@ -99,32 +109,56 @@ public class ByteBufferBlock extends AbstractReadableBlock {
     }
 
     @Override
-    public int seek(int po) {
-        int p = buff.limit() > po ? po : buff.limit();
+    public long seek(long po) {
+        int p = (int)Math.min(buff.limit(), po);
         buff.position(p);
         return p;
     }
 
     @Override
-    public int skip(int length) {
-        int p = buff.position();
-        if (buff.limit() < p + length) {
-            length = size();
+    public long skip(long length) {
+        if ( length < 0) {
+            return -back(-length);
         }
+        length = Long.min(size(),length);
+        int p = buff.position();
         p += length;
         buff.position(p);
         return length;
     }
 
     @Override
-    public int back(int length) {
-        int p = buff.position();
-        if (p < length) {
-            length = p;
+    public long back(long length) {
+        if ( length < 0 ) {
+            return -skip(-length);
         }
+        int p = buff.position();
+        length = Long.min(p, length);
         p -= length;
         buff.position(p);
         return length;
+    }
+
+    @Override
+    public IndexInput get(long index, byte[] b, int offset, int length) {
+        int p = buff.position();
+        buff.position((int)index);
+        buff.get(b, offset, length);
+        buff.position(p);
+        return this;
+    }
+
+    @Override
+    public void write(byte[] d, int offset, int length) {
+        buff.put(d, offset, length);
+    }
+
+    @Override
+    public void put(long index, byte[] d, int offset, int length) {
+        int p = buff.position();
+        buff.position((int)index);
+        buff.put(d, offset, length);
+        buff.position(p);
     }
 
 }

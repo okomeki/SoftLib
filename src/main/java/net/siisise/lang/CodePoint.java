@@ -18,7 +18,7 @@ package net.siisise.lang;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 import net.siisise.io.FrontPacket;
-import net.siisise.pac.ReadableBlock;
+import net.siisise.block.ReadableBlock;
 
 /**
  * RFC 3629
@@ -113,11 +113,12 @@ public class CodePoint {
      */
     public static int utf8(FrontPacket pac) {
         int rd = pac.read();
-        int len;
-        int min;
         if (rd < 0) {
             return -1;
         }
+        int len;
+        int min;
+        int srd = rd;
         if (rd < 0x80) {        // 0xxx xxxx 1バイト 7bit 00 - 7f
             return rd;
         } else if (rd < 0xc0) { // 10xx xxxx 80 - 7ff 2バイト目以降
@@ -140,10 +141,10 @@ public class CodePoint {
         byte[] d = new byte[len];
         int s = pac.read(d);
         if ( s < len ) {
-            if ( s >= 0 ) {
+            if ( s > 0 ) {
                 pac.backWrite(d,0,s);
             }
-            pac.backWrite(rd);
+            pac.backWrite(srd);
             return -1;
         }
 
@@ -151,8 +152,8 @@ public class CodePoint {
             int c = d[i] & 0xff;
 
             if ((c & 0xc0) != 0x80) {
-                pac.backWrite(d);
-                pac.backWrite(rd);
+                pac.dbackWrite(d);
+                pac.backWrite(srd);
                 return -1;
             }
             rd <<= 6;
@@ -160,7 +161,7 @@ public class CodePoint {
         }
         if (rd < min || rd > 0x10ffff) { // ToDo: 要戻り
             pac.backWrite(d);
-            pac.backWrite(rd);
+            pac.backWrite(srd);
             return -1;
         }
         return rd;

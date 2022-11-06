@@ -24,5 +24,5 @@ package net.siisise.io;
  * 
  * @since JDK 1.1
  */
-public interface Packet extends FrontPacket,BackPacket {
+public interface Packet extends FrontPacket,BackPacket,IndexEdit {
 }

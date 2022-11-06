@@ -49,7 +49,12 @@ public interface Input {
      */
     int read(byte[] d, int offset, int length);
     int read(byte[] d);
-
+/*
+// FrontInput
+    byte get();
+    Input get(byte[] d);
+    Input get(byte[] d, int offset, int length);
+*/
     /**
      * byte配列に変換する。
      * @return 全データの配列
@@ -58,12 +63,19 @@ public interface Input {
 
     /**
      * 内部的に分割を高速にしたい処理。
+     * readPacket 的なもの
      * 試験的導入.
      *
      * @param length 長さ
      * @return 分割したPacket
      */
-    FrontPacket split(int length);
+    Packet split(long length);
+    /**
+     * InputStream とあわせる.
+     * @param length
+     * @return 
+     */
+    long skip(long length);
     
     /**
      * 32ビットでは足りないかもと足してみた
@@ -79,4 +91,28 @@ public interface Input {
      */
     int size();
 
+    /**
+     * 標準的なパケットを返す場合の実装.
+     * @param in
+     * @param length
+     * @return 
+     */
+    public static Packet splitImpl(Input in, long length) {
+        PacketA pac = new PacketA();
+        pac.write(in, length);
+        return pac;
+    }
+    
+    public static long skipImpl(Input in, long length) {
+        long r = length;
+        byte[] t = new byte[(int) Math.min(length, PacketA.MAXLENGTH)];
+        while (r > 0 && in.length() > 0) {
+            int s = in.read(t, 0, (int) Math.min(r, t.length));
+            if (s <= 0) {
+                break;
+            }
+            r -= s;
+        }
+        return length - r;
+    }
 }

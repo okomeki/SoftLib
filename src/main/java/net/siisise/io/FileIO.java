@@ -49,7 +49,7 @@ public class FileIO {
     public static byte[] binRead(File file) throws IOException {
         byte[] data;
         data = new byte[(int) file.length()];
-        System.out.println(file.length());
+
         try (InputStream in = new FileInputStream(file)) {
             int o = in.read(data);
             System.out.println(o);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Siisise Net.
+ * Copyright 2022 okome.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.siisise.io;
+package net.siisise.block;
+
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+import net.siisise.io.Input;
 
 /**
- * Last in first out.
- * 入力と書き戻しをまとめたもの.
- * BackPacket と メソッド名が重複しないのでいろいろな用途で.
- * Packet と InputStream の共通のものにしたい
+ * Stream に変換する何か
  */
-public interface FrontPacket extends FrontInput, RevOutput {
-
+public class StreamBox {
+    
+    public static Stream stream(Input in, int len) {
+        byte[] d;
+        List<byte[]> list = new ArrayList<>();
+        
+        
+        while( in.size() >= len ) {
+            d = new byte[len];
+            in.read(d);
+            list.add(d);
+        }
+        return list.stream();
+    }
 }

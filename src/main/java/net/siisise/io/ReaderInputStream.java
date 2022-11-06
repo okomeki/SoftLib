@@ -22,54 +22,56 @@ import java.nio.charset.StandardCharsets;
 import net.siisise.lang.CodePoint;
 
 /**
+ * StreamFrontPacket の前処理.
  * バイト列が必要な処理系にReader系を繋ぐ
  * InputStreamReaderの逆
  * とりあえずUTF-8出力前提
  * 100文字程度読んでおく
  */
 public class ReaderInputStream extends InputStream {
-    
+
     final PacketA pac = new PacketA();
     char[] pair;
-    final Reader rd;
+    Reader rd;
     final int bufferSize;
-    boolean eof = false;
-    
+
     public ReaderInputStream(Reader r) {
         rd = r;
         bufferSize = 100;
     }
-    
+
     public ReaderInputStream(Reader r, int size) {
         rd = r;
         bufferSize = size;
     }
-    
+
     private void cacheIn() throws IOException {
-        while (!eof ) {
+        while (rd != null) {
             buffering();
         }
     }
-    
+
     private void buffering() throws IOException {
-        if ( eof ) return;
-        int ch = rd.read();
-        if ( ch < 0 ) {
-            eof = true;
+        if (rd == null) {
             return;
         }
-        if ( ch >= 0xd800 && ch <= 0xdbff ) {
-            if ( pair != null ) {
+        int ch = rd.read();
+        if (ch < 0) {
+            close();
+            return;
+        }
+        if (ch >= 0xd800 && ch <= 0xdbff) {
+            if (pair != null) {
                 ch = pair[0];
                 byte[] bytes = CodePoint.utf8(ch);
                 pac.write(bytes);
             }
-            pair = new char[] {(char)ch,0};
+            pair = new char[]{(char) ch, 0};
             buffering();
-        } else if ( ch >= 0xdc00 && ch <= 0xdfff ) {
+        } else if (ch >= 0xdc00 && ch <= 0xdfff) {
             byte[] bytes;
-            if ( pair != null ) {
-                pair[1] = (char)ch;
+            if (pair != null) {
+                pair[1] = (char) ch;
                 bytes = String.valueOf(pair).getBytes(StandardCharsets.UTF_8);
             } else {
                 bytes = CodePoint.utf8(ch);
@@ -84,26 +86,29 @@ public class ReaderInputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        while ( !eof && pac.size() < bufferSize ) {
+        while (rd != null && pac.size() < bufferSize && rd.ready()) {
             buffering();
         }
         return pac.read();
     }
-    
+
     @Override
     public void close() throws IOException {
-        rd.close();
+        if (rd != null) {
+            rd.close();
+            rd = null;
+        }
     }
-    
+
     /**
      * 正確な長さがわからない
+     *
      * @return
-     * @throws IOException 
+     * @throws IOException
      */
     @Override
     public int available() throws IOException {
         cacheIn();
-        return pac.size();
+        return pac.size() + ((rd != null && rd.ready()) ? 1 : 0);
     }
-    
 }

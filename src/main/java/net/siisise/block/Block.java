@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.siisise.pac;
+package net.siisise.block;
 
 /**
  * Packet のデータ加工点を中間にしたもの.
@@ -27,17 +27,18 @@ package net.siisise.pac;
  * Buffer 0 開始位置
  * Block 0 配列の頭
  * Buffer mark 位置のキープ (0または1つ)
- * Block offset 複数位置のキープ (外部)
+ * Block 複数位置のキープ (外部のみ)
  * Buffer position 現在位置
- * Block offset 現在位置
+ * Block backSize 現在位置
  * Buffer limit データ上限 以降空白
- * Block limit相当なし
+ * Block 可変limitなし backSize + size のみ
  * Buffer capacity 最大容量
- * Block max 最大読み込み可能範囲 参照clip範囲の最大
- * Block length 実体最大
+ * Block backSize + size 最大読み込み可能範囲 参照clip範囲の最大
+ * Buufer remaining
+ * Block size
  * 
  * Buffer   0    mark position  limit capacity
- * Block  0 min  x    offset          max   length
+ * Block  0 min  x    offset          max backSize +size
  * 
  * BNFで配列っぽい振る舞いの構造がほしかった.
  * Stream は便利だがseekとか柔軟にしたいこともあるので戻れるStreamの定番に.
@@ -50,21 +51,15 @@ public interface Block {
      * @param offset 位置 相対
      * @return 移動した位置
      */
-    int seek(int offset);
+    long seek(long offset);
 
     /**
-     * 相対移動.
-     * @param length
-     * @return 
+     * 分ける.
+     * OverBlock 以下は親と同じ型.EditBlockは実装によってOverBlockやReadableBlockかも。
+     * split の前版
+     * メモリ空間は可能な場合共有.
+     * @see net.siisise.io.Packet#split(long)
+     * @return 前 
      */
-    int skip(int length);
-
-    /**
-     * 相対的に戻る.
-     * skip の逆
-     * 長い場合は先頭くらいまで.
-     * @param length 戻るサイズ
-     * @return 戻ったサイズ
-     */
-    int back(int length);
+    Block flip();
 }

@@ -13,8 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package net.siisise.io;
 
 /**
- * java.nio っぽくなっている気がする.
+ *
  */
-package net.siisise.pac;
+public interface IndexOutput {
+
+    /**
+     * 上書き.
+     * @param index
+     * @param d 
+     */
+    void put(long index, byte d);
+    void put(long index, byte[] d);
+    void put(long index, byte[] d, int offset, int length);
+}
