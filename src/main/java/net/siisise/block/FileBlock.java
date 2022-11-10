@@ -44,27 +44,27 @@ public class FileBlock extends OverBlock.AbstractSubOverBlock implements Closeab
         super(0, c.size());
         ch = c;
     }
-    
-    public static ReadableBlock readBlock(File file) throws FileNotFoundException {
+
+    public static ReadableBlock wrap(File file) throws FileNotFoundException {
         return new FileBlock(file, "r");
     }
 
-    public static ReadableBlock readBlock(Path path) throws IOException {
+    public static ReadableBlock wrap(Path path) throws IOException {
         FileChannel c = FileChannel.open(path, StandardOpenOption.READ);
         return new FileBlock(c);
     }
 
-    public static OverBlock overBlock(File file) throws IOException {
+    public static OverBlock over(File file) throws IOException {
         RandomAccessFile io = new RandomAccessFile(file,"rw");
         return new FileBlock(io.getChannel());
     }
 
-    public static OverBlock overBlock(Path path) throws IOException {
+    public static OverBlock over(Path path) throws IOException {
         FileChannel c = FileChannel.open(path, StandardOpenOption.READ, StandardOpenOption.WRITE);
-        return channelBlock(c);
+        return over(c);
     }
 
-    public static OverBlock channelBlock(FileChannel ch) throws IOException {
+    public static OverBlock over(FileChannel ch) throws IOException {
         return new FileBlock(ch);
     }
 
@@ -93,6 +93,14 @@ public class FileBlock extends OverBlock.AbstractSubOverBlock implements Closeab
         }
     }
 
+    /**
+     * 逆から読む.
+     * ToDo: 後ろから読むよう要修正?
+     * @param data
+     * @param offset
+     * @param length
+     * @return 
+     */
     @Override
     public int backRead(byte[] data, int offset, int length) {
         try {
@@ -120,16 +128,6 @@ public class FileBlock extends OverBlock.AbstractSubOverBlock implements Closeab
             ch.position(index);
             ch.write(ByteBuffer.wrap(d, offset, length));
             ch.position(p);
-        } catch (IOException ex) {
-            throw new java.nio.BufferOverflowException();
-        }
-    }
-
-    @Override
-    public ReadableBlock readBlock(int length) {
-        try {
-            long p = ch.position();
-            return new SubReadableBlock(p, p + length, this);
         } catch (IOException ex) {
             throw new java.nio.BufferOverflowException();
         }

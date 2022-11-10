@@ -25,12 +25,12 @@ public class PacketA extends BasePacket {
     /**
      * 効率的に開放したいので内部で分割する最大値など設けてみる
      */
-    static final int MAXLENGTH = 0x1000000;
+    static final int MAXLENGTH = 0x100000;
 
     private static class PacketIn {
 
-        PacketIn prev;
-        PacketIn next;
+        private PacketIn prev = this;
+        private PacketIn next = this;
         byte[] data;
         int offset;
         /**
@@ -39,23 +39,18 @@ public class PacketA extends BasePacket {
         int length;
 
         PacketIn() { // NULLPACK
-            prev = this;
-            next = this;
             offset = 0;
             length = 0;
         }
 
         private PacketIn(byte[] data) {
-            prev = this;
-            next = this;
             this.data = data;
             offset = 0;
             length = data.length;
         }
 
         final void addPrev(byte[] data) {
-            PacketIn pac = new PacketIn(data);
-            addPrev(pac);
+            excPrev(new PacketIn(data));
         }
 
         /**
@@ -63,20 +58,21 @@ public class PacketA extends BasePacket {
          * 二つの地点の組み合わせを交換するので追加、切り取りにも使える.
          * this の手前と pac の手前を入れ換える.
          * 
-         * this A -> B
-         * block C -> D
-         * this = B
-         * block = D
-          
-         * B.prev = C
-         * C.next = B
-         * D.prev = A
+         * A ⇔ B this
+         * C ⇔ D pac
+         *
+         * A → D
+         * C → B
+         * pre = C
+         * 
+         * A ← D
+         * C ← B
          * 
          * block が nextのとき 自分が輪から切れる
          * 
          * @param pac D
          */
-        final void addPrev(PacketIn pac) {
+        final void excPrev(PacketIn pac) {
             prev.next = pac;            // A の次は D
             pac.prev.next = this;       // C の次は B
             PacketIn pre = pac.prev;    // pre = C
@@ -125,49 +121,50 @@ public class PacketA extends BasePacket {
 
     @Override
     public int read(byte[] b, int offset, int length) {
-        PacketIn n;
-        int len = 0;
-        while (nullPack.next != nullPack) {
-            n = nullPack.next;
-            if (length >= n.length) {
+        int len = length;
+        for ( PacketIn n = nullPack.next; n != nullPack; n = n.next ) {
+            if (len >= n.length) {
                 System.arraycopy(n.data, n.offset, b, offset, n.length);
-                length -= n.length;
+                len -= n.length;
                 offset += n.length;
-                len += n.length;
-                n.delete();
             } else {
-                System.arraycopy(n.data, n.offset, b, offset, length);
-                n.length -= length;
-                n.offset += length;
-                return len + length;
+                System.arraycopy(n.data, n.offset, b, offset, len);
+                n.length -= len;
+                n.offset += len;
+                n.excPrev(nullPack.next);
+                return length;
             }
         }
-        // 
 //        mode = Mode.EOF;
-        return len;
+        nullPack.excPrev(nullPack.next);
+        return length - len;
     }
 
+    /**
+     * 逆読み.
+     * 短い場合は b の後ろ( offset + length )から詰める
+     * @param b 入れ物
+     * @param offset b offset
+     * @param length b length
+     * @return 
+     */
     @Override
     public int backRead(byte[] b, int offset, int length) {
-        PacketIn n;
-        int len = 0;
-        while (nullPack.prev != nullPack) {
-            n = nullPack.prev;
-            if (length >= n.length) {
-                System.arraycopy(n.data, n.offset, b, offset + length - n.length, n.length);
-                length -= n.length;
-                len += n.length;
-                n.delete();
+        int len = length;
+        for ( PacketIn n = nullPack.prev; n != nullPack; n = n.prev ) {
+            if (len >= n.length) {
+                len -= n.length;
+                System.arraycopy(n.data, n.offset, b, offset + len, n.length);
             } else {
-                System.arraycopy(n.data, n.offset + n.length - length, b, offset, length);
-                n.length -= length;
-                len += length;
-                return len;
+                n.length -= len;
+                System.arraycopy(n.data, n.offset + n.length, b, offset, len);
+                n.next.excPrev(nullPack);
+                return length;
             }
         }
-        // 
 //            mode = Mode.EOF;
-        return len;
+        nullPack.excPrev(nullPack.next);
+        return length - len;
     }
 
     /**
@@ -178,10 +175,24 @@ public class PacketA extends BasePacket {
     public void write(Input pac) {
         if (pac instanceof PacketA) {
             PacketIn an = ((PacketA)pac).nullPack;
-            nullPack.addPrev(an);
-            an.addPrev(an.next); // an を nullPack のみにする
+            nullPack.excPrev(an);
+            an.excPrev(an.next); // an を nullPack のみにする
         } else {
             Output.write(this, pac, pac.length());
+        }
+    }
+
+    /**
+     * 中身の移動.
+     * @param pac null不可
+     */
+    public void backWrite(RevInput pac) {
+        if (pac instanceof PacketA) {
+            PacketIn an = ((PacketA)pac).nullPack;
+            an.excPrev(nullPack);
+            an.excPrev(an.next); // an を nullPack のみにする
+        } else {
+            RevOutput.backWrite(this, pac, pac.backLength());
         }
     }
 
@@ -284,7 +295,7 @@ public class PacketA extends BasePacket {
                 byte[] d = new byte[nn.data.length + nx.data.length];
                 System.arraycopy(nn.data, nn.offset, d, 0, nn.length);
                 System.arraycopy(nx.data, nx.offset, d, nn.length, nx.length);
-                nx.addPrev(new PacketIn(d));
+                nx.excPrev(new PacketIn(d));
                 nx.delete();
                 nn.delete();
 //                System.err.println("gc 1");
@@ -322,8 +333,8 @@ public class PacketA extends BasePacket {
         // n は packの頭
         if ( nullPack.next != n ) {
             PacketIn c = nullPack.next; // c = 新データの頭
-            n.addPrev(c);
-            newPac.nullPack.addPrev(c);
+            n.excPrev(c);
+            newPac.nullPack.excPrev(c);
         }
 
         if ( limit > 0 ) {
@@ -336,6 +347,7 @@ public class PacketA extends BasePacket {
 
     /**
      * length で半分に分けて後半を返す.
+     * read系の逆なのでwrite方向で読む.
      * @param length
      * @return 後半
      */
@@ -351,8 +363,8 @@ public class PacketA extends BasePacket {
         // n は packの最後
         if ( nullPack.prev != n ) {
             PacketIn c = n.next; // c = 新データの頭
-            nullPack.addPrev(c);
-            newPac.nullPack.addPrev(c);
+            nullPack.excPrev(c);
+            newPac.nullPack.excPrev(c);
         }
 
         if ( limit > 0 ) {
@@ -380,6 +392,14 @@ public class PacketA extends BasePacket {
         return p.length();
     }
 
+    /**
+     * 読んだところは消えない.
+     * @param index
+     * @param b
+     * @param offset
+     * @param length
+     * @return 
+     */
     @Override
     public IndexInput get(long index, byte[] b, int offset, int length) {
         if ( length() < length) {
@@ -391,7 +411,6 @@ public class PacketA extends BasePacket {
         write(b, offset, length);
         write(bb);
 
-        read(b,offset,length);
         return this;
     }
 

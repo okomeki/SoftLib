@@ -23,7 +23,9 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import net.siisise.io.FilterInput;
+import net.siisise.io.FrontInput;
 import net.siisise.io.FrontPacket;
+import net.siisise.io.IndexInput;
 import net.siisise.io.Input;
 import net.siisise.io.Packet;
 import net.siisise.io.PacketA;
@@ -31,21 +33,29 @@ import net.siisise.io.ReadBase;
 import net.siisise.io.RevInput;
 import net.siisise.io.RevOutput;
 import net.siisise.io.StreamFrontPacket;
+import net.siisise.math.Matics;
 
 /**
  * Buffer の読み込み専用 っぽいものをStream風メソッドで実装したもの.
  * position() は backSize()
  */
-public interface ReadableBlock extends Block, Input, RevInput {
+public interface ReadableBlock extends Block, FrontInput, RevInput {
 
+    @Override
+    ReadableBlock flip();
+    
     /**
      * 現在値から部分的な切り出し.
      * メモリ空間は可能な場合共有する.
      *
-     * @param length
+     * @param length 長さ
      * @return 部分要素.
      */
-    ReadableBlock readBlock(int length);
+    ReadableBlock readBlock(long length);
+
+    public static ReadableBlock wrap(ReadableBlock rb,long offset, long length) {
+        return new SubReadableBlock(offset,Math.min(offset + length,rb.backLength() + rb.length()), rb);
+    }
 
     public static ReadableBlock wrap(String s) {
         return new ByteBlock(s.getBytes(StandardCharsets.UTF_8));
@@ -60,7 +70,7 @@ public interface ReadableBlock extends Block, Input, RevInput {
     }
 
     public static ReadableBlock wrap(File file) throws FileNotFoundException {
-        return FileBlock.readBlock(file);
+        return FileBlock.wrap(file);
     }
 
     /**
@@ -94,133 +104,159 @@ public interface ReadableBlock extends Block, Input, RevInput {
     public static ReadableBlock wrap(Input in) {
         return wrap(in.getInputStream());
     }
-/**
- * 一般的なところだけ載せる.
- */
-public abstract class AbstractReadableBlock extends ReadBase implements ReadableBlock, Iterator<Byte> {
-
-    @Override
-    public InputStream getInputStream() {
-        return new FilterInput(this) {
-            int mark = -1;
-
-            @Override
-            public boolean markSupported() {
-                return true;
-            }
-
-            @Override
-            public void mark(int readlimit) {
-                mark = AbstractReadableBlock.this.backSize();
-            }
-
-            @Override
-            public void reset() {
-                if (mark >= 0) {
-                    seek(mark);
-                }
-            }
-        };
-    }
-
-    @Override
-    public long seek(long offset) {
-        offset = 0 > offset ? 0 : offset;
-        offset = Math.min(offset, backSize() + size());
-        long size = offset - backSize();
-        if ( size > 0 ) {
-            skip(size);
-        } else {
-            back(-size);
+    
+    static class BlockInput extends FilterInput {
+        int mark = -1;
+        ReadableBlock in;
+        
+        BlockInput(ReadableBlock in) {
+            super(in);
+            this.in = in;
         }
-        return offset;
-    }
-
-    @Override
-    public ReadableBlock readBlock(int size) {
-        size = Integer.min(size, size());
-        ReadableBlock nb = new SubReadableBlock(backSize(), backSize() + size, this);
-        skip(size);
-        return nb;
-    }   
-
-    @Override
-    public AbstractReadableBlock get(long index, byte[] d, int offset, int length) {
-        int p = backSize();
-        seek(index);
-        get(d, offset, length);
-        seek(p);
-        return this;
+        
+        @Override
+        public boolean markSupported() {
+            return true;
+        }
+        
+        @Override
+        public void mark(int readlimit) {
+            mark = in.backSize();
+        }
+        
+        @Override
+        public void reset() {
+            if ( mark >= 0) {
+                in.seek(mark);
+            }
+        }
+        
     }
 
     /**
-     * ここまでを切り出すが、ポインタは移動しない。
-     * @return 
+     * 一般的なところだけ載せる.
      */
-    @Override
-    public ReadableBlock flip() {
-        return new SubReadableBlock(0, backSize(), this);
-    }
+    public abstract class AbstractReadableBlock extends ReadBase implements ReadableBlock, Iterator<Byte> {
 
-    /**
-     * 仮
-     * @param length
-     * @return 
-     */
-    @Override
-    public Packet backSplit(long length) {
-        length = Long.min(length, backSize());
-        PacketA pac = new PacketA();
-        RevOutput.backWrite(pac, this, length);
-        return pac;
-    }
+        @Override
+        public InputStream getInputStream() {
+            return new BlockInput(this);
+        }
 
-    class BytesIterator implements Iterator<byte[]> {
+        @Override
+        public long seek(long position) {
+            position = Matics.range(0, position, backLength() + length());
+            long size = position - backSize();
+            if (size > 0) {
+                skip(size);
+            } else {
+                back(-size);
+            }
+            return position;
+        }
         
-        int len;
+        @Override
+        public ReadableBlock readBlock(long length) {
+            length = Math.min(length, length());
+            ReadableBlock sb = sub(backLength(), length);
+            skip(length);
+            return sb;
+        }
+
+        @Override
+        public ReadableBlock sub(long index, long length) {
+            length = Matics.range(length, 0, length());
+            return new SubReadableBlock(index, index + length, this);
+        }
+
+        @Override
+        public IndexInput get(long index, byte[] d, int offset, int length) {
+            long p = backLength();
+            seek(index);
+            get(d, offset, length);
+            seek(p);
+            return this;
+        }
         
-        BytesIterator(int size) {
-            len = size;
+        public IndexInput get(long index, OverBlock bb) {
+            long p = backLength();
+            seek(index);
+            get(bb);
+            seek(p);
+            return this;
+        }
+
+        /**
+         * ここまでを切り出すが、ポインタは移動しない。
+         *
+         * @return
+         */
+        @Override
+        public ReadableBlock flip() {
+            return sub(0,backSize());
+        }
+
+        /**
+         * 仮
+         *
+         * @param length
+         * @return
+         */
+        @Override
+        public Packet backSplit(long length) {
+            length = Long.min(length, backSize());
+            PacketA pac = new PacketA();
+            RevOutput.backWrite(pac, this, length);
+            return pac;
+        }
+
+        class BytesIterator implements Iterator<byte[]> {
+
+            int len;
+
+            BytesIterator(int size) {
+                len = size;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return length() >= len;
+            }
+
+            @Override
+            public byte[] next() {
+                byte[] d = new byte[len];
+                read(d);
+                return d;
+            }
+
+        }
+
+        /**
+         * position からの Iterator (べつ?
+         *
+         * @param len
+         * @return
+         */
+        public Iterator<byte[]> iterator(int len) {
+            return new BytesIterator(len);
+        }
+
+        public Iterator<Byte> iterator() {
+            return this;
         }
 
         @Override
         public boolean hasNext() {
-            return length() >= len;
+            return length() > 0;
         }
 
         @Override
-        public byte[] next() {
-            byte[] d = new byte[len];
-            read(d);
-            return d;
+        public Byte next() {
+            int v = read();
+            return (byte) v;
         }
-    
     }
-    
-    /**
-     * position からの Iterator (べつ?
-     * @param len
-     * @return 
-     */
-    public Iterator<byte[]> iterator(int len) {
-        return new BytesIterator(len);
-    }
-    
-    public Iterator<Byte> iterator() {
-        return this;
-    }
-    
-    @Override
-    public boolean hasNext() {
-        return length() > 0;
-    }
-
-    @Override
-    public Byte next() {
-        int v = read();
-        return (byte)v;
-    }
-}
 
     /**
      * 部分集合用の軽い実装.
@@ -246,6 +282,9 @@ public abstract class AbstractReadableBlock extends ReadBase implements Readable
         protected AbstractSubReadableBlock(long min, long max) {
             this.min = pos = min;
             this.max = max;
+            if (!Matics.sorted(0, min, max)) {
+                throw new java.lang.IllegalStateException();
+            }
         }
 
         /**
@@ -256,14 +295,7 @@ public abstract class AbstractReadableBlock extends ReadBase implements Readable
          */
         @Override
         public long seek(long position) {
-            if (position + min >= max) {
-                pos = max;
-            } else if (position > 0) {
-                pos = min + position;
-            } else {
-                pos = min;
-            }
-
+            pos = Matics.range(min + position, min, max);
             return pos - min;
         }
 
@@ -275,9 +307,9 @@ public abstract class AbstractReadableBlock extends ReadBase implements Readable
         @Override
         public long skip(long length) {
             if (length < 0) {
-                return -back(-Long.max(length, -backSize()));
+                return -back(-Long.max(length, -backLength()));
             }
-            int size = (int) Long.min(size(), (int) length);
+            long size = Math.min(length(), length);
             pos += size;
             return size;
         }
@@ -285,15 +317,10 @@ public abstract class AbstractReadableBlock extends ReadBase implements Readable
         @Override
         public long back(long length) {
             if (length < 0) {
-                return -skip(-Long.max(length, -size()));
+                return -skip(-Long.max(length, -length()));
             }
-            int size = (int) Long.min(backSize(), length);
-            if (length <= pos - min) {
-                pos -= length;
-            } else {
-                length = pos - min;
-                pos = min;
-            }
+            length = Math.min(backLength(), length);
+            pos -= length;
             return length;
         }
 
@@ -308,8 +335,8 @@ public abstract class AbstractReadableBlock extends ReadBase implements Readable
          * @return 読み込み済みのサイズ position
          */
         @Override
-        public int backSize() {
-            return (int) Math.min(pos - min, Integer.MAX_VALUE);
+        public long backLength() {
+            return pos - min;
         }
     }
 
@@ -329,45 +356,57 @@ public abstract class AbstractReadableBlock extends ReadBase implements Readable
          */
         SubReadableBlock(long min, long max, ReadableBlock p) {
             super(min, max);
+            if ( max > p.backLength() + p.length() ) {
+                throw new java.nio.BufferOverflowException();
+            }
             pa = p;
         }
 
         @Override
-        public ReadableBlock readBlock(int length) {
-            int p = pa.backSize();
+        public ReadableBlock readBlock(long length) {
+            long p = pa.backLength();
             pa.seek(pos);
-            length = (int) Math.min(max - pos, length);
+            length = Matics.range(length, 0, max - pos);
             ReadableBlock rb = pa.readBlock(length);
-            pos = pa.backSize();
+            pos = pa.backLength();
             pa.seek(p);
             return rb;
         }
 
         @Override
         public int read(byte[] d, int offset, int length) {
-            int pp = pa.backSize();
+            if ( !Matics.sorted(0,offset,offset + length, d.length)) {
+                throw new java.nio.BufferOverflowException();
+            }
+            long p = pa.backLength();
             pa.seek(pos);
-            length = Math.min(d.length - offset, length);
             length = (int) Math.min(max - pos, length);
             int s = pa.read(d, offset, length);
-            pa.seek(pp);
-            if (s > 0) {
-                pos += s;
-            }
+            pos = pa.backLength();
+            pa.seek(p);
             return s;
         }
 
+        /**
+         * 逆から読む.
+         * @param d 入れ物
+         * @param offset 位置
+         * @param length
+         * @return 
+         */
         @Override
-        public int backRead(byte[] data, int offset, int length) {
-            int pp = pa.backSize();
+        public int backRead(byte[] d, int offset, int length) {
+            if ( !Matics.sorted(0,offset,offset + length, d.length)) {
+                throw new java.nio.BufferOverflowException();
+            }
+            long p = pa.backLength();
             pa.seek(pos);
-            length = Math.min(data.length - offset, length);
             length = (int) Math.min(pos - min, length);
-            int s = pa.backRead(data, offset, length);
-            pa.seek(pp);
+            int s = pa.backRead(d, offset, length);
             if (s > 0) {
                 pos -= s;
             }
+            pa.seek(p);
             return s;
         }
 

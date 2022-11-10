@@ -18,6 +18,8 @@ package net.siisise.io;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
+import net.siisise.block.OverBlock;
+import net.siisise.math.Matics;
 
 /**
  *
@@ -48,10 +50,16 @@ public abstract class ReadBase implements FrontInput, IndexInput, RevInput, Read
     
     @Override
     public ReadBase get(byte[] b, int offset, int length) {
-        if ( length() < length ) {
+        if ( !Matics.sorted(0,offset,offset + length, b.length) ||  length() < length ) {
             throw new java.nio.BufferOverflowException();
         }
         read(b,offset,length);
+        return this;
+    }
+
+    @Override
+    public ReadBase get(OverBlock bb) {
+        bb.write(this);
         return this;
     }
 
@@ -131,6 +139,11 @@ public abstract class ReadBase implements FrontInput, IndexInput, RevInput, Read
     @Override
     public int size() {
         return (int)Math.min(length(), Integer.MAX_VALUE);
+    }
+
+    @Override
+    public int backSize() {
+        return (int)Math.min(backLength(), Integer.MAX_VALUE);
     }
 
     @Override

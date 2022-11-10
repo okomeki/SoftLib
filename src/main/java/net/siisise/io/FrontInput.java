@@ -15,6 +15,8 @@
  */
 package net.siisise.io;
 
+import net.siisise.block.OverBlock;
+
 /**
  *
  */
@@ -22,4 +24,5 @@ public interface FrontInput extends Input {
     byte get();
     FrontInput get(byte[] b);
     FrontInput get(byte[] b, int offset, int length);
+    FrontInput get(OverBlock bb);
 }

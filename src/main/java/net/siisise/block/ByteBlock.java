@@ -15,8 +15,10 @@
  */
 package net.siisise.block;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import net.siisise.io.IndexInput;
+import net.siisise.math.Matics;
 
 /**
  * ブロック.
@@ -28,22 +30,29 @@ import net.siisise.io.IndexInput;
 public class ByteBlock extends OverBlock.AbstractSubOverBlock {
 
     /**
-     * 参照のみできる配列.
+     * データ配列.
      */
     private final byte[] block;
 
     /**
      * 配列全体.
-     * @param src 
+     * @param src 元データ 複製しない
      */
     public ByteBlock(byte[] src) {
-        super(0,src.length);
-        block = src;
+        this(src, 0,src.length);
+    }
+
+    /**
+     * 指定サイズの空のBlockを作る.
+     * @param length サイズ
+     */
+    public ByteBlock(int length) {
+        this(new byte[length], 0, length);
     }
     
     /**
      * 配列の部分集合.
-     * @param src 更新しない前提の配列.
+     * @param src 元配列.
      * @param start 開始位置
      * @param length サイズ
      */
@@ -57,26 +66,20 @@ public class ByteBlock extends OverBlock.AbstractSubOverBlock {
         return ( pos >= max) ? -1 : block[(int)pos++] & 0xff;
     }
     
-    /**
-     * 指定サイズの部分集合を作る.
-     * offsetは読み込んだ分進む.
-     * @param size サイズ
-     * @return 部分集合 subblock
-     */
     @Override
-    public ByteBlock readBlock(int size) {
-        size = (int)Math.min( max - pos, size );
-        ByteBlock b = new ByteBlock(block, pos, size);
-        pos += size;
-        return b;
+    public ByteBlock sub(long index, long length) {
+        if ( !Matics.sorted(0, index, index + length, max - min)) {
+            throw new java.nio.BufferOverflowException();
+        }
+        return new ByteBlock(block, min + index, length);
     }
 
     /**
-     * 
-     * @param dst
-     * @param offset
-     * @param length
-     * @return 
+     * 読む.
+     * @param dst 転送先
+     * @param offset 転送位置
+     * @param length サイズ
+     * @return 読めたサイズ
      */
     @Override
     public int read(byte[] dst, int offset, int length) {
@@ -99,20 +102,28 @@ public class ByteBlock extends OverBlock.AbstractSubOverBlock {
         return -1;
     }
 
+    /**
+     * 逆読み.
+     * 短い場合は後ろから詰める.
+     * @param dst
+     * @param offset
+     * @param length
+     * @return 
+     */
     @Override
     public int backRead(byte[] dst, int offset, int length) {
         if ( offset < 0 || offset >= dst.length || length < 0 ) {
             throw new java.lang.IndexOutOfBoundsException();
         }
-        length = Math.min( dst.length - offset, length );
+        int len = Math.min( dst.length - offset, length );
         int size = (int)back(length);
-        System.arraycopy(block, (int)pos, dst, offset, size);
+        System.arraycopy(block, (int)pos, dst, offset + length - len, size);
         return size;
     }
 
     /**
      * position から残りを position と limit に設定したByteBuffer
-     * @return 
+     * @return メモリを共有したByteBuffer
      */
     public ByteBuffer asByteBuffer() {
         return ByteBuffer.wrap(block, (int)pos, (int)(max - pos));
@@ -147,5 +158,14 @@ public class ByteBlock extends OverBlock.AbstractSubOverBlock {
             throw new java.nio.BufferOverflowException();
         }
         System.arraycopy(data, offset, block, (int)(min + pos), length);
+    }
+    
+    @Override
+    public String toString() {
+        try {
+            return "min:" + min + " pos:"+ pos + " max:" + max + " " + new String(block, "utf-8");
+        } catch (UnsupportedEncodingException ex) {
+        }
+        return "min:" + min + " pos:"+ pos + " max:" + max;
     }
 }

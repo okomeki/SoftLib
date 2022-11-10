@@ -47,4 +47,19 @@ public class PacketATest {
         assertArrayEquals(expResult, tmp);
     }
     
+    @Test
+    public void testIndex() {
+        System.out.println("index");
+        byte[] data = "012".getBytes();
+        byte[] data2 = "3456789".getBytes();
+        byte[] exResult = "0123456789".getBytes();
+        PacketA instance = new PacketA(data);
+        instance.write(data2);
+        byte[] d = new byte[2];
+        instance.get(4,d,0,2);
+        byte[] tmp = instance.toByteArray();
+        assertArrayEquals(exResult,tmp);
+        
+    }
+    
 }

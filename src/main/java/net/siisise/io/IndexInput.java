@@ -16,10 +16,35 @@
 package net.siisise.io;
 
 /**
- *
+ * Packet, Blockの指定位置を読む系
  */
 public interface IndexInput {
+
+    /**
+     * 読めないときはException
+     * @param index
+     * @return データ
+     */
     byte get(long index);
+
+    /**
+     * 読めないときはException
+     * @param index
+     * @param b
+     * @return 
+     */
     IndexInput get(long index, byte[] b);
+
+    /**
+     * 読めないときはException
+     * Packetを読んでもとりあえず消えないことにする.
+     * @param index
+     * @param b
+     * @param offset
+     * @param length
+     * @return 
+     */
     IndexInput get(long index, byte[] b, int offset, int length);
+    
+
 }

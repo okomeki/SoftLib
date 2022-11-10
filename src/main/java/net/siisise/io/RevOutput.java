@@ -60,6 +60,13 @@ public interface RevOutput {
 
     void flush();
 
+    /**
+     * どっちから詰める?
+     * @param out
+     * @param in
+     * @param length
+     * @return 
+     */
     public static long backWrite(RevOutput out, RevInput in, long length) {
         byte[] d;
         int size;
@@ -73,7 +80,7 @@ public interface RevOutput {
             if ( size == d.length) {
                 out.dbackWrite(d);
             } else {
-                out.backWrite(d,0,size);
+                out.backWrite(d,d.length - size,size);
             }
             x -= size;
         }

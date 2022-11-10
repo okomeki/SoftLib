@@ -16,6 +16,7 @@
 package net.siisise.io;
 
 import java.io.InputStream;
+import net.siisise.block.OverBlock;
 
 /**
  * Abstract的な
@@ -48,6 +49,12 @@ public abstract class AbstractInput extends InputStream implements FrontInput {
     }
     
     @Override
+    public AbstractInput get(OverBlock bb) {
+        bb.write(this);
+        return this;
+    }
+    
+    @Override
     public int read() {
         byte[] d = new byte[1];
         int s = read(d);
@@ -67,6 +74,10 @@ public abstract class AbstractInput extends InputStream implements FrontInput {
     @Override
     public abstract int read(byte[] d, int offset, int length);
 
+    /**
+     * バイト列にする.
+     * @return available() な中身
+     */
     @Override
     public byte[] toByteArray() {
         byte[] b = new byte[size()];
@@ -83,6 +94,11 @@ public abstract class AbstractInput extends InputStream implements FrontInput {
         return size();
     }
 
+    /**
+     * 読まずに進む.
+     * @param length 相対サイズ
+     * @return 移動したサイズ
+     */
     @Override
     public long skip(long length) {
         return Input.skipImpl(this, length);

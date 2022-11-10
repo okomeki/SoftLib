@@ -30,23 +30,39 @@ public interface EditBlock extends OverBlock, IndexEdit {
      * 切り取る.
      * 編集可能な場合のみ、不要なサイズを切り取る.
      * del と類似.
+     * 
      * @param length 長さ
      * @return 切り取ったデータ.
      */
     byte[] drop(int length);
     byte[] backDrop(int length);
 
+    /**
+     * dを元にして編集可能.
+     * 複製あり.
+     * 
+     * @param d 元データ
+     * @return 編集可能ブロック
+     */
     public static EditBlock wrap(byte[] d) {
         return new SinglePacketBlock(d);
     }
 
+    /**
+     * dを元にして編集可能.
+     * 
+     * @param d 元データ
+     * @param offset 位置
+     * @param length サイズ
+     * @return 編集可能ブロック
+     */
     public static EditBlock wrap(byte[] d, int offset, int length) {
         SinglePacketBlock b = new SinglePacketBlock();
         b.put(d,offset,length);
         b.seek(0);
         return b;
     }
-    
+
     public static EditBlock wrap(FrontPacket p) {
         return new PacketBlock(p);
     }

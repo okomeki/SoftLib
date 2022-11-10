@@ -29,26 +29,22 @@ import net.siisise.io.RevOutput;
  * 編集点が中央になったPacket.
  * 
  * 先頭、終端と編集点を別にしたもの.
- * Packet を継承すると BackPacket系が混乱するので継承しない方がいいのかも.
  */
 public class PacketBlock extends Edit implements EditBlock {
 
     // 読み済み
-    private final PacketA front;
+    private final PacketA front = new PacketA();
     private final FrontPacket back;
 
     public PacketBlock() {
-        front = new PacketA();
         back = new PacketA();
     }
 
     public PacketBlock(byte[] data) {
-        front = new PacketA();
         back = new PacketA(data);
     }
 
     public PacketBlock(FrontPacket in) {
-        front = new PacketA();
         back = in;
     }
 
@@ -62,39 +58,29 @@ public class PacketBlock extends Edit implements EditBlock {
         return offset;
     }
 
+    /**
+     * 読みとばす。進む。
+     * @param length 長さ
+     * @return skip length
+     */
     @Override
     public long skip(long length) {
         if ( length < 0 ) {
-            return -back(-length);
+            return -back(-Math.max(length, -front.length()));
         }
-        FrontPacket fp = back.split(length);
-        int size = fp.size();
+        Packet fp = back.split(length);
+        long size = fp.length();
         front.write(fp);
         return size;
     }
 
     @Override
     public long back(long length) {
-        long fss = front.backSize();
-        long bs = Long.min(fss, length);
-        
-        Packet ff = front.backSplit(bs);
+        if ( length < 0 ) {
+            return -skip(-Math.max(length, -back.length()));
+        }
+        Packet ff = front.backSplit(length);
         return RevOutput.backWrite(back, ff, ff.length());
-    }
-
-    /**
-     * 複製または参照を作る.
-     * 必ずコピーされるわけではない.
-     * @param size 必要な切り取りサイズ
-     * @return 切り取られたサイズのブロック.
-     */
-    @Override
-    public ReadableBlock readBlock(int size) {
-        size = Integer.min(size(), size);
-        FrontPacket p = back.split(size);
-        front.write(p);
-        int fs = front.size();
-        return new SubReadableBlock(fs - size, fs, this);
     }
 
     /**
@@ -154,10 +140,19 @@ public class PacketBlock extends Edit implements EditBlock {
         front.backRead(tmp);
         return tmp;
     }
-    
+
+    /**
+     * 読む.
+     * 読んだところは消えない.
+     * @param index 位置
+     * @param d データ入れ
+     * @param offset d 位置
+     * @param length 容量
+     * @return これ
+     */
     @Override
     public PacketBlock get(long index, byte[] d, int offset, int length) {
-        int p = backSize();
+        long p = backLength();
         seek(index);
         get(d, offset, length);
         seek(p);
@@ -181,26 +176,48 @@ public class PacketBlock extends Edit implements EditBlock {
         front.write(data, offset, size);
         return this;
     }
-    
+
+    /**
+     * 上書き.
+     * 書き込み位置の制約はあまりない.
+     * @param index 位置
+     * @param d データ
+     * @param offset データ位置
+     * @param length サイズ
+     */
     @Override
     public void put(long index, byte[] d, int offset, int length) {
-        int p = backSize();
+        long p = backLength();
         seek(index);
         put(d,offset,length);
         seek(p);
     }
 
+    /**
+     * 追加.
+     * index位置に追加する.
+     * @param index block index
+     * @param d data
+     * @param offset data offset
+     * @param length size
+     */
     @Override
     public void add(long index, byte[] d, int offset, int length) {
-        int p = backSize();
+        long p = backLength();
         seek(index);
         front.write(d,offset,length);
         seek(p);
     }
 
+    /**
+     * 削除
+     * index位置からsize分削除する.詰める.
+     * @param index block index
+     * @param size delete size
+     */
     @Override
     public void del(long index, long size) {
-        int p = backSize();
+        long p = backLength();
         seek(index);
         back.split(size);
         seek(p);
@@ -208,7 +225,7 @@ public class PacketBlock extends Edit implements EditBlock {
 
     @Override
     public IndexEdit del(long index, byte[] d, int offset, int length) {
-        int p = backSize();
+        long p = backLength();
         seek(index);
         back.read(d,offset,length);
         seek(p);
@@ -241,8 +258,8 @@ public class PacketBlock extends Edit implements EditBlock {
     }
 
     @Override
-    public int backSize() {
-        return front.size();
+    public long backLength() {
+        return front.length();
     }
 
     @Override

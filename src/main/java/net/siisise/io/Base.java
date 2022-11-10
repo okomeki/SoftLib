@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
+import net.siisise.block.EditBlock;
+import net.siisise.block.OverBlock;
 
 /**
  * Packet と Block の簡易実装.
@@ -94,17 +96,21 @@ public abstract class Base extends ReadBase implements FrontPacket, BackPacket, 
     @Override
     public int write(ByteBuffer buf) {
         if ( buf.hasArray() ) { // 中間が要らない実装
-            byte[] d = buf.array();
-            int p = buf.position();
             int r = buf.remaining();
-            write(d, buf.arrayOffset() + p, r);
+            int p = buf.position();
+            write(buf.array(), buf.arrayOffset() + p, r);
             buf.position(p + r);
             return r;
         } else {
-            byte[] d = new byte[buf.remaining()];
-            buf.get(d);
-            write(d);
-            return d.length;
+            int l;
+            int s = 0;
+            while ( (l = Math.min(buf.remaining(), (this instanceof OverBlock ) ? size() : 0x10000000 )) > 0 ) {
+                byte[] d = new byte[l];
+                buf.get(d);
+                write(d);
+                s += d.length;
+            }
+            return s;
         }
     }
 
@@ -114,9 +120,17 @@ public abstract class Base extends ReadBase implements FrontPacket, BackPacket, 
         write(data, 0, data.length);
     }
 
+    /**
+     * Block系
+     * @param pac 
+     */
     @Override
     public void write(Input pac) {
-        Output.write(this, pac, pac.length());
+        if ( !(this instanceof EditBlock) && (this instanceof OverBlock) ) {
+            Output.write(this, pac, Math.min(length(), pac.length()));
+        } else {
+            Output.write(this, pac, pac.length());
+        }
     }
 
     @Override

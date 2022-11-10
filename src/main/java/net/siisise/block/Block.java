@@ -48,10 +48,22 @@ public interface Block {
     /**
      * offset まで移動する.
      * 足りない場合は最後尾に移動する. 余白は追加しない
+     * Buffer の position と同じ.
+     * 参照するのは backLength()
      * @param offset 位置 相対
      * @return 移動した位置
      */
     long seek(long offset);
+
+    /**
+     * 部分集合をつくる.
+     * flip などで使う
+     * 
+     * @param index 位置
+     * @param length サイズ
+     * @return 
+     */
+    Block sub(long index, long length);
 
     /**
      * 分ける.

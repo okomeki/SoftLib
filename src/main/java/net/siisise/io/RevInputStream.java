@@ -38,9 +38,9 @@ public class RevInputStream extends InputStream implements RevInput {
     }
     
     /**
-     *
-     * @param d
-     * @return
+     * 読む.
+     * @param d データ入れ
+     * @return サイズ
      */
     @Override
     public int read(byte[] d) {
@@ -62,6 +62,14 @@ public class RevInputStream extends InputStream implements RevInput {
         return in.backRead();
     }
 
+    /**
+     * 後ろ(offset + length)から詰める.
+     * 
+     * @param d 入れ物
+     * @param offset 書ける位置の頭
+     * @param length 書ける領域の大きさ
+     * @return 
+     */
     @Override
     public int backRead(byte[] d, int offset, int length) {
         return in.backRead(d, offset, length);
@@ -71,10 +79,24 @@ public class RevInputStream extends InputStream implements RevInput {
     public int backRead(byte[] d) {
         return in.backRead(d, 0, d.length);
     }
-    
+
+    /**
+     * 逆読みできるサイズを32bitに丸めたもの.
+     * 最大 Integer.MAX_VALUE
+     * @return 逆読みできるサイズ
+     */
     @Override
     public int backSize() {
         return in.backSize();
+    }
+
+    /**
+     * どれくらい逆読みできるか
+     * @return 逆読みできるサイズ
+     */
+    @Override
+    public long backLength() {
+        return in.backLength();
     }
 
     @Override
@@ -89,6 +111,6 @@ public class RevInputStream extends InputStream implements RevInput {
 
     @Override
     public byte revGet() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

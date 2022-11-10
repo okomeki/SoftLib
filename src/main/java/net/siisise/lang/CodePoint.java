@@ -175,7 +175,7 @@ public class CodePoint {
      * @return UCS-4または不正の場合-1
      */
     public static int utf8(ReadableBlock pac) {
-        int mark = pac.backSize();
+        long mark = pac.backLength();
         int rd = pac.read();
         int len;
         int min;

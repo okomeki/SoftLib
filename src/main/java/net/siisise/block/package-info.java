@@ -16,6 +16,6 @@
 
 /**
  * java.nio っぽくなっている気がする.
- * Buffer と Channel っぽいもの
+ * Buffer と Channel っぽいもの。
  */
 package net.siisise.block;

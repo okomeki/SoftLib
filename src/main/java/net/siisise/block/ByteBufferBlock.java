@@ -17,6 +17,7 @@ package net.siisise.block;
 
 import java.nio.ByteBuffer;
 import net.siisise.io.IndexInput;
+import net.siisise.math.Matics;
 
 /**
  * limit が変えられない ByteBuffer っぽい.
@@ -46,7 +47,7 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
         super(0,src.limit());
         buff = src;
     }
-    
+
     @Override
     public int read(byte[] dst, int offset, int length) {
         int size = buff.remaining();
@@ -57,12 +58,18 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
     }
 
     @Override
-    public ReadableBlock readBlock(int length) {
-        length = Integer.min(size(), length);
-        int pos = buff.position();
+    public OverBlock sub(long index, long length) {
+        if (!Matics.sorted(0, index, index + length, max - min)) {
+            throw new java.nio.BufferOverflowException();
+        }
+        if ( buff.hasArray() ) {
+            return new ByteBlock(buff.array(), buff.arrayOffset() + min + index, length);
+        }
+        int p = buff.position();
+        buff.position((int) index);
         ByteBuffer bb = buff.slice();
-        bb.limit(length);
-        buff.position(pos + length);
+        bb.limit((int)length);
+        buff.position(p);
         return new ByteBufferBlock(bb);
     }
 
@@ -97,24 +104,35 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
     public long length() {
         return buff.remaining();
     }
-
+    
     /**
      * position がほしいか たぶん0からの位置
      *
      * @return たぶん0からの位置
      */
     @Override
-    public int backSize() {
+    public long backLength() {
         return buff.position();
     }
 
+    /**
+     * 範囲内で移動する.
+     * ReadableBlockと同じ.
+     * @param position
+     * @return 位置.
+     */
     @Override
-    public long seek(long po) {
-        int p = (int)Math.min(buff.limit(), po);
+    public long seek(long position) {
+        int p = (int)Matics.range(position, 0, buff.limit());
         buff.position(p);
         return p;
     }
 
+    /**
+     * 読み書きせずに進む.
+     * @param length マイナスも使えるといい
+     * @return 進んだサイズ
+     */
     @Override
     public long skip(long length) {
         if ( length < 0) {
@@ -127,6 +145,11 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
         return length;
     }
 
+    /**
+     * 読み書きせずに戻る.
+     * @param length マイナスも使えるといい
+     * @return 戻ったサイズ
+     */
     @Override
     public long back(long length) {
         if ( length < 0 ) {

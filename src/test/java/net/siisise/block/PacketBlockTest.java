@@ -43,6 +43,7 @@ public class PacketBlockTest {
         assertEquals(expResult, b.size());
         
         PacketBlock instance = new PacketBlock(data);
+        assertEquals(10, instance.length());
         long result = instance.skip(length);
         assertEquals(expResult, result);
     }

@@ -78,12 +78,14 @@ public interface Input {
     long skip(long length);
     
     /**
+     * 読めるサイズ long版.
      * 32ビットでは足りないかもと足してみた
      * @return サイズ
      */
     long length();
 
     /**
+     * 読めるサイズ int版.
      * 32ビット内であればそのサイズ、それ以上はIntegerの最大値.
      * StreamのFrontの場合は信用しない方がいい
      *

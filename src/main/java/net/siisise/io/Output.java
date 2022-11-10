@@ -24,8 +24,33 @@ public interface Output {
 
     OutputStream getOutputStream();
     
+    /**
+     * 上限のない書き込み.
+     * OutputStream 互換っぽくする。
+     * Blockの上限ではなんとかする?
+     * 
+     * @param data データ
+     */
     void write(int data);
+
+    /**
+     * 上限のない書き込み.
+     * OutputStream 互換っぽくする。
+     * Blockの上限ではなんとかする?
+     * 
+     * @param data データ
+     */
     void write(byte[] data);
+
+    /**
+     * 上限のない書き込み.
+     * OutputStream 互換っぽくする。
+     * Blockの上限ではなんとかする?
+     * 
+     * @param data データ
+     * @param offset データ位置
+     * @param length データサイズ
+     */
     void write(byte[] data, int offset, int length);
 
     void dwrite(byte[] data);
@@ -36,13 +61,23 @@ public interface Output {
     void write(Input pac);
 
     /**
-     * Block 上書き.
+     * Block では上書き. 上限あり?
      * Packet 追加. writeと同じ.
-     * @param data
+     * 
+     * @param data データ
      * @return 
      */
     Output put(byte data);
     Output put(byte[] data);
+    /**
+     * Block では上書き. 上限あり?
+     * Packet 追加. writeと同じ.
+     * 
+     * @param data データ
+     * @param offset
+     * @param length
+     * @return 
+     */
     Output put(byte[] data, int offset, int length);
 
     /**

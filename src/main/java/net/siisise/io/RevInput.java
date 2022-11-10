@@ -18,7 +18,9 @@ package net.siisise.io;
 import java.io.InputStream;
 
 /**
- *
+ * 逆読み.
+ * 標準ではないところから読む.
+ * 分割された順序に注意。
  */
 public interface RevInput {
     
@@ -35,13 +37,14 @@ public interface RevInput {
     
     /**
      * 逆から読む.
-     * @param data
+     * 短い場合は後ろ(offset + length)から詰める.
+     * @param dst
      * @param offset
      * @param length
      * @return 
      */
-    int backRead(byte[] data, int offset, int length);
-    int backRead(byte[] data);
+    int backRead(byte[] dst, int offset, int length);
+    int backRead(byte[] dst);
     /**
      * 逆読み
      * @param length
@@ -80,9 +83,16 @@ public interface RevInput {
         }
         return length - r;
     }
+    
+    /**
+     * RevInputで読めるサイズ.
+     * @return 
+     */
+    long backLength();
 
     /**
      * RevInput で読めるサイズ.
+     * intを超える場合は Integer#MAX_LENGTH
      * @return size
      */
     int backSize();

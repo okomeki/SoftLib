@@ -45,7 +45,7 @@ public class ByteBlockTest {
         assertEquals(3,block.size());
         assertEquals(3,block.length());
         
-        ByteBlock nb = block.readBlock(1);
+        ByteBlock nb = (ByteBlock) block.readBlock(1);
 
         assertEquals(2,block.size());
         assertEquals(2,block.length());
