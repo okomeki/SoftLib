@@ -49,6 +49,18 @@ public interface Input {
      */
     int read(byte[] d, int offset, int length);
     int read(byte[] d);
+
+    /**
+     * データ移動的なところ (Packet / Block 汎用)
+     * readでもwritwでも同じ
+     * @param dst 転送先
+     * @return これとdstの size() 短い方
+     */
+    default long read(Output dst) {
+        long s = length();
+        dst.write(this);
+        return s - length();
+    }
 /*
 // FrontInput
     byte get();
@@ -104,7 +116,13 @@ public interface Input {
         pac.write(in, length);
         return pac;
     }
-    
+
+    /**
+     * 物理的に読んで捨てるときに使う.
+     * @param in
+     * @param length
+     * @return 
+     */
     public static long skipImpl(Input in, long length) {
         long r = length;
         byte[] t = new byte[(int) Math.min(length, PacketA.MAXLENGTH)];

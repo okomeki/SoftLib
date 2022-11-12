@@ -22,7 +22,7 @@ import net.siisise.block.OverBlock;
 import net.siisise.math.Matics;
 
 /**
- *
+ * Packet Block の共通項を探る抽象クラス.
  */
 public abstract class ReadBase implements FrontInput, IndexInput, RevInput, ReadableByteChannel {
 
@@ -100,7 +100,7 @@ public abstract class ReadBase implements FrontInput, IndexInput, RevInput, Read
         dst.put(d, 0, s);
         return s;
     }
-
+    
     @Override
     public byte[] toByteArray() {
         byte[] b = new byte[size()];

@@ -50,10 +50,11 @@ public class PacketBlock extends Edit implements EditBlock {
 
     @Override
     public long seek(long offset) {
-        if (front.backSize() + back.size() < offset) {
-            offset = front.backSize() + back.size();
+        long fb = front.backLength();
+        if (fb + back.length() < offset) {
+            offset = fb + back.length();
         }
-        long size = offset - front.backSize();
+        long size = offset - fb;
         skip(size);
         return offset;
     }
@@ -96,11 +97,11 @@ public class PacketBlock extends Edit implements EditBlock {
     
     /**
      * 編集可能なのでいろいろ違うかも
-     * @return 
+     * @return position より前を切り取ったもの.
      */
     @Override
     public OverBlock flip() {
-        return new SubOverBlock(0, backSize(), this);
+        return sub(0, backLength());
     }
 
     @Override

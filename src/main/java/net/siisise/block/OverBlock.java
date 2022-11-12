@@ -33,7 +33,11 @@ import net.siisise.math.Matics;
  * 切り取ったブロックなどでサイズ変更ができないが上書きは可能。
  */
 public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, IndexInput, IndexOutput {
-    
+
+    /**
+     * 上書き可能な状態でpositionまでを切り取り
+     * @return 上書き可能な切り取り
+     */
     @Override
     OverBlock flip();
 
@@ -52,6 +56,14 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
         return new ByteBlock(b, offset, length);
     }
     
+    /**
+     * EditBlock などで使えばいいよ.
+     * 同じ権限のときは sub(long index, long length)を使う
+     * @param block OverBlock として切り取りたい上位権限のブロック
+     * @param offset 位置
+     * @param length サイズ
+     * @return 部分集合
+     */
     public static OverBlock wrap(OverBlock block, long offset, long length) {
         return new SubOverBlock(offset, offset + length, block);
     }
@@ -219,7 +231,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
          */
         @Override
         public OverBlock flip() {
-            return sub(0,backSize());
+            return sub(0,backLength());
         }
     }
 
@@ -239,8 +251,8 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
         }
 
         @Override
-        public int read(byte[] d, int offset, int length) {
-            if ( !Matics.sorted(0,offset,offset + length, d.length)) {
+        public int read(byte[] buf, int offset, int length) {
+            if ( !Matics.sorted(0,offset,offset + length, buf.length)) {
                 throw new java.nio.BufferOverflowException();
             }
             long p = block.backLength();
@@ -249,18 +261,18 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 //                throw new java.nio.BufferOverflowException();
 //            }
             length = Math.min(length, size());
-            int s = block.read(d,offset,length);
+            int s = block.read(buf,offset,length);
             pos += s;
             block.seek(p);
             return s;
         }
 
         @Override
-        public IndexInput get(long index, byte[] b, int offset, int length) {
-            if ( !Matics.sorted(0,offset,offset + length, b.length) || index + length > max - min ) {
+        public IndexInput get(long index, byte[] buf, int offset, int length) {
+            if ( !Matics.sorted(0,offset,offset + length, buf.length) || index + length > max - min ) {
                 throw new java.nio.BufferOverflowException();
             }
-            block.get(min + index,b,offset,length);
+            block.get(min + index,buf,offset,length);
             return this;
         }
 
@@ -328,12 +340,18 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
             return b;
         }
 
+        /**
+         * 切り取り.
+         * @param index 位置
+         * @param length サイズ
+         * @return 部分集合
+         */
         @Override
         public OverBlock sub(long index, long length) {
             if ( !Matics.sorted(0, index, index + length, max - min) ) {
                 throw new java.nio.BufferOverflowException();
             }
-            return OverBlock.wrap(block, min + index, length);
+            return block.sub(min + index, length);
         }
     }
 }

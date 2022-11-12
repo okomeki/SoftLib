@@ -41,8 +41,15 @@ import net.siisise.math.Matics;
  */
 public interface ReadableBlock extends Block, FrontInput, RevInput {
 
+    /**
+     * 読み込み専用のpositionまでの切り取り.
+     * @return 読み専用
+     */
     @Override
     ReadableBlock flip();
+
+    @Override
+    ReadableBlock sub(long index, long length);
     
     /**
      * 現在値から部分的な切り出し.
@@ -103,6 +110,12 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
 
     public static ReadableBlock wrap(Input in) {
         return wrap(in.getInputStream());
+    }
+
+    public static ReadableBlock wrap(Input in, long length) {
+        OverBlock b = OverBlock.wrap(new byte[(int)length]);
+        b.write(in);
+        return b;
     }
     
     static class BlockInput extends FilterInput {
@@ -342,6 +355,7 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
 
     /**
      * ちょっと分割したいときのBlock.
+     * min, max, pos は parent 基準で設定される。
      */
     static class SubReadableBlock extends AbstractSubReadableBlock {
 

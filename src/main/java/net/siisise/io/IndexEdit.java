@@ -22,15 +22,27 @@ public interface IndexEdit extends IndexInput,IndexOutput {
     
     byte del(long index);
     void del(long index, long size);
-    IndexEdit del(long index, byte[] d);
-    IndexEdit del(long index, byte[] d, int offset, int length);
+    IndexEdit del(long index, byte[] buf);
+    IndexEdit del(long index, byte[] buf, int offset, int length);
 
     /**
      * 追加.
-     * @param index
-     * @param d 
+     * @param index 位置
+     * @param src 追加するデータ
      */
-    void add(long index, byte d);
-    void add(long index, byte[] d);
-    void add(long index, byte[] d, int srcOffset, int length);
+    void add(long index, byte src);
+    /**
+     * 追加.
+     * @param index 位置
+     * @param src 追加するデータ
+     */
+    void add(long index, byte[] src);
+    /**
+     * 追加.
+     * @param index 位置
+     * @param src 追加するデータ
+     * @param offset データの位置
+     * @param length データのサイズ
+     */
+    void add(long index, byte[] src, int offset, int length);
 }

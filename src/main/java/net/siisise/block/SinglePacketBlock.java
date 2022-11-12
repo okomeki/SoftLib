@@ -128,12 +128,16 @@ public class SinglePacketBlock extends Edit implements EditBlock {
     public OverBlock readBlock(long length) {
         length = Matics.range(length, 0, length());
         pos += length;
-        return OverBlock.wrap(this, pos - length, length);
+        return sub(pos - length, length);
     }
 
+    /**
+     * 仮でOverなかたち
+     * @return positionまでの切り取り
+     */
     @Override
     public OverBlock flip() {
-        return new SubOverBlock(0, block.backLength(), this);
+        return sub(0, block.backLength());
     }
 
     /**
@@ -183,8 +187,8 @@ public class SinglePacketBlock extends Edit implements EditBlock {
     }
 
     @Override
-    public IndexEdit del(long index, byte[] d, int offset, int length) {
-        block.del(index, d, offset, length);
+    public IndexEdit del(long index, byte[] buf, int offset, int length) {
+        block.del(index, buf, offset, length);
         return this;
     }
 
@@ -244,17 +248,6 @@ public class SinglePacketBlock extends Edit implements EditBlock {
         pos += length;
     }
 
-    /*
-    @Override
-    public void dbackWrite(byte[] data) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void dwrite(byte[] data) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-     */
     @Override
     public String toString() {
         return "pos:" + pos + " len: " + block.length();

@@ -27,6 +27,9 @@ public class PacketA extends BasePacket {
      */
     static final int MAXLENGTH = 0x100000;
 
+    /**
+     * LinkedList な基本構造.
+     */
     private static class PacketIn {
 
         private PacketIn prev = this;
@@ -444,19 +447,6 @@ public class PacketA extends BasePacket {
     }
 
     /**
-     * 1バイトだけ消す.
-     * drop とかぶるかも
-     * @param index
-     * @return 
-     */
-    @Override
-    public byte del(long index) {
-        byte[] b = new byte[1];
-        del(index, b, 0, 1);
-        return b[0];
-    }
-
-    /**
      * 切り取り。データが要らない場合.
      * @param index 位置
      * @param length 長さ
@@ -466,17 +456,6 @@ public class PacketA extends BasePacket {
         PacketA bb = backSplit(length() - index - length);
         backSplit(length);
         write(bb);
-    }
-
-    /**
-     * 切り取り.
-     * @param index 位置
-     * @param b データ入れ、サイズ
-     * @return this
-     */
-    @Override
-    public PacketA del(long index, byte[] b) {
-        return del(index, b, 0, b.length);
     }
 
     /**
