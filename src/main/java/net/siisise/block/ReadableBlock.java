@@ -320,7 +320,7 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
         @Override
         public long skip(long length) {
             if (length < 0) {
-                return -back(-Long.max(length, -backLength()));
+                return -back(-Long.max(length, -backLength())); // Long.MIN_VALUE を回避
             }
             long size = Math.min(length(), length);
             pos += size;
@@ -330,7 +330,7 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
         @Override
         public long back(long length) {
             if (length < 0) {
-                return -skip(-Long.max(length, -length()));
+                return -skip(-Long.max(length, -length())); // Long.MIN_VALUE を回避
             }
             length = Math.min(backLength(), length);
             pos -= length;

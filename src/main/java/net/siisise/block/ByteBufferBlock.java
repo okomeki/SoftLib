@@ -138,7 +138,7 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
         if ( length < 0) {
             return -back(-length);
         }
-        length = Long.min(size(),length);
+        length = Math.min(length(),length);
         int p = buff.position();
         p += length;
         buff.position(p);
@@ -156,7 +156,7 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
             return -skip(-length);
         }
         int p = buff.position();
-        length = Long.min(p, length);
+        length = Math.min(p, length);
         p -= length;
         buff.position(p);
         return length;

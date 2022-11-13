@@ -66,7 +66,9 @@ public class PacketBlock extends Edit implements EditBlock {
      */
     @Override
     public long skip(long length) {
-        if ( length < 0 ) {
+        if ( length == 0 ) {
+            return 0;
+        } else if ( length < 0 ) {
             return -back(-Math.max(length, -front.length()));
         }
         Packet fp = back.split(length);
@@ -77,7 +79,9 @@ public class PacketBlock extends Edit implements EditBlock {
 
     @Override
     public long back(long length) {
-        if ( length < 0 ) {
+        if ( length == 0 ) {
+            return 0;
+        } else if ( length < 0 ) {
             return -skip(-Math.max(length, -back.length()));
         }
         Packet ff = front.backSplit(length);

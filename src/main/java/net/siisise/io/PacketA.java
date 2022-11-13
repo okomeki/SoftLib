@@ -226,6 +226,14 @@ public class PacketA extends BasePacket {
     @Override
     public void write(byte[] src, int offset, int length) {
         PacketIn pp = nullPack.prev;
+/*
+        if ( pp != nullPack && pp.data.length + length < 1024 ) {
+            byte[] d = new byte[1024];
+            System.arraycopy(pp.data, pp.offset, d, 0, pp.length);
+            pp.data = d;
+            pp.offset = 0;
+        }
+*/
         if (pp != nullPack && length > 0 && pp.offset + pp.length + length < pp.data.length ) {
             System.arraycopy(src, offset, pp.data, pp.offset + pp.length, length);
             pp.length += length;
@@ -248,15 +256,22 @@ public class PacketA extends BasePacket {
     @Override
     public void backWrite(byte[] src, int offset, int length) {
         PacketIn nn = nullPack.next;
+/*
+        if ( nn != nullPack && nn.data.length + length < 1024 ) {
+            byte[] d = new byte[1024];
+            System.arraycopy(nn.data, nn.offset, d, d.length - nn.length, nn.length);
+            nn.offset = d.length - nn.length;
+            nn.data = d;
+        }
+*/
         if (length > 0 && nn.offset >= length) { // 空いているところに詰め込むことにしてみたり nullPackはoffset 0なので判定しなくて問題ない
             System.arraycopy(src, offset, nn.data, nn.offset - length, length);
             nn.offset -= length;
             nn.length += length;
             return;
         }
-        byte[] d;
         while (length > 0) {
-            d = new byte[Math.min(length, MAXLENGTH)];
+            byte[] d = new byte[Math.min(length, MAXLENGTH)];
             System.arraycopy(src, offset, d, 0, d.length);
             nn.addPrev(d);
             length -= d.length;
@@ -291,15 +306,16 @@ public class PacketA extends BasePacket {
     @Override
     public void flush() {
         PacketIn nn;
-        if ( nullPack.next == nullPack ) return;
-        for (nn = nullPack.next; nn.next != nullPack; nn = nn.next) {
+        //if ( nullPack.next == nullPack ) return;
+        for (nn = nullPack.next; nn != nullPack && nn.next != nullPack; nn = nn.next) {
             PacketIn nx = nn.next;
-            if ( nn.data.length + nx.data.length < 1024 ) {
-                byte[] d = new byte[nn.data.length + nx.data.length];
+            if ( nx != nullPack && nn.data.length + nx.data.length < 1024 ) {
+                byte[] d = new byte[nn.length + nx.length];
                 System.arraycopy(nn.data, nn.offset, d, 0, nn.length);
                 System.arraycopy(nx.data, nx.offset, d, nn.length, nx.length);
                 nx.excPrev(new PacketIn(d));
                 nx.delete();
+                nx = nn.next;
                 nn.delete();
 //                System.err.println("gc 1");
             } else if ( nn.length < nn.next.offset ) {
