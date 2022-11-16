@@ -302,8 +302,10 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
 
         /**
          * 範囲内で移動する.
+         * Block内の指定の位置に移動する.
          *
-         * @param position
+         * 切り取った場合もSubBlockの先頭が0
+         * @param position 位置
          * @return 位置.
          */
         @Override
@@ -313,9 +315,9 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
         }
 
         /**
-         *
-         * @param length マイナスも使えるといい
-         * @return
+         * 後方(読み方向)にpositionを移動する.
+         * @param length マイナスの場合は back
+         * @return 移動したサイズ
          */
         @Override
         public long skip(long length) {
@@ -327,6 +329,12 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
             return size;
         }
 
+        /**
+         * 先頭方向にpositionを移動する.
+         * 超えた場合は先頭に移動する.
+         * @param length 移動量 マイナスの場合はskip
+         * @return 移動したサイズ
+         */
         @Override
         public long back(long length) {
             if (length < 0) {

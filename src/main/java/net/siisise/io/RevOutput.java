@@ -62,10 +62,10 @@ public interface RevOutput {
 
     /**
      * どっちから詰める?
-     * @param out
-     * @param in
-     * @param length
-     * @return 
+     * @param out 出力先
+     * @param in 逆入力
+     * @param length 長さ
+     * @return 移動した長さ
      */
     public static long backWrite(RevOutput out, RevInput in, long length) {
         byte[] d;

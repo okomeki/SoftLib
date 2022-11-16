@@ -24,6 +24,7 @@ import net.siisise.math.Matics;
  * ブロック.
  * バイト列は複製しない.
  * 部分集合にも対応する。
+ * サイズは固定長.
  * add, delはできない。
  * ByteBuffer 相当.
  */

@@ -130,11 +130,38 @@ public class PacketA extends BasePacket {
                 System.arraycopy(n.data, n.offset, b, offset, n.length);
                 len -= n.length;
                 offset += n.length;
+                n.delete(); // Javaのgc的には分けて消す方がいいのかどうか
             } else {
                 System.arraycopy(n.data, n.offset, b, offset, len);
                 n.length -= len;
                 n.offset += len;
-                n.excPrev(nullPack.next);
+
+                if ( n.length < 1000 ) {
+                    if ( n.next != nullPack ) {
+                        if ( n.next.offset >= n.length ) {
+                            System.arraycopy(n.data, n.offset, n.next.data, n.next.offset - n.length, n.length);
+                            n.next.offset -= n.length;
+                            n.next.length += n.length;
+                            n.delete(); // 分けて消す場合
+//                            n = n.next;
+                        } else if ( n.length + n.next.length < 500 ) {
+                            byte[] d = new byte[n.length + n.next.length];
+                            System.arraycopy(n.data, n.offset, d, 0, n.length);
+                            System.arraycopy(n.next.data, n.next.offset, d, n.length, n.next.length);
+                            n.length += n.next.length;
+                            n.offset = 0;
+                            n.data = d;
+                            n.next.delete(); // 分けて消す場合
+//                            n = n.next;
+                        }
+                    } else {
+                        byte[] d = new byte[n.length];
+                        System.arraycopy(n.data, n.offset, d, 0, d.length);
+                        n.data = d;
+                        n.offset = 0;
+                    }
+                }
+//                n.excPrev(nullPack.next); // まとめて消える
                 return length;
             }
         }
@@ -177,9 +204,14 @@ public class PacketA extends BasePacket {
     @Override
     public void write(Input pac) {
         if (pac instanceof PacketA) {
-            PacketIn an = ((PacketA)pac).nullPack;
-            nullPack.excPrev(an);
-            an.excPrev(an.next); // an を nullPack のみにする
+            if ( pac.length() < 500 ) {
+                byte[] d = pac.toByteArray();
+                write(d,0,d.length);
+            } else {
+                PacketIn an = ((PacketA)pac).nullPack;
+                nullPack.excPrev(an);
+                an.excPrev(an.next); // an を nullPack のみにする
+            }
         } else {
             Output.write(this, pac, pac.length());
         }
@@ -226,18 +258,19 @@ public class PacketA extends BasePacket {
     @Override
     public void write(byte[] src, int offset, int length) {
         PacketIn pp = nullPack.prev;
-/*
-        if ( pp != nullPack && pp.data.length + length < 1024 ) {
-            byte[] d = new byte[1024];
+
+        if ( pp != nullPack && pp.length + length > pp.data.length && pp.data.length + length < 1000 ) {
+            byte[] d = new byte[pp.data.length + length + 32];
             System.arraycopy(pp.data, pp.offset, d, 0, pp.length);
             pp.data = d;
             pp.offset = 0;
         }
-*/
-        if (pp != nullPack && length > 0 && pp.offset + pp.length + length < pp.data.length ) {
-            System.arraycopy(src, offset, pp.data, pp.offset + pp.length, length);
-            pp.length += length;
-            return;
+        if (pp != nullPack && length > 0 && pp.offset + pp.length < pp.data.length ) {
+            int min = Math.min(length, pp.data.length - pp.offset - pp.length );
+            System.arraycopy(src, offset, pp.data, pp.offset + pp.length, min);
+            pp.length += min;
+            length -= min;
+            offset += min;
         }
         while (length > 0) {
             byte[] d = new byte[Math.min(length, MAXLENGTH)];
@@ -256,14 +289,13 @@ public class PacketA extends BasePacket {
     @Override
     public void backWrite(byte[] src, int offset, int length) {
         PacketIn nn = nullPack.next;
-/*
-        if ( nn != nullPack && nn.data.length + length < 1024 ) {
-            byte[] d = new byte[1024];
+
+        if ( nn != nullPack && nn.length + length > nn.data.length && nn.data.length + length < 1024 ) {
+            byte[] d = new byte[nn.data.length + length + 32];
             System.arraycopy(nn.data, nn.offset, d, d.length - nn.length, nn.length);
             nn.offset = d.length - nn.length;
             nn.data = d;
         }
-*/
         if (length > 0 && nn.offset >= length) { // 空いているところに詰め込むことにしてみたり nullPackはoffset 0なので判定しなくて問題ない
             System.arraycopy(src, offset, nn.data, nn.offset - length, length);
             nn.offset -= length;
@@ -286,12 +318,15 @@ public class PacketA extends BasePacket {
 
     @Override
     public long length() {
+//        System.out.println("PacketA:length");
         long length = 0;
         PacketIn pc = nullPack.next;
         while (pc != nullPack) {
             length += pc.length;
+//            System.out.println(" " + pc.offset + " " + pc.length + " " + pc.data.length);
             pc = pc.next;
         }
+//        System.out.println("PacketA:length end");
         return length;
     }
     
@@ -315,20 +350,16 @@ public class PacketA extends BasePacket {
                 System.arraycopy(nx.data, nx.offset, d, nn.length, nx.length);
                 nx.excPrev(new PacketIn(d));
                 nx.delete();
-                nx = nn.next;
                 nn.delete();
-//                System.err.println("gc 1");
             } else if ( nn.length < nn.next.offset ) {
                 System.arraycopy(nn.data, nn.offset, nn.next.data, nn.next.offset - nn.length, nn.length);
                 nn.next.offset -= nn.length;
                 nn.next.length += nn.length;
                 nn.delete();
-//                System.err.println("gc 2");
             } else if ( nn.data.length > nn.offset + nn.length + nn.next.length ) {
                 System.arraycopy(nn.next.data, nn.next.offset, nn.data, nn.offset + nn.length, nn.next.length);
                 nn.length += nn.next.length;
                 nn.next.delete();
-//                System.err.println("gc 3");
             }
         }
     }
@@ -344,20 +375,19 @@ public class PacketA extends BasePacket {
     public PacketA split(long length) {
         long limit = length;
         PacketA newPac = new PacketA();
-        PacketIn n = nullPack.next; // read 方向
-        while ( n != nullPack && n.length <= limit ) {
+        PacketIn n; // read 方向
+        for ( n = nullPack.next; n != nullPack && n.length <= limit; n = n.next ) {
             limit -= n.length;
-            n = n.next;
         }
         // n は packの頭
-        if ( nullPack.next != n ) {
+        if ( n != nullPack.next ) {
             PacketIn c = nullPack.next; // c = 新データの頭
             n.excPrev(c);
             newPac.nullPack.excPrev(c);
         }
 
         if ( limit > 0 ) {
-            byte[] d = new byte[(int)Long.min(limit, size())];
+            byte[] d = new byte[(int)Math.min(limit, size())];
             read(d);
             newPac.dwrite(d);
         }

@@ -46,10 +46,13 @@ package net.siisise.block;
 public interface Block {
 
     /**
-     * offset まで移動する.
+     * offset まで範囲内で移動する.
+     * Block内の指定の位置に移動する.
      * 足りない場合は最後尾に移動する. 余白は追加しない
      * Buffer の position と同じ.
      * 参照するのは backLength()
+     * 切り取った場合もSubBlockの先頭が0でReadableBlock,OverBlockで範囲を超えることはない。
+     * 
      * @param offset 位置 相対
      * @return 移動した位置
      */
@@ -57,11 +60,14 @@ public interface Block {
 
     /**
      * 部分集合をつくる.
-     * flip などで使う
+     * 範囲を超えて読み書きはできない。
+     * メモリ空間は共有される.
+     * flip などで使う.
+     * SubBlock の interface型は親と同じ範囲を想定しているが書けないこともない。権威移譲はてきとう。
      * 
      * @param index 位置
      * @param length サイズ
-     * @return 
+     * @return 分割されたブロック
      */
     Block sub(long index, long length);
 
