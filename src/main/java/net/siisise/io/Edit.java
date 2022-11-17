@@ -44,18 +44,22 @@ public abstract class Edit extends Base implements IndexEdit {
         return del(index, d, 0, d.length);
     }
     
+    /**
+     * 
+     * @param src
+     * @return 
+     */
     @Override
-    public int write(ByteBuffer buf) {
-        if ( buf.hasArray() ) { // 中間が要らない実装
-            byte[] d = buf.array();
-            int p = buf.position();
-            int r = buf.remaining();
-            write(d, buf.arrayOffset() + p, r);
-            buf.position(p + r);
+    public int write(ByteBuffer src) {
+        if ( src.hasArray() ) { // 中間が要らない実装
+            int p = src.position();
+            int r = src.remaining();
+            write(src.array(), src.arrayOffset() + p, r);
+            src.position(p + r);
             return r;
         } else {
-            byte[] d = new byte[buf.remaining()];
-            buf.get(d);
+            byte[] d = new byte[src.remaining()];
+            src.get(d);
             write(d);
             return d.length;
         }

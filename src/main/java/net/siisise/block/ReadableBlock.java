@@ -72,6 +72,14 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
         return new ByteBlock(b);
     }
 
+    /**
+     * バイト列を元にBlockを作成.
+     * メモリ空間は共有する.
+     * @param b バイト列
+     * @param offset 位置
+     * @param length サイズ
+     * @return 読み専用のつもりのByteBlock
+     */
     public static ReadableBlock wrap(byte[] b, int offset, int length) {
         return new ByteBlock(b, offset, length);
     }
@@ -90,6 +98,11 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
         return new ByteBufferBlock(bb);
     }
 
+    /**
+     * position より後はpacに収まっているといい
+     * @param pac 元
+     * @return ReadableBlockをかぶせたもの
+     */
     public static ReadableBlock wrap(FrontPacket pac) {
         return new PacketBlock(pac);
     }

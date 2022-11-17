@@ -18,7 +18,7 @@ package net.siisise.io;
 import java.io.InputStream;
 
 /**
- * 逆読み.
+ * 逆読み. Reverse Input
  * 標準ではないところから読む.
  * 分割された順序に注意。
  */

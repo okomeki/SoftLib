@@ -73,6 +73,10 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
         return new ByteBufferBlock(bb);
     }
 
+    /**
+     * 残り remaining() size() 分を配列にする
+     * @return 配列
+     */
     @Override
     public byte[] toByteArray() {
         byte[] tmp = new byte[buff.remaining()];
@@ -171,6 +175,12 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
         return this;
     }
 
+    /**
+     * buffの上限サイズまで書ける、length が size() を超えると何かのエラー
+     * @param d データ
+     * @param offset 位置
+     * @param length サイズ
+     */
     @Override
     public void write(byte[] d, int offset, int length) {
         buff.put(d, offset, length);

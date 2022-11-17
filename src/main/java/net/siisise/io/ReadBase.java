@@ -85,22 +85,31 @@ public abstract class ReadBase implements FrontInput, IndexInput, RevInput, Read
     public int read(byte[] d) {
         return read(d, 0, d.length);
     }
-    
+
+    /**
+     * データを読む.
+     * サイズはdst.remainingとこれの小さい方.
+     * @param dst 移動先
+     * @return 読めたサイズ
+     */
     @Override
     public int read(ByteBuffer dst) {
         if ( dst.hasArray() ) {
             int p = dst.position();
-            int r = dst.remaining();
-            int s = read(dst.array(), dst.arrayOffset() + p, r);
-            dst.position(p+s);
-            return s;
+            int size = read(dst.array(), dst.arrayOffset() + p, dst.remaining());
+            dst.position(p+size);
+            return size;
         }
-        byte[] d = new byte[dst.remaining()];
+        byte[] d = new byte[Math.min(dst.remaining(),size())];
         int s = read(d);
         dst.put(d, 0, s);
         return s;
     }
     
+    /**
+     * 残りを配列にする
+     * @return 配列
+     */
     @Override
     public byte[] toByteArray() {
         byte[] b = new byte[size()];

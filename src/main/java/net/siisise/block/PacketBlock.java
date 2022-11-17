@@ -15,8 +15,10 @@
  */
 package net.siisise.block;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import net.siisise.io.BackPacket;
 import net.siisise.io.Edit;
 import net.siisise.io.FrontPacket;
 import net.siisise.io.IndexEdit;
@@ -33,19 +35,41 @@ import net.siisise.io.RevOutput;
 public class PacketBlock extends Edit implements EditBlock {
 
     // 読み済み
-    private final PacketA front = new PacketA();
+    private final BackPacket front;
     private final FrontPacket back;
 
     public PacketBlock() {
+        front = new PacketA();
         back = new PacketA();
     }
 
+    /**
+     * データ列から作るBlock
+     * @param data データ列
+     */
     public PacketBlock(byte[] data) {
-        back = new PacketA(data);
+        this(new PacketA(data));
     }
 
+    /**
+     * 入力を繋ぐ.
+     * @param in 入力をFrontPacketでまとったもの
+     */
     public PacketBlock(FrontPacket in) {
+        front = new PacketA();
         back = in;
+    }
+
+    /**
+     * inから読んでoutに出て行く形.
+     * 全体サイズは不変.
+     * position はfront側サイズを基準にする.
+     * @param in 処理前データ入れ back
+     * @param out 処理後データ入れ front
+     */
+    public PacketBlock(FrontPacket in, BackPacket out) {
+        this.front = out;
+        this.back = in;
     }
 
     @Override
@@ -69,7 +93,7 @@ public class PacketBlock extends Edit implements EditBlock {
         if ( length == 0 ) {
             return 0;
         } else if ( length < 0 ) {
-            return -back(-Math.max(length, -front.length()));
+            return -back(-Math.max(length, -front.backLength()));
         }
         Packet fp = back.split(length);
         long size = fp.length();
@@ -264,7 +288,7 @@ public class PacketBlock extends Edit implements EditBlock {
 
     @Override
     public long backLength() {
-        return front.length();
+        return front.backLength();
     }
 
     @Override
@@ -281,7 +305,10 @@ public class PacketBlock extends Edit implements EditBlock {
 
     @Override
     public void flush() {
-        front.flush();
+        try {
+            front.getOutputStream().flush();
+        } catch (IOException ex) {
+        }
         back.flush();
     }
     

@@ -89,24 +89,24 @@ public abstract class Base extends ReadBase implements FrontPacket, BackPacket, 
 
     /**
      * 上限なし.
-     * packet用実装かも.
-     * @param buf
+     * OverBlock / Packet 用実装かも.
+     * @param src
      * @return 
      */
     @Override
-    public int write(ByteBuffer buf) {
-        if ( buf.hasArray() ) { // 中間が要らない実装
-            int r = buf.remaining();
-            int p = buf.position();
-            write(buf.array(), buf.arrayOffset() + p, r);
-            buf.position(p + r);
-            return r;
+    public int write(ByteBuffer src) {
+        int moveLength = Math.min(src.remaining(), (this instanceof OverBlock ) ? size() : 0x10000000 );
+        if ( src.hasArray() ) { // 中間が要らない実装
+            int p = src.position();
+            write(src.array(), src.arrayOffset() + p, moveLength);
+            src.position(p + moveLength);
+            return moveLength;
         } else {
             int l;
             int s = 0;
-            while ( (l = Math.min(buf.remaining(), (this instanceof OverBlock ) ? size() : 0x10000000 )) > 0 ) {
+            while ( (l = Math.min(src.remaining(), (this instanceof OverBlock ) ? size() : 0x10000000 )) > 0 ) {
                 byte[] d = new byte[l];
-                buf.get(d);
+                src.get(d);
                 write(d);
                 s += d.length;
             }
