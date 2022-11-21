@@ -38,13 +38,13 @@ public interface RevInput {
     /**
      * 逆から読む.
      * 短い場合は後ろ(offset + length)から詰める.
-     * @param dst
-     * @param offset
-     * @param length
-     * @return 
+     * @param buf バッファ
+     * @param offset バッファ位置
+     * @param length 長さ
+     * @return 読めた長さ
      */
-    int backRead(byte[] dst, int offset, int length);
-    int backRead(byte[] dst);
+    int backRead(byte[] buf, int offset, int length);
+    int backRead(byte[] buf);
     /**
      * 逆読み
      * @param length

@@ -42,12 +42,19 @@ public interface Input {
     /**
      * ないときは サイズ0
      *
-     * @param d
-     * @param offset
-     * @param length
-     * @return
+     * @param buf バッファ
+     * @param offset バッファ位置
+     * @param length サイズ
+     * @return 読めたサイズ
      */
-    int read(byte[] d, int offset, int length);
+    int read(byte[] buf, int offset, int length);
+
+    /**
+     * ないときは サイズ0
+     *
+     * @param d バッファ
+     * @return 読めたサイズ
+     */
     int read(byte[] d);
 
     /**
@@ -107,9 +114,9 @@ public interface Input {
 
     /**
      * 標準的なパケットを返す場合の実装.
-     * @param in
-     * @param length
-     * @return 
+     * @param in ストリーム
+     * @param length 長さ
+     * @return 分けたデータ
      */
     public static Packet splitImpl(Input in, long length) {
         PacketA pac = new PacketA();
@@ -119,9 +126,9 @@ public interface Input {
 
     /**
      * 物理的に読んで捨てるときに使う.
-     * @param in
-     * @param length
-     * @return 
+     * @param in ストリーム Packet など
+     * @param length サイズ
+     * @return 移動したサイズ
      */
     public static long skipImpl(Input in, long length) {
         long r = length;

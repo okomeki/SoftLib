@@ -52,24 +52,30 @@ JSONまではほどほどに使えますが、他は実験感覚で作ってい�
 
 ## Packet
 
-net.siisise.io.Packet
-net.siisise.io.FrontPacket
-net.siisise.io.BackPacket
-net.siisise.io.PacketA
+- net.siisise.io.Packet
+- net.siisise.io.FrontPacket
+- net.siisise.io.BackPacket
+- net.siisise.io.PacketA
 
 可変長配列、のようなものを目指してみたらこうなった。
 
 FrontPacket, BackPacketが頭と尻のようなもので双方でInputStream,OutputStreamっぽいものが使える。
-FIFOでもLIFOでもできるような抽象構造。
+バイト列でFIFOでもLIFOでもできるような抽象構造。
 中身は配列のチェーンだがTEMPファイルなどにすると巨大化も期待できる。
 BitStreamも扱えるようにしてみたが、まだ片方しか実装していない。
 
-## Block (仮
+## Block
 
-net.siisise.block.Block
-net.siisise.block.ReadableBlock
-net.siisise.block.ByteBlock
-net.siisise.block.BufferBlock
-net.siisise.block.PacketBlock
+- net.siisise.block.Block 形
+- net.siisise.block.ReadableBlock 読み専用
+- net.siisise.block.ByteBlock byte[]配列の実装
+- net.siisise.block.BufferBlock Bufferの実装
+- net.siisise.block.OverBlock 上書き
+- net.siisise.block.PacketBlock Packet 2つの実装
+- net.siisise.block.SinglePacketBlock Packet 1つの実装
 
-FrontPacket, BackPacket を byte[], nioのByteBufferなどの固定長ブロックで利用できるようにしたもの
+Packetから読んだ後に戻りたかったのでjava.nio の Buffer や Channel と互換性など考慮しながら拡張してみたらこうなった。
+
+FrontPacket, BackPacket を byte[], nioのByteBufferなどの固定長ブロックで利用できるようにしたもの。
+0 スタート mark なし position あり、 capacity と limit が同一(ReadableBlock, OverBlockは変更不可)。分割(メモリ空間共有)も可能。
+ABNF Parser用に作ってみた機能。Packetでは先頭末尾にあった読み書き点がpositionの位置に変わる。

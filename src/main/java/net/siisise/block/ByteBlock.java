@@ -27,11 +27,13 @@ import net.siisise.math.Matics;
  * サイズは固定長.
  * add, delはできない。
  * ByteBuffer 相当.
+ * ReadableBlock, OverBlock として最適かもしれない簡単実装.
  */
 public class ByteBlock extends OverBlock.AbstractSubOverBlock {
 
     /**
      * データ配列.
+     * min から maxの範囲でアクセスできる共有配列.
      */
     private final byte[] block;
 
@@ -62,11 +64,18 @@ public class ByteBlock extends OverBlock.AbstractSubOverBlock {
         block = src;
     }
 
+    /**
+     * InputStreamとの違い
+     * 入力ブロックせずに
+     * データ:0-255 または データ無し:-1 を返す
+     *
+     * @return -1 または 0-255
+     */
     @Override
     public int read() {
         return ( pos >= max) ? -1 : block[(int)pos++] & 0xff;
     }
-    
+
     @Override
     public ByteBlock sub(long index, long length) {
         if ( !Matics.sorted(0, index, index + length, max - min)) {
@@ -84,7 +93,7 @@ public class ByteBlock extends OverBlock.AbstractSubOverBlock {
      */
     @Override
     public int read(byte[] dst, int offset, int length) {
-        if ( offset < 0 || offset > dst.length || length < 0 ) {
+        if ( !Matics.sorted( 0, offset, offset + length, dst.length) ) {
             throw new java.lang.IndexOutOfBoundsException();
         }
         // dataサイズと小さい方
@@ -106,14 +115,14 @@ public class ByteBlock extends OverBlock.AbstractSubOverBlock {
     /**
      * 逆読み.
      * 短い場合は後ろから詰める.
-     * @param dst
-     * @param offset
-     * @param length
-     * @return 
+     * @param dst バッファ
+     * @param offset バッファ位置
+     * @param length サイズ
+     * @return 読めたサイズ
      */
     @Override
     public int backRead(byte[] dst, int offset, int length) {
-        if ( offset < 0 || offset >= dst.length || length < 0 ) {
+        if ( !Matics.sorted(0, offset, offset + length, dst.length) ) {
             throw new java.lang.IndexOutOfBoundsException();
         }
         int len = Math.min( dst.length - offset, length );

@@ -18,6 +18,7 @@ package net.siisise.block;
 import net.siisise.io.BasePacket;
 import net.siisise.io.IndexEdit;
 import net.siisise.io.IndexInput;
+import net.siisise.math.Matics;
 
 /**
  * ByteBlock の集合.
@@ -63,6 +64,14 @@ public class BlockPacket extends BasePacket {
     
     private BlockIn nullBlock = new BlockIn();
 
+    /**
+     * ないときは サイズ0
+     *
+     * @param d バッファ
+     * @param offset バッファ位置
+     * @param length サイズ
+     * @return 読めたサイズ
+     */
     @Override
     public int read(byte[] d, int offset, int length) {
         int b = length;
@@ -78,6 +87,9 @@ public class BlockPacket extends BasePacket {
         return b - length;
     }
 
+    /**
+     * 読める長さ
+     */
     @Override
     public long length() {
         long len = 0;
@@ -87,12 +99,19 @@ public class BlockPacket extends BasePacket {
         return len;
     }
 
+    /**
+     * 逆読み
+     * @param buf バッファ
+     * @param offset バッファ位置
+     * @param length サイズ
+     * @return 読めたサイズ
+     */
     @Override
-    public int backRead(byte[] data, int offset, int length) {
+    public int backRead(byte[] buf, int offset, int length) {
         int x = length;
         for ( BlockIn n = nullBlock.prev; n != nullBlock && x > 0; n = n.prev ) {
             int min = x < n.block.size() ? x : n.block.size();
-            n.block.backRead(data, offset + x - min, min);
+            n.block.backRead(buf, offset + x - min, min);
             x -= min;
             if ( n.block.length() == 0 ) {
                 n.delete();

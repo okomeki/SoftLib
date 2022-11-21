@@ -43,9 +43,9 @@ public class SinglePacketBlock extends Edit implements EditBlock {
 
     /**
      * 絶対位置移動.
-     *
-     * @param offset
-     * @return
+     * 移動できる範囲で移動する.
+     * @param offset 絶対位置 absolute position
+     * @return 新しい位置 new position
      */
     @Override
     public long seek(long offset) {
@@ -54,7 +54,7 @@ public class SinglePacketBlock extends Edit implements EditBlock {
 
     /**
      * 進む.
-     *
+     * 移動できる範囲で移動する.
      * @param length 相対位置
      * @return 進んだサイズ
      */
@@ -67,7 +67,7 @@ public class SinglePacketBlock extends Edit implements EditBlock {
 
     /**
      * 戻る.
-     *
+     * 移動できる範囲で移動する.
      * @param length サイズ
      * @return 戻ったサイズ
      */

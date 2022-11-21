@@ -71,8 +71,16 @@ public abstract class AbstractInput extends InputStream implements FrontInput {
         return read(d, 0, d.length);
     }
 
+    /**
+     * ないときは サイズ0
+     *
+     * @param buf バッファ
+     * @param offset バッファ位置
+     * @param length サイズ
+     * @return 読めたサイズ
+     */
     @Override
-    public abstract int read(byte[] d, int offset, int length);
+    public abstract int read(byte[] buf, int offset, int length);
 
     /**
      * バイト列にする.

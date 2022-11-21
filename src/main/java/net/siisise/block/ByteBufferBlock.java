@@ -48,6 +48,14 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
         buff = src;
     }
 
+    /**
+     * 読む
+     *
+     * @param dst バッファ
+     * @param offset バッファ位置
+     * @param length サイズ
+     * @return 読めたサイズ
+     */
     @Override
     public int read(byte[] dst, int offset, int length) {
         int size = buff.remaining();

@@ -66,7 +66,7 @@ public interface Block {
      * SubBlock の interface型は親と同じ範囲を想定しているが書けないこともない。権威移譲はてきとう。
      * 
      * @param index 位置
-     * @param length サイズ
+     * @param length サイズ ToDo:長すぎたときどうするかは未定
      * @return 分割されたブロック
      */
     Block sub(long index, long length);

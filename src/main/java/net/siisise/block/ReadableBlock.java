@@ -48,6 +48,13 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
     @Override
     ReadableBlock flip();
 
+    /**
+     * 部分集合を作る。
+     * メモリを共有した状態で範囲を制限して分ける
+     * @param index 位置
+     * @param length 長さ
+     * @return 戻り型はReadableBlock
+     */
     @Override
     ReadableBlock sub(long index, long length);
     
@@ -230,7 +237,7 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
          */
         @Override
         public Packet backSplit(long length) {
-            length = Long.min(length, backSize());
+            length = Math.min(length, backSize());
             PacketA pac = new PacketA();
             RevOutput.backWrite(pac, this, length);
             return pac;
@@ -409,14 +416,14 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
         }
 
         @Override
-        public int read(byte[] d, int offset, int length) {
-            if ( !Matics.sorted(0,offset,offset + length, d.length)) {
+        public int read(byte[] buf, int offset, int length) {
+            if ( !Matics.sorted(0,offset,offset + length, buf.length)) {
                 throw new java.nio.BufferOverflowException();
             }
             long p = pa.backLength();
             pa.seek(pos);
             length = (int) Math.min(max - pos, length);
-            int s = pa.read(d, offset, length);
+            int s = pa.read(buf, offset, length);
             pos = pa.backLength();
             pa.seek(p);
             return s;
@@ -424,10 +431,10 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
 
         /**
          * 逆から読む.
-         * @param d 入れ物
-         * @param offset 位置
-         * @param length
-         * @return 
+         * @param d バッファ
+         * @param offset バッファ位置
+         * @param length 長さ
+         * @return 読めた長さ
          */
         @Override
         public int backRead(byte[] d, int offset, int length) {

@@ -207,8 +207,8 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
     }
 
     @Override
-    public int backRead(byte[] data, int offset, int length) {
-        return backIn.read(data, offset, length);
+    public int backRead(byte[] buf, int offset, int length) {
+        return backIn.read(buf, offset, length);
     }
 
     @Override

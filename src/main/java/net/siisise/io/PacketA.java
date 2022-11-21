@@ -318,15 +318,12 @@ public class PacketA extends BasePacket {
 
     @Override
     public long length() {
-//        System.out.println("PacketA:length");
         long length = 0;
         PacketIn pc = nullPack.next;
         while (pc != nullPack) {
             length += pc.length;
-//            System.out.println(" " + pc.offset + " " + pc.length + " " + pc.data.length);
             pc = pc.next;
         }
-//        System.out.println("PacketA:length end");
         return length;
     }
     
@@ -397,7 +394,7 @@ public class PacketA extends BasePacket {
     /**
      * length で半分に分けて後半を返す.
      * read系の逆なのでwrite方向で読む.
-     * @param length
+     * @param length 読む長さ
      * @return 後半
      */
     @Override
@@ -424,6 +421,11 @@ public class PacketA extends BasePacket {
         return newPac;
     }
     
+    /**
+     * 進む
+     * @param length 長さ
+     * @return 読み飛ばせた長さ
+     */
     @Override
     public long skip(long length) {
         Packet p = split(length);
@@ -431,8 +433,8 @@ public class PacketA extends BasePacket {
     }
 
     /**
-     * backSkip
-     * @param length
+     * backSkip 戻る
+     * @param length 長さ
      * @return 
      */
     @Override
@@ -443,10 +445,10 @@ public class PacketA extends BasePacket {
 
     /**
      * 読んだところは消えない.
-     * @param index
-     * @param b
-     * @param offset
-     * @param length
+     * @param index 位置
+     * @param b データ
+     * @param offset データ位置
+     * @param length 長さ
      * @return 
      */
     @Override
@@ -465,10 +467,10 @@ public class PacketA extends BasePacket {
 
     /**
      * 上書き overwrite
-     * @param index
-     * @param b 
-     * @param offset 
-     * @param length 
+     * @param index 位置
+     * @param b データ
+     * @param offset データ位置
+     * @param length 長さ
      */
     @Override
     public void put(long index, byte[] b, int offset, int length) {
@@ -480,10 +482,10 @@ public class PacketA extends BasePacket {
 
     /**
      * 追加
-     * @param index
-     * @param b
-     * @param offset
-     * @param length 
+     * @param index 位置
+     * @param b データ
+     * @param offset データ位置
+     * @param length 長さ
      */
     @Override
     public void add(long index, byte[] b, int offset, int length) {
