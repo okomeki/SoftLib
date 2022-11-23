@@ -22,7 +22,7 @@ import net.siisise.block.OverBlock;
  */
 public interface FrontInput extends Input {
     byte get();
-    FrontInput get(byte[] b);
-    FrontInput get(byte[] b, int offset, int length);
-    FrontInput get(OverBlock bb);
+    long get(byte[] b);
+    long get(byte[] b, int offset, int length);
+    long get(OverBlock bb);
 }

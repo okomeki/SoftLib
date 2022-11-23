@@ -15,18 +15,11 @@
  */
 package net.siisise.io;
 
-import net.siisise.block.OverBlock;
-
 /**
- *
+ * Packetの軽く共通部分.
  */
 public abstract class BasePacket extends Edit implements Packet {
 
-    @Override
-    public ReadBase get(OverBlock bb) {
-        bb.write(this);
-        return this;
-    }
     /**
      * エラーなしで書き込む.
      * @param b データ

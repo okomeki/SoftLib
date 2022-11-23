@@ -86,12 +86,14 @@ public interface RevInput {
     
     /**
      * RevInputで読めるサイズ.
-     * @return 
+     * position 的な位置づけ
+     * @return size 戻って読めるサイズ
      */
     long backLength();
 
     /**
      * RevInput で読めるサイズ.
+     * position.
      * intを超える場合は Integer#MAX_LENGTH
      * @return size
      */

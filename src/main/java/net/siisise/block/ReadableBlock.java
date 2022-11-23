@@ -39,7 +39,7 @@ import net.siisise.math.Matics;
  * Buffer の読み込み専用 っぽいものをStream風メソッドで実装したもの.
  * position() は backSize()
  */
-public interface ReadableBlock extends Block, FrontInput, RevInput {
+public interface ReadableBlock extends Block, FrontInput, RevInput, IndexInput {
 
     /**
      * 読み込み専用のpositionまでの切り取り.
@@ -57,6 +57,12 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
      */
     @Override
     ReadableBlock sub(long index, long length);
+  
+// 実装が上の方(Base)にあると型が解決できないのとgetの戻り型は重要ではないので略
+//    @Override
+//    ReadableBlock get(long index, byte[] b);
+    @Override
+    ReadableBlock get(long index, byte[] b, int offset, int length);
     
     /**
      * 現在値から部分的な切り出し.
@@ -92,7 +98,7 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
     }
 
     public static ReadableBlock wrap(File file) throws FileNotFoundException {
-        return FileBlock.wrap(file);
+        return ChannelBlock.wrap(file);
     }
 
     /**
@@ -203,7 +209,7 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
         }
 
         @Override
-        public IndexInput get(long index, byte[] d, int offset, int length) {
+        public ReadableBlock get(long index, byte[] d, int offset, int length) {
             long p = backLength();
             seek(index);
             get(d, offset, length);
@@ -415,6 +421,13 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
             return rb;
         }
 
+        /**
+         *  読む
+         * @param buf バッファ
+         * @param offset バッファ位置
+         * @param length サイズ
+         * @return 読めた長さ
+         */
         @Override
         public int read(byte[] buf, int offset, int length) {
             if ( !Matics.sorted(0,offset,offset + length, buf.length)) {
@@ -441,15 +454,10 @@ public interface ReadableBlock extends Block, FrontInput, RevInput {
             if ( !Matics.sorted(0,offset,offset + length, d.length)) {
                 throw new java.nio.BufferOverflowException();
             }
-            long p = pa.backLength();
-            pa.seek(pos);
-            length = (int) Math.min(pos - min, length);
-            int s = pa.backRead(d, offset, length);
-            if (s > 0) {
-                pos -= s;
-            }
-            pa.seek(p);
-            return s;
+            int size = (int) Matics.range(length, 0, pos - min);
+            pos -= size;
+            pa.get(pos, d, offset + length - size, size);
+            return size;
         }
 
         @Override

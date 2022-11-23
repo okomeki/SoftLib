@@ -31,12 +31,12 @@ public abstract class AbstractInput extends InputStream implements FrontInput {
     }
     
     @Override
-    public AbstractInput get(byte[] b) {
+    public long get(byte[] b) {
         return get(b, 0, b.length);
     }
     
     @Override
-    public AbstractInput get(byte[] b, int offset, int length) {
+    public long get(byte[] b, int offset, int length) {
         int len = size();
         if ( len < length ) {
             throw new java.nio.BufferUnderflowException();
@@ -45,13 +45,14 @@ public abstract class AbstractInput extends InputStream implements FrontInput {
         if ( s < 0 ) {
             throw new java.nio.BufferUnderflowException();
         }
-        return this;
+        return length;
     }
     
     @Override
-    public AbstractInput get(OverBlock bb) {
+    public long get(OverBlock bb) {
+        long p = bb.backLength();
         bb.write(this);
-        return this;
+        return bb.backLength() - p;
     }
     
     @Override

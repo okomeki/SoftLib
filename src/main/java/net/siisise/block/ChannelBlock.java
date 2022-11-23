@@ -22,41 +22,30 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import net.siisise.io.IndexInput;
 
 /**
- * テスト実装.
- * limitはない.
+ * ランダム読み書きができる SeekableByteBlock に対応しておく.
  */
-public class FileBlock extends OverBlock.AbstractSubOverBlock implements Closeable {
+public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeable {
 
-    private final FileChannel ch;
-
-    FileBlock(File file, String m) throws FileNotFoundException {
-        super(0, file.length());
-        RandomAccessFile io = new RandomAccessFile(file, m);
-        ch = io.getChannel();
-    }
+    private SeekableByteChannel ch;
     
-    FileBlock(FileChannel c) throws IOException {
-        super(0, c.size());
-        ch = c;
-    }
-
     public static ReadableBlock wrap(File file) throws FileNotFoundException {
-        return new FileBlock(file, "r");
+        RandomAccessFile io = new RandomAccessFile(file, "r");
+        return new ChannelBlock(io.getChannel());
     }
 
     public static ReadableBlock wrap(Path path) throws IOException {
         FileChannel c = FileChannel.open(path, StandardOpenOption.READ);
-        return new FileBlock(c);
+        return new ChannelBlock(c);
     }
 
     public static OverBlock over(File file) throws IOException {
         RandomAccessFile io = new RandomAccessFile(file,"rw");
-        return new FileBlock(io.getChannel());
+        return new ChannelBlock(io.getChannel());
     }
 
     public static OverBlock over(Path path) throws IOException {
@@ -65,7 +54,39 @@ public class FileBlock extends OverBlock.AbstractSubOverBlock implements Closeab
     }
 
     public static OverBlock over(FileChannel ch) throws IOException {
-        return new FileBlock(ch);
+        return new ChannelBlock(ch);
+    }
+
+    public ChannelBlock(SeekableByteChannel ch) {
+        this.ch = ch;
+    }
+
+    @Override
+    public long backLength() {
+        try {
+            return ch.position();
+        } catch (IOException ex) {
+            throw new java.nio.BufferOverflowException();
+        }
+    }
+    
+    @Override
+    public long length() {
+        try {
+            return ch.size() - ch.position();
+        } catch (IOException ex) {
+            throw new java.nio.BufferOverflowException();
+        }
+    }
+
+    @Override
+    public long seek(long offset) {
+        try {
+            ch.position(offset);
+            return ch.position();
+        } catch (IOException ex) {
+            throw new java.nio.BufferOverflowException();
+        }
     }
 
     @Override
@@ -76,15 +97,15 @@ public class FileBlock extends OverBlock.AbstractSubOverBlock implements Closeab
             throw new java.nio.BufferOverflowException();
         }
     }
-
+    
     @Override
-    public IndexInput get(long index, byte[] b, int offset, int length) {
+    public ChannelBlock get(long index, byte[] b, int offset, int length) {
         try {
-            long p = ch.position();
-            ch.position(index);
             if (ch.size() - index < length) {
                 throw new java.nio.BufferOverflowException();
             }
+            long p = ch.position();
+            ch.position(index);
             read(b, offset, length);
             ch.position(p);
             return this;
@@ -96,17 +117,24 @@ public class FileBlock extends OverBlock.AbstractSubOverBlock implements Closeab
     /**
      * 逆から読む.
      * ToDo: 後ろから読むよう要修正?
-     * @param data
+     * @param buf
      * @param offset
      * @param length
      * @return 
      */
     @Override
-    public int backRead(byte[] data, int offset, int length) {
+    public int backRead(byte[] buf, int offset, int length) {
         try {
-            long p = ch.position();
-            ch.position(p - length);
-            return ch.read(ByteBuffer.wrap(data, offset, length));
+            long p = backLength();
+            int nlength = (int)Math.min(p, length);
+            int noff = offset + length - nlength;
+            
+            seek(p - nlength);
+            ByteBuffer bb = ByteBuffer.wrap(buf, noff, nlength);
+            int l = ch.read(bb);
+            assert l == nlength;
+            seek(p - nlength);
+            return l;
         } catch (IOException ex) {
             throw new java.nio.BufferUnderflowException();
         }
@@ -122,20 +150,9 @@ public class FileBlock extends OverBlock.AbstractSubOverBlock implements Closeab
     }
 
     @Override
-    public void put(long index, byte[] d, int offset, int length) {
-        try {
-            long p = ch.position();
-            ch.position(index);
-            ch.write(ByteBuffer.wrap(d, offset, length));
-            ch.position(p);
-        } catch (IOException ex) {
-            throw new java.nio.BufferOverflowException();
-        }
-    }
-
-    @Override
     public void close() throws IOException {
         ch.close();
+        ch = null;
     }
 
 }

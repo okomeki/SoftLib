@@ -272,7 +272,7 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
     }
 
     @Override
-    public IndexInput get(long index, byte[] b, int offset, int length) {
+    public BaseBitPac get(long index, byte[] b, int offset, int length) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

@@ -22,16 +22,31 @@ import java.nio.ByteBuffer;
  */
 public abstract class Edit extends Base implements IndexEdit {
 
+    /**
+     * 1バイト追加.
+     * @param index 位置
+     * @param b データ1バイト
+     */
     @Override
     public void add(long index, byte b) {
         add(index, new byte[] {b}, 0, 1);
     }
 
+    /**
+     * バイト列を追加.
+     * @param index 位置
+     * @param b バイト列
+     */
     @Override
     public void add(long index, byte[] b) {
         add(index, b, 0, b.length);
     }
 
+    /**
+     * 1バイト削除
+     * @param index 位置
+     * @return 削除したデータ
+     */
     @Override
     public byte del(long index) {
         byte[] d = new byte[1];
@@ -39,13 +54,19 @@ public abstract class Edit extends Base implements IndexEdit {
         return d[0];
     }
 
+    /**
+     * 削除 / 切り取り
+     * @param index 位置
+     * @param d 削除されたデータ, サイズ
+     * @return これ
+     */
     @Override
     public IndexEdit del(long index, byte[] d) {
         return del(index, d, 0, d.length);
     }
     
     /**
-     * 
+     * 上書き
      * @param src
      * @return 
      */

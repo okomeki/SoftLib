@@ -452,7 +452,7 @@ public class PacketA extends BasePacket {
      * @return 
      */
     @Override
-    public IndexInput get(long index, byte[] b, int offset, int length) {
+    public PacketA get(long index, byte[] b, int offset, int length) {
         if ( length() < length) {
             throw new java.nio.BufferOverflowException();
         }

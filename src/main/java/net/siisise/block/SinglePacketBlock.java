@@ -81,7 +81,7 @@ public class SinglePacketBlock extends Edit implements EditBlock {
     /**
      * 読めるサイズ long
      *
-     * @return
+     * @return positionから後ろのサイズ
      */
     @Override
     public long length() {
@@ -91,10 +91,10 @@ public class SinglePacketBlock extends Edit implements EditBlock {
     /**
      * 上書き.
      *
-     * @param data
-     * @param offset
-     * @param length
-     * @return
+     * @param data ソース
+     * @param offset source offset
+     * @param length source length
+     * @return これ
      */
     @Override
     public SinglePacketBlock put(byte[] data, int offset, int length) {
@@ -171,21 +171,34 @@ public class SinglePacketBlock extends Edit implements EditBlock {
     /**
      * 追加する.
      *
-     * @param index
-     * @param d
-     * @param srcOffset
-     * @param length
+     * @param index 位置
+     * @param d データ
+     * @param offset data offset データ位置
+     * @param length data length データ長さ
      */
     @Override
-    public void add(long index, byte[] d, int srcOffset, int length) {
-        block.add(index, d, srcOffset, length);
+    public void add(long index, byte[] d, int offset, int length) {
+        block.add(index, d, offset, length);
     }
 
+    /**
+     * 削除
+     * @param index 位置
+     * @param size 長さ
+     */
     @Override
     public void del(long index, long size) {
         block.del(index, size);
     }
 
+    /**
+     * 削除.
+     * @param index delete position
+     * @param buf buffer
+     * @param offset buffer position
+     * @param length delete length
+     * @return これ
+     */
     @Override
     public IndexEdit del(long index, byte[] buf, int offset, int length) {
         block.del(index, buf, offset, length);
@@ -195,9 +208,9 @@ public class SinglePacketBlock extends Edit implements EditBlock {
     /**
      * 読む.
      * @param buf バッファ
-     * @param offset
-     * @param length
-     * @return 
+     * @param offset バッファ位置
+     * @param length 読みたい長さ
+     * @return read length
      */
     @Override
     public int read(byte[] buf, int offset, int length) {
@@ -209,10 +222,10 @@ public class SinglePacketBlock extends Edit implements EditBlock {
 
     @Override
     public int backRead(byte[] buf, int offset, int length) {
-        length = Matics.range(length, 0, backSize());
-        pos -= length;
-        block.get(pos, buf, offset, length);
-        return length;
+        int size = Matics.range(length, 0, backSize());
+        pos -= size;
+        block.get(pos, buf, offset + length - size, size);
+        return size;
     }
 
     @Override
@@ -221,25 +234,29 @@ public class SinglePacketBlock extends Edit implements EditBlock {
     }
 
     /**
+     * write data.
+     * 
      * 仮で上限あり.
      *
-     * @param d
-     * @param offset
-     * @param length
+     * @param d ソース
+     * @param offset ソース位置
+     * @param length 書き込む長さ
      */
     @Override
     public void backWrite(byte[] d, int offset, int length) {
-        length = Matics.range(length, 0, backSize());
-        pos -= length;
-        block.put(pos, d, offset, length);
+        int size = Matics.range(length, 0, backSize());
+        pos -= size;
+        block.put(pos, d, offset + length - size, size);
     }
 
     /**
+     * write data.
+     * 
      * 仮で上限あり.
      *
-     * @param d
-     * @param offset
-     * @param length
+     * @param d ソース
+     * @param offset ソース位置
+     * @param length 書き込む長さ
      */
     @Override
     public void write(byte[] d, int offset, int length) {
@@ -248,9 +265,13 @@ public class SinglePacketBlock extends Edit implements EditBlock {
         pos += length;
     }
 
-    @Override
-    public String toString() {
-        return "pos:" + pos + " len: " + block.length();
-    }
+    /*
+     * for Debug
+     * @return debug info
+     */
+//    @Override
+//   public String toString() {
+//        return "pos:" + pos + " len: " + block.length();
+//    }
 
 }

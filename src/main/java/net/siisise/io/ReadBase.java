@@ -44,23 +44,29 @@ public abstract class ReadBase implements FrontInput, IndexInput, RevInput, Read
     }
     
     @Override
-    public ReadBase get(byte[] b) {
+    public long get(byte[] b) {
         return get(b, 0, b.length);
     }
     
     @Override
-    public ReadBase get(byte[] b, int offset, int length) {
+    public long get(byte[] b, int offset, int length) {
         if ( !Matics.sorted(0,offset,offset + length, b.length) ||  length() < length ) {
             throw new java.nio.BufferOverflowException();
         }
-        read(b,offset,length);
-        return this;
+        return read(b,offset,length);
     }
 
+    /**
+     * 読み,
+     * OverBlock以上への書き込み
+     * @param bb 書き込めるBlock
+     * @return 
+     */
     @Override
-    public ReadBase get(OverBlock bb) {
+    public long get(OverBlock bb) {
+        long p = bb.backLength();
         bb.write(this);
-        return this;
+        return bb.backLength() - p;
     }
 
     @Override
@@ -71,8 +77,8 @@ public abstract class ReadBase implements FrontInput, IndexInput, RevInput, Read
     }
 
     @Override
-    public IndexInput get(long index, byte[] b) {
-        return get(index, b, 0, b.length);
+    public ReadBase get(long index, byte[] b) {
+        return (ReadBase)get(index, b, 0, b.length);
     }
 
     @Override
@@ -135,8 +141,8 @@ public abstract class ReadBase implements FrontInput, IndexInput, RevInput, Read
     /**
      * PacketAを使った簡易実装.
      *
-     * @param length
-     * @return
+     * @param length 長さ
+     * @return 読んだPacket
      */
     @Override
     public Packet split(long length) {

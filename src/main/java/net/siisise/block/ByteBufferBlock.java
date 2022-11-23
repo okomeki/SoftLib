@@ -16,7 +16,6 @@
 package net.siisise.block;
 
 import java.nio.ByteBuffer;
-import net.siisise.io.IndexInput;
 import net.siisise.math.Matics;
 
 /**
@@ -108,7 +107,8 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
         int p = buff.position();
         int size = p < length ? p : length;
         buff.position(p - size);
-        buff.get(dst, offset, size);
+        buff.get(dst, offset + length - size, size);
+        buff.position(p - size);
         return size;
     }
 
@@ -147,14 +147,10 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
      */
     @Override
     public long skip(long length) {
-        if ( length < 0) {
-            return -back(-length);
-        }
-        length = Math.min(length(),length);
         int p = buff.position();
-        p += length;
-        buff.position(p);
-        return length;
+        int mp = (int)Matics.range(length, -p, buff.remaining());
+        buff.position(p + mp);
+        return mp;
     }
 
     /**
@@ -164,18 +160,14 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
      */
     @Override
     public long back(long length) {
-        if ( length < 0 ) {
-            return -skip(-length);
-        }
         int p = buff.position();
-        length = Math.min(p, length);
-        p -= length;
-        buff.position(p);
-        return length;
+        int mp = (int)Matics.range(length, -buff.remaining(), p);
+        buff.position(p - mp);
+        return mp;
     }
 
     @Override
-    public IndexInput get(long index, byte[] b, int offset, int length) {
+    public OverBlock get(long index, byte[] b, int offset, int length) {
         int p = buff.position();
         buff.position((int)index);
         buff.get(b, offset, length);
@@ -193,13 +185,4 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
     public void write(byte[] d, int offset, int length) {
         buff.put(d, offset, length);
     }
-
-    @Override
-    public void put(long index, byte[] d, int offset, int length) {
-        int p = buff.position();
-        buff.position((int)index);
-        buff.put(d, offset, length);
-        buff.position(p);
-    }
-
 }

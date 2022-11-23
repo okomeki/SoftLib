@@ -17,8 +17,6 @@ package net.siisise.block;
 
 import net.siisise.io.BasePacket;
 import net.siisise.io.IndexEdit;
-import net.siisise.io.IndexInput;
-import net.siisise.math.Matics;
 
 /**
  * ByteBlock の集合.
@@ -135,7 +133,7 @@ public class BlockPacket extends BasePacket {
     }
 
     @Override
-    public IndexInput get(long index, byte[] b, int offset, int length) {
+    public BlockPacket get(long index, byte[] b, int offset, int length) {
         if ( length() < length ) {
             throw new java.nio.BufferOverflowException();
         }
@@ -228,7 +226,7 @@ public class BlockPacket extends BasePacket {
      * @param buf バックアップ
      * @param offset bufの位置
      * @param length サイズ
-     * @return 
+     * @return これ
      */
     @Override
     public IndexEdit del(long index, byte[] buf, int offset, int length) {

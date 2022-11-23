@@ -17,7 +17,6 @@ package net.siisise.block;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import net.siisise.io.IndexInput;
 import net.siisise.math.Matics;
 
 /**
@@ -125,9 +124,8 @@ public class ByteBlock extends OverBlock.AbstractSubOverBlock {
         if ( !Matics.sorted(0, offset, offset + length, dst.length) ) {
             throw new java.lang.IndexOutOfBoundsException();
         }
-        int len = Math.min( dst.length - offset, length );
         int size = (int)back(length);
-        System.arraycopy(block, (int)pos, dst, offset + length - len, size);
+        System.arraycopy(block, (int)pos, dst, offset + length - size, size);
         return size;
     }
 
@@ -140,11 +138,8 @@ public class ByteBlock extends OverBlock.AbstractSubOverBlock {
     }
 
     @Override
-    public IndexInput get(long index, byte[] b, int offset, int length) {
-        if ( 0 > index ) {
-            throw new java.nio.BufferUnderflowException();
-        }
-        if ( index + length > length()) {
+    public ByteBlock get(long index, byte[] b, int offset, int length) {
+        if ( !Matics.sorted(0, index, index + length, max - min ) ) {
             throw new java.nio.BufferOverflowException();
         }
         System.arraycopy(block, (int)(min + index), b, offset, length);
@@ -153,10 +148,7 @@ public class ByteBlock extends OverBlock.AbstractSubOverBlock {
 
     @Override
     public void put(long index, byte[] d, int offset, int length) {
-        if ( 0 > index ) {
-            throw new java.nio.BufferUnderflowException();
-        }
-        if ( index + length > length()) {
+        if ( !Matics.sorted(0, index, index + length, max - min ) ) {
             throw new java.nio.BufferOverflowException();
         }
         System.arraycopy(d, offset, block, (int)(min + index), length);

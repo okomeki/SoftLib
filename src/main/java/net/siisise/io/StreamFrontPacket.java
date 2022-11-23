@@ -55,23 +55,24 @@ public class StreamFrontPacket implements FrontPacket {
     }
 
     @Override
-    public FrontInput get(byte[] d) {
+    public long get(byte[] d) {
         return get(d,0,d.length);
     }
 
     @Override
-    public FrontInput get(byte[] d, int offset, int length) {
+    public long get(byte[] d, int offset, int length) {
         if ( size() < length ) {
             throw new java.nio.BufferOverflowException();
         }
         read(d,offset,length);
-        return this;
+        return length;
     }
 
     @Override
-    public FrontInput get(OverBlock bb) {
+    public long get(OverBlock bb) {
+        long p = bb.backLength();
         bb.write(this);
-        return this;
+        return bb.backLength() - p;
     }
 
     private class StreamFrontInputStream extends InputStream {

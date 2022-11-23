@@ -31,18 +31,19 @@ public interface IndexInput {
      * 読めないときはException
      * @param index
      * @param b
-     * @return 
+     * @return これ
      */
     IndexInput get(long index, byte[] b);
 
     /**
      * 読めないときはException
+     * Buffer 系にあわせたが、Channel系にあわせる方がいいのかもしれない.
      * Packetを読んでもとりあえず消えないことにする.
      * @param index
      * @param b
      * @param offset
      * @param length
-     * @return 
+     * @return これ
      */
     IndexInput get(long index, byte[] b, int offset, int length);
     

@@ -26,19 +26,19 @@ public interface IndexEdit extends IndexInput,IndexOutput {
     IndexEdit del(long index, byte[] buf, int offset, int length);
 
     /**
-     * 追加.
+     * 1バイト追加.
      * @param index 位置
      * @param src 追加するデータ
      */
     void add(long index, byte src);
     /**
-     * 追加.
+     * バイト列を追加.
      * @param index 位置
      * @param src 追加するデータ
      */
     void add(long index, byte[] src);
     /**
-     * 追加.
+     * バイト列の一部を追加.
      * @param index 位置
      * @param src 追加するデータ
      * @param offset データの位置

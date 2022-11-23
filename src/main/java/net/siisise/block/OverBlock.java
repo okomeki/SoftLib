@@ -20,10 +20,10 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.SeekableByteChannel;
 import net.siisise.io.BackPacket;
 import net.siisise.io.Base;
 import net.siisise.io.FrontPacket;
-import net.siisise.io.IndexInput;
 import net.siisise.io.IndexOutput;
 import net.siisise.io.Output;
 import net.siisise.math.Matics;
@@ -32,7 +32,7 @@ import net.siisise.math.Matics;
  * 上書きのみできるブロック.
  * 切り取ったブロックなどでサイズ変更ができないが上書きは可能。
  */
-public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, IndexInput, IndexOutput {
+public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, IndexOutput {
 
     /**
      * 上書き可能な状態でpositionまでを切り取り
@@ -45,6 +45,11 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
         return new ByteBlock(b);
     }
 
+    /**
+     * position は byte列の場合共有していない. どうする?
+     * @param bb
+     * @return 
+     */
     public static OverBlock wrap(ByteBuffer bb) {
         if ( bb.hasArray() ) {
             return wrap(bb.array(),bb.arrayOffset(),bb.limit());
@@ -55,7 +60,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
     public static OverBlock wrap(byte[] b, int offset, int length) {
         return new ByteBlock(b, offset, length);
     }
-    
+
     /**
      * EditBlock などで使えばいいよ.
      * 同じ権限のときは sub(long index, long length)を使う
@@ -73,7 +78,13 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
         return new ByteBufferBlock(bb);
     }
 
-    
+    public static SeekableByteChannel channel(OverBlock b) {
+        return new BlockChannel(b);
+    }
+
+    @Override
+    OverBlock get(long index, byte[] d, int offset, int length);
+
     /**
     * 指定サイズの部分集合を作る.
     * offsetは読み込んだ分進む.
@@ -96,12 +107,109 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
         return new SubOverBlock(index, index + length, this);
     }
     
+    public static abstract class AbstractOverBlock extends Base implements OverBlock {
+        
+        @Override
+        public InputStream getInputStream() {
+            return new ReadableBlock.BlockInput(this);
+        }
+
+        /**
+         * 戻り書く.
+         * @param data データ
+         * @param offset data内のデータの開始位置
+         * @param length データサイズ
+         */
+        @Override
+        public void backWrite(byte[] data, int offset, int length) {
+            if ( !Matics.sorted(0,length, backSize())) {
+                throw new java.nio.BufferOverflowException();
+            }
+            put(backSize() - length, data, offset, length);
+        }
+
+        @Override
+        public OverBlock get(long index, byte[] d, int offset, int length) {
+            if ( !Matics.sorted(0, offset, offset + length, d.length) ) {
+                throw new java.nio.BufferOverflowException();
+            }
+            long p = backLength();
+            if ( !Matics.sorted(0, index, index + length, p + length()) ) {
+                throw new java.nio.BufferOverflowException();
+            }
+            seek(index);
+            get(d,offset,length);
+            seek(p);
+            return this;
+        }
+
+        /**
+         * 書く.
+         * @param data データ
+         * @param offset 位置
+         * @param length 長さ
+         * @return これ
+         */
+        @Override
+        public Output put(byte[] data, int offset, int length) {
+            if ( !Matics.sorted(0, length, length())) {
+                throw new java.nio.BufferOverflowException();
+            }
+            write(data, offset, length);
+            return this;
+        }
+
+        @Override
+        public void put(long index, byte[] d, int offset, int length) {
+            if ( !Matics.sorted(0, offset, offset + length, d.length) ) {
+                throw new java.nio.BufferOverflowException();
+            }
+            long p = backLength();
+            if ( !Matics.sorted(0, index, index + length, p + length()) ) {
+                throw new java.nio.BufferOverflowException();
+            }
+            seek(index);
+            put(d,offset,length);
+            seek(p);
+        }
+
+        /**
+         * 書き込む.
+         * @param src データ
+         * @return 書いたサイズ
+         */
+        @Override
+        public int write(ByteBuffer src) {
+            int len = Math.min(src.remaining(), size());
+            if ( src.hasArray() ) {
+                int p = src.position();
+                write(src.array(), src.arrayOffset() + p, len);
+                src.position(p + len);
+            } else {
+                byte[] d = new byte[len];
+                src.get(d);
+                write(d,0,len);
+            }
+            return len;
+        }
+
+        /**
+         * 切り取りはできない
+         *
+         * @return
+         */
+        @Override
+        public OverBlock flip() {
+            return sub(0,backLength());
+        }
+    }
+    
     /**
      * 上書き可能なブロック、サブブロック.
      * 領域以外の実装。
      * ToDo: 実実装判定多め.
      */
-    public static abstract class AbstractSubOverBlock extends Base implements OverBlock {
+    public static abstract class AbstractSubOverBlock extends AbstractOverBlock {
 
         final long min;
         final long max;
@@ -113,11 +221,6 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
             }
             this.min = pos = min;
             this.max = max;
-        }
-        
-        @Override
-        public InputStream getInputStream() {
-            return new ReadableBlock.BlockInput(this);
         }
 
         /**
@@ -173,66 +276,6 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
         public long backLength() {
             return pos - min;
         }
-
-        /**
-         * 戻り書く.
-         * @param data データ
-         * @param offset data内のデータの開始位置
-         * @param length データサイズ
-         */
-        @Override
-        public void backWrite(byte[] data, int offset, int length) {
-            if ( !Matics.sorted(0,length, backSize())) {
-                throw new java.nio.BufferOverflowException();
-            }
-            put(backSize() - length, data, offset, length);
-        }
-
-        /**
-         * 書く.
-         * @param data データ
-         * @param offset 位置
-         * @param length 長さ
-         * @return これ
-         */
-        @Override
-        public Output put(byte[] data, int offset, int length) {
-            if ( !Matics.sorted(0, length, length())) {
-                throw new java.nio.BufferOverflowException();
-            }
-            write(data, offset, length);
-            return this;
-        }
-
-        /**
-         * 書き込む.
-         * @param src データ
-         * @return 書いたサイズ
-         */
-        @Override
-        public int write(ByteBuffer src) {
-            int len = Math.min(src.remaining(), size());
-            if ( src.hasArray() ) {
-                int p = src.position();
-                write(src.array(), src.arrayOffset() + p, len);
-                src.position(p + len);
-            } else {
-                byte[] d = new byte[len];
-                src.get(d);
-                write(d,0,len);
-            }
-            return len;
-        }
-
-        /**
-         * 切り取りはできない
-         *
-         * @return
-         */
-        @Override
-        public OverBlock flip() {
-            return sub(0,backLength());
-        }
     }
 
     /**
@@ -268,7 +311,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
         }
 
         @Override
-        public IndexInput get(long index, byte[] buf, int offset, int length) {
+        public OverBlock get(long index, byte[] buf, int offset, int length) {
             if ( !Matics.sorted(0,offset,offset + length, buf.length) || index + length > max - min ) {
                 throw new java.nio.BufferOverflowException();
             }
@@ -278,26 +321,23 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 
         /**
          * 逆から読む.
-         * @param dst
-         * @param offset
-         * @param length
-         * @return 
+         * @param dst バッファ
+         * @param offset バッファ位置
+         * @param length 読む長さ
+         * @return 読んだ長さ
          */
         @Override
         public int backRead(byte[] dst, int offset, int length) {
             if ( !Matics.sorted(0,offset,offset + length, dst.length)) {
                 throw new java.nio.BufferOverflowException();
             }
-            long p = block.backLength();
-            block.seek(pos);
 //            if ( !Matics.sorted(0, length, size()) ) {
 //                throw new java.nio.BufferOverflowException();
 //            }
-            length = Math.min(length, backSize());
-            int s = block.backRead(dst, offset, length);
-            pos -= s;
-            block.seek(p);
-            return s;
+            int minsize = Math.min(length, backSize());
+            block.get(pos - minsize, dst, offset + length - minsize, minsize);
+            pos -= minsize;
+            return minsize;
         }
 
         /**

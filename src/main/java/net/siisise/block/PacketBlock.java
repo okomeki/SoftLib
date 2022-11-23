@@ -115,8 +115,8 @@ public class PacketBlock extends Edit implements EditBlock {
     /**
      * 切り取り.
      * 切り取った部分はなくなる。 (仮
-     * @param length
-     * @return 
+     * @param length 長さ
+     * @return 読んだPacket
      */
     @Override
     public Packet split(long length) {
@@ -298,8 +298,9 @@ public class PacketBlock extends Edit implements EditBlock {
 
     @Override
     public int backRead(byte[] data, int offset, int length) {
-        int size = front.backRead(data, offset, length);
-        back.backWrite(data, offset, size);
+        int size = Math.min(length, backSize());
+        front.backRead(data, offset + length - size, size);
+        back.backWrite(data, offset + length - size, size);
         return size;
     }
 
