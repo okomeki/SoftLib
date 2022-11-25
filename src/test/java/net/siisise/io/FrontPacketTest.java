@@ -15,6 +15,10 @@
  */
 package net.siisise.io;
 
+import net.siisise.block.ByteBlock;
+import net.siisise.block.OverBlock;
+import net.siisise.block.PacketBlock;
+import net.siisise.block.SinglePacketBlock;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -29,8 +33,22 @@ public class FrontPacketTest {
 
     @Test
     public void testSomeMethod() {
-        // TODO review the generated test code and remove the default call to fail.
-//        fail("The test case is a prototype.");
+        System.out.println("FrontPacket fifo test");
+        byte[] data = "0123456789".getBytes();
+        byte[] buf = new byte[4];
+        byte[] exa = "0123".getBytes();
+//        OverBlock pac = new ByteBlock(new byte[10]);
+        OverBlock pac = new PacketBlock(new byte[10]);
+//        OverBlock pac = new SinglePacketBlock(new byte[10]);
+        pac.write(data);
+        assertEquals(pac.length(),0);
+        assertEquals(pac.backLength(),10);
+        pac.backWrite(data);
+        assertEquals(pac.length(),10);
+        assertEquals(pac.backLength(),0);
+        pac.read(buf);
+        assertArrayEquals(exa,buf);
+        assertEquals(pac.length(),6);
     }
     
 }

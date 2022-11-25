@@ -163,7 +163,7 @@ public class ByteBlock extends OverBlock.AbstractSubOverBlock {
      */
     @Override
     public void write(byte[] data, int offset, int length) {
-        if ( pos + length > length()) {
+        if ( length > length()) {
             throw new java.nio.BufferOverflowException();
         }
         int size = Math.min(size(), length); // Exception 外す前提でとりあえず縮める

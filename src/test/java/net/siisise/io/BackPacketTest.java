@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Output と RevInput のテストを書いておけばいいかな
- * @author okome
  */
 public class BackPacketTest {
     

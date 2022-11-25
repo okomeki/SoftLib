@@ -143,16 +143,28 @@ public class PacketBlock extends Edit implements EditBlock {
 
     @Override
     public void write(byte[] data, int offset, int length) {
+        if ( length > length() ) {
+            throw new java.nio.BufferOverflowException();
+        }
+        back.skip(length);
         front.write(data, offset, length);
     }
 
     @Override
     public void dwrite(byte[] data) {
+        if ( data.length > length() ) {
+            throw new java.nio.BufferOverflowException();
+        }
+        back.skip(data.length);
         front.dwrite(data);
     }
 
     @Override
     public void write(Input pac) {
+        if ( pac.length() > length() ) {
+            throw new java.nio.BufferOverflowException();
+        }
+        back.skip(pac.length());
         front.write(pac);
     }
 
@@ -275,11 +287,19 @@ public class PacketBlock extends Edit implements EditBlock {
 
     @Override
     public void backWrite(byte[] data, int offset, int length) {
+        if ( backLength() < data.length ) {
+            throw new java.nio.BufferOverflowException();
+        }
+        front.back(length);
         back.backWrite(data, offset, length);
     }
 
     @Override
     public void dbackWrite(byte[] data) {
+        if ( backLength() < data.length ) {
+            throw new java.nio.BufferOverflowException();
+        }
+        front.back(data.length);
         back.dbackWrite(data);
     }
 

@@ -106,7 +106,11 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
         }
         return new SubOverBlock(index, index + length, this);
     }
-    
+
+    /**
+     * 軽い実装.
+     * サブクラスは write と put のどれかを実装すればなんとかなる.
+     */
     public static abstract class AbstractOverBlock extends Base implements OverBlock {
         
         @Override
@@ -126,6 +130,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
                 throw new java.nio.BufferOverflowException();
             }
             put(backSize() - length, data, offset, length);
+            back(length);
         }
 
         @Override
@@ -171,6 +176,16 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
             seek(index);
             put(d,offset,length);
             seek(p);
+        }
+        
+        @Override
+        public void write(byte[] data, int offset, int length) {
+            if ( !Matics.sorted( 0, length , length()) ) {
+                throw new java.nio.BufferOverflowException();
+            }
+            int size = Math.min(size(), length); // Exception 外す前提でとりあえず縮める
+            put(backSize(),data, offset, length); // 仮で put(index を使っておく
+            skip(size);
         }
 
         /**
