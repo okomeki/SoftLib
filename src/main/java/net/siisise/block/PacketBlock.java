@@ -29,6 +29,7 @@ import net.siisise.io.RevOutput;
 
 /**
  * 編集点が中央になったPacket.
+ * ソースとメモリ共有はされない.
  * 
  * 先頭、終端と編集点を別にしたもの.
  */
@@ -45,6 +46,7 @@ public class PacketBlock extends Edit implements EditBlock {
 
     /**
      * データ列から作るBlock
+     * データ列とこのPacketBlockは共有されない.
      * @param data データ列
      */
     public PacketBlock(byte[] data) {

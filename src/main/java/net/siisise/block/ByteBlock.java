@@ -154,12 +154,21 @@ public class ByteBlock extends OverBlock.AbstractSubOverBlock {
         System.arraycopy(d, offset, block, (int)(min + index), length);
     }
 
+    /**
+     * 書き込み.
+     * 上限を超えるものはエラーにしておく
+     * @param data データ
+     * @param offset データ位置
+     * @param length 末尾を超えないサイズ
+     */
     @Override
     public void write(byte[] data, int offset, int length) {
         if ( pos + length > length()) {
             throw new java.nio.BufferOverflowException();
         }
-        System.arraycopy(data, offset, block, (int)(min + pos), length);
+        int size = Math.min(size(), length); // Exception 外す前提でとりあえず縮める
+        System.arraycopy(data, offset, block, (int)pos, size);
+        skip(size);
     }
     
     @Override
