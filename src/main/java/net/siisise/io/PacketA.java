@@ -239,7 +239,7 @@ public class PacketA extends BasePacket {
      */
     public long write(Input pac, long length) {
         if (pac instanceof PacketA) {
-            Packet an = ((PacketA)pac).split(length);
+            Packet an = ((PacketA)pac).readPacket(length);
             long r = an.length();
             write(an);
             return r;
@@ -369,7 +369,7 @@ public class PacketA extends BasePacket {
      * @return 
      */
     @Override
-    public PacketA split(long length) {
+    public PacketA readPacket(long length) {
         long limit = length;
         PacketA newPac = new PacketA();
         PacketIn n; // read 方向
@@ -428,7 +428,7 @@ public class PacketA extends BasePacket {
      */
     @Override
     public long skip(long length) {
-        Packet p = split(length);
+        Packet p = readPacket(length);
         return p.length();
     }
 
@@ -475,7 +475,7 @@ public class PacketA extends BasePacket {
     @Override
     public void put(long index, byte[] b, int offset, int length) {
         PacketA bb = backSplit(length() - index);
-        bb.split(length);
+        bb.readPacket(length);
         bb.backWrite(b, offset, length);
         write(bb);
     }

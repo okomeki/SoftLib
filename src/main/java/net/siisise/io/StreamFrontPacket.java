@@ -258,9 +258,8 @@ public class StreamFrontPacket implements FrontPacket {
         try {
             return in.available();
         } catch (IOException ex) {
-            Logger.getLogger(StreamFrontPacket.class.getName()).log(Level.SEVERE, null, ex);
+            throw new java.lang.IllegalStateException(ex);
         }
-        return 0;
     }
 
     @Override
@@ -279,7 +278,7 @@ public class StreamFrontPacket implements FrontPacket {
     }
 
     @Override
-    public Packet split(long length) {
+    public Packet readPacket(long length) {
         PacketA pp = new PacketA();
         length -= pp.write(inpac, length);
         pp.write(this,length);

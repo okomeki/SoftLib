@@ -83,14 +83,11 @@ public interface Input {
     /**
      * 内部的に分割を高速にしたい処理。
      * position的なところから length 分をPacket にreadで読ませる程度の処理
-     * 
-     * readPacket 的なもの
-     * 試験的導入.
      *
      * @param length 長さ
      * @return 分割したPacket
      */
-    Packet split(long length);
+    Packet readPacket(long length);
     /**
      * InputStream とあわせる.
      * @param length

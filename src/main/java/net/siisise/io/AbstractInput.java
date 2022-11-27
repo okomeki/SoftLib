@@ -120,7 +120,7 @@ public abstract class AbstractInput extends InputStream implements FrontInput {
      * @return
      */
     @Override
-    public Packet split(long length) {
+    public Packet readPacket(long length) {
         PacketA pac = new PacketA();
         pac.write(this, length);
         return pac;

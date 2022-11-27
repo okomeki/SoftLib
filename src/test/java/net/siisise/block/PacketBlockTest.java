@@ -39,7 +39,7 @@ public class PacketBlockTest {
         long expResult = 4;
 
         PacketA p = new PacketA(data);
-        PacketA b = p.split(length);
+        PacketA b = p.readPacket(length);
         assertEquals(expResult, b.size());
         
         PacketBlock instance = new PacketBlock(data);

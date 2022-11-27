@@ -406,7 +406,7 @@ public class BigBitPacket extends BaseBitPac {
     }
 
     @Override
-    public BigBitPacket split(long length) {
+    public BigBitPacket readPacket(long length) {
         BigBitPacket bb = new BigBitPacket();
         Output.write(bb, this, length);
         return bb;

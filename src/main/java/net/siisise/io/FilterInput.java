@@ -42,8 +42,8 @@ public class FilterInput extends AbstractInput {
     }
 
     @Override
-    public Packet split(long length) {
-        return in.split(length);
+    public Packet readPacket(long length) {
+        return in.readPacket(length);
     }
 
     @Override

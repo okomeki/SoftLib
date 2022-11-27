@@ -369,7 +369,7 @@ public class LittleBitPacket extends BaseBitPac {
     }
 
     @Override
-    public LittleBitPacket split(long length) {
+    public LittleBitPacket readPacket(long length) {
         LittleBitPacket lp = new LittleBitPacket();
         Output.write(lp, this, length);
         return lp;

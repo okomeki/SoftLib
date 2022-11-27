@@ -27,7 +27,7 @@ public class PacketATest {
     }
 
     /**
-     * Test of split method, of class PacketA.
+     * Test of readPacket method, of class PacketA.
      */
     @Test
     public void testSplit() {
@@ -38,7 +38,7 @@ public class PacketATest {
         byte[] expResult = "0123".getBytes();
         PacketA instance = new PacketA(data);
         instance.write(data2);
-        PacketA result = instance.split(length);
+        PacketA result = instance.readPacket(length);
         System.out.println("result.size " + result.size());
         byte[] tmp = new byte[result.size()];
         System.out.println(tmp.length);

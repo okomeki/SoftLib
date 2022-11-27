@@ -24,31 +24,52 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *
- * @author okome
  */
 public class FrontPacketTest {
     
     public FrontPacketTest() {
     }
 
-    @Test
-    public void testSomeMethod() {
+    /**
+     * 書ける状態ですたーと
+     * @param tg 
+     */
+    static void frontPacket(FrontPacket tg) {
         System.out.println("FrontPacket fifo test");
         byte[] data = "0123456789".getBytes();
         byte[] buf = new byte[4];
         byte[] exa = "0123".getBytes();
-//        OverBlock pac = new ByteBlock(new byte[10]);
-        OverBlock pac = new PacketBlock(new byte[10]);
-//        OverBlock pac = new SinglePacketBlock(new byte[10]);
-        pac.write(data);
-        assertEquals(pac.length(),0);
-        assertEquals(pac.backLength(),10);
-        pac.backWrite(data);
-        assertEquals(pac.length(),10);
-        assertEquals(pac.backLength(),0);
-        pac.read(buf);
+        byte[] exb = "7893".getBytes();
+        assertEquals(tg.length(),0);
+        tg.backWrite(data);
+        assertEquals(tg.length(),10);
+        tg.read(buf);
         assertArrayEquals(exa,buf);
-        assertEquals(pac.length(),6);
+        assertEquals(tg.length(),6);
+        tg.skip(3);
+        int l = tg.read(buf); // 残り3 読み4
+        assertArrayEquals(exb,buf);
+        assertEquals(l,3);
+    }
+
+    @Test
+    public void testSomeMethod() {
+        System.out.println("FrontPacket fifo test");
+        
+        OverBlock block = new ByteBlock(new byte[10]);
+        assertEquals(block.length(),10);
+        block.skip(block.length());
+        frontPacket(block);
+        block = new PacketBlock(new byte[10]);
+        assertEquals(block.length(),10);
+        block.skip(block.length());
+        frontPacket(block);
+        block = new SinglePacketBlock(new byte[10]);
+        assertEquals(block.length(),10);
+        block.skip(block.length());
+        frontPacket(block);
+        FrontPacket pac = new PacketA();
+        frontPacket(pac);
     }
     
 }

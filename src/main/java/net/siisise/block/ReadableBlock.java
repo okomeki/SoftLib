@@ -145,8 +145,8 @@ public interface ReadableBlock extends Block, FrontInput, RevInput, IndexInput {
     }
     
     static class BlockInput extends FilterInput {
-        int mark = -1;
-        ReadableBlock in;
+        private long mark = 0;
+        private final ReadableBlock in;
         
         BlockInput(ReadableBlock in) {
             super(in);
@@ -160,16 +160,13 @@ public interface ReadableBlock extends Block, FrontInput, RevInput, IndexInput {
         
         @Override
         public void mark(int readlimit) {
-            mark = in.backSize();
+            mark = in.backLength();
         }
         
         @Override
         public void reset() {
-            if ( mark >= 0) {
-                in.seek(mark);
-            }
+            in.seek(mark);
         }
-        
     }
 
     /**

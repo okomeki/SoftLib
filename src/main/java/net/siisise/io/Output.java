@@ -53,30 +53,42 @@ public interface Output {
      */
     void write(byte[] data, int offset, int length);
 
-    void dwrite(byte[] data);
     /**
+     * 直書き.
+     * 主にPacketでデータをコピーしないでそのまま内部配列として利用する.
+     * データ列は外側で再利用しないこと.
+     * @param data データ列
+     */
+    void dwrite(byte[] data);
+
+    /**
+     * 書き込み.
      * 中身の移動.
      * @param pac null不可.
      */
     void write(Input pac);
 
     /**
-     * Block では上書き. 上限あり?
-     * Packet 追加. writeと同じ.
+     * 上書き. 上限あり?
      * 
-     * @param data データ
-     * @return 
+     * @param data 1バイトデータ
+     * @return これ
      */
     Output put(byte data);
-    Output put(byte[] data);
     /**
-     * Block では上書き. 上限あり?
-     * Packet 追加. writeと同じ.
+     * 上書き. 上限あり?
      * 
      * @param data データ
-     * @param offset
-     * @param length
-     * @return 
+     * @return これ
+     */
+    Output put(byte[] data);
+    /**
+     * 上書き.
+     * 
+     * @param data データ
+     * @param offset データ位置
+     * @param length サイズ
+     * @return これ
      */
     Output put(byte[] data, int offset, int length);
 

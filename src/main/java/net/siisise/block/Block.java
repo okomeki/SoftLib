@@ -76,7 +76,7 @@ public interface Block {
      * OverBlock 以下は親と同じ型.EditBlockは実装によってOverBlockやReadableBlockかも。
      * split の前版
      * メモリ空間は可能な場合共有.
-     * @see net.siisise.io.Packet#split(long)
+     * @see net.siisise.io.Packet#readPacket(long)
      * @return 前 
      */
     Block flip();

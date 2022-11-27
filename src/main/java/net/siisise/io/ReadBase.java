@@ -145,7 +145,7 @@ public abstract class ReadBase implements FrontInput, IndexInput, RevInput, Read
      * @return 読んだPacket
      */
     @Override
-    public Packet split(long length) {
+    public Packet readPacket(long length) {
         PacketA pac = new PacketA();
         pac.write(this, length);
         return pac;

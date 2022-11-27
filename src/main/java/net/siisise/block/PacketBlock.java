@@ -17,7 +17,6 @@ package net.siisise.block;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import net.siisise.io.BackPacket;
 import net.siisise.io.Edit;
 import net.siisise.io.FrontPacket;
@@ -74,6 +73,12 @@ public class PacketBlock extends Edit implements EditBlock {
         this.back = in;
     }
 
+    /**
+     * 特定位置までposition移動.
+     * 足りない場合は最後へ
+     * @param offset 位置
+     * @return 移動した位置
+     */
     @Override
     public long seek(long offset) {
         long fb = front.backLength();
@@ -97,7 +102,7 @@ public class PacketBlock extends Edit implements EditBlock {
         } else if ( length < 0 ) {
             return -back(-Math.max(length, -front.backLength()));
         }
-        Packet fp = back.split(length);
+        Packet fp = back.readPacket(length);
         long size = fp.length();
         front.write(fp);
         return size;
@@ -114,17 +119,6 @@ public class PacketBlock extends Edit implements EditBlock {
         return RevOutput.backWrite(back, ff, ff.length());
     }
 
-    /**
-     * 切り取り.
-     * 切り取った部分はなくなる。 (仮
-     * @param length 長さ
-     * @return 読んだPacket
-     */
-    @Override
-    public Packet split(long length) {
-        return back.split(length);
-    }
-    
     /**
      * 編集可能なのでいろいろ違うかも
      * @return position より前を切り取ったもの.
@@ -150,6 +144,11 @@ public class PacketBlock extends Edit implements EditBlock {
         front.write(data, offset, length);
     }
 
+    /**
+     * 直書き.
+     * data列は再利用しないこと
+     * @param data 配列、データ
+     */
     @Override
     public void dwrite(byte[] data) {
         if ( data.length > length() ) {
@@ -262,7 +261,7 @@ public class PacketBlock extends Edit implements EditBlock {
     public void del(long index, long size) {
         long p = backLength();
         seek(index);
-        back.split(size);
+        back.readPacket(size);
         seek(p);
     }
 
@@ -277,12 +276,7 @@ public class PacketBlock extends Edit implements EditBlock {
 
     @Override
     public InputStream getInputStream() {
-        return back.getInputStream();
-    }
-
-    @Override
-    public OutputStream getBackOutputStream() {
-        return back.getBackOutputStream();
+        return new ReadableBlock.BlockInput(this);
     }
 
     @Override
@@ -311,11 +305,6 @@ public class PacketBlock extends Edit implements EditBlock {
     @Override
     public long backLength() {
         return front.backLength();
-    }
-
-    @Override
-    public OutputStream getOutputStream() {
-        return front.getOutputStream();
     }
 
     @Override

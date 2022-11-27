@@ -34,7 +34,7 @@ public interface RevInput {
      * @return 1バイト または -1
      */
     int backRead();
-    
+
     /**
      * 逆から読む.
      * 短い場合は後ろ(offset + length)から詰める.
