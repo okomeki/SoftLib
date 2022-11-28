@@ -18,7 +18,7 @@ package net.siisise.io;
 /**
  * Input を InputStream に変える.
  */
-public class FilterInput extends AbstractInput {
+public class FilterInput extends Input.AbstractInput {
 
     private final Input in;
 

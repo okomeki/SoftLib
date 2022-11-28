@@ -32,17 +32,35 @@ import java.nio.file.StandardOpenOption;
 public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeable {
 
     private SeekableByteChannel ch;
-    
+
+    /**
+     * 読む形で開く.
+     * @param file ふぁいる
+     * @return 読みclose できるBlock
+     * @throws FileNotFoundException 
+     */
     public static ReadableBlock wrap(File file) throws FileNotFoundException {
         RandomAccessFile io = new RandomAccessFile(file, "r");
         return new ChannelBlock(io.getChannel());
     }
 
+    /**
+     * 読み専用でBlockにする.
+     * @param path nio な path
+     * @return 読みclose できるBlock
+     * @throws IOException 
+     */
     public static ReadableBlock wrap(Path path) throws IOException {
         FileChannel c = FileChannel.open(path, StandardOpenOption.READ);
         return new ChannelBlock(c);
     }
 
+    /**
+     * 読み書きできる形のBlockで開く.
+     * @param file ファイル
+     * @return 読み書きclose できるBlock
+     * @throws IOException 
+     */
     public static OverBlock over(File file) throws IOException {
         RandomAccessFile io = new RandomAccessFile(file,"rw");
         return new ChannelBlock(io.getChannel());
@@ -53,7 +71,7 @@ public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeab
         return over(c);
     }
 
-    public static OverBlock over(FileChannel ch) throws IOException {
+    public static OverBlock over(SeekableByteChannel ch) throws IOException {
         return new ChannelBlock(ch);
     }
 
@@ -61,6 +79,12 @@ public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeab
         this.ch = ch;
     }
 
+    /**
+     * 先頭からの位置.
+     * 読み書きした長さ.
+     * 戻って読み書きするときなどに.
+     * @return サイズ/位置
+     */
     @Override
     public long backLength() {
         try {
@@ -69,7 +93,11 @@ public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeab
             throw new java.nio.BufferOverflowException();
         }
     }
-    
+
+    /**
+     * これから読み書きできる長さ.
+     * @return 長さ
+     */
     @Override
     public long length() {
         try {
@@ -79,6 +107,11 @@ public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeab
         }
     }
 
+    /**
+     * 移動.
+     * @param offset 指定位置
+     * @return 移動した位置
+     */
     @Override
     public long seek(long offset) {
         try {

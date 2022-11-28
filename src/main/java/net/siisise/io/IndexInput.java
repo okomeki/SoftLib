@@ -22,27 +22,29 @@ public interface IndexInput {
 
     /**
      * 読めないときはException
-     * @param index
+     * @param index 位置
      * @return データ
      */
     byte get(long index);
 
     /**
+     * バッファのフルサイズ読む.
      * 読めないときはException
-     * @param index
-     * @param b
+     * @param index 位置
+     * @param b バッファ
      * @return これ
      */
     IndexInput get(long index, byte[] b);
 
     /**
+     * length サイズを読む.
      * 読めないときはException
      * Buffer 系にあわせたが、Channel系にあわせる方がいいのかもしれない.
      * Packetを読んでもとりあえず消えないことにする.
-     * @param index
-     * @param b
-     * @param offset
-     * @param length
+     * @param index 位置
+     * @param b バッファ
+     * @param offset バッファ位置
+     * @param length サイズ
      * @return これ
      */
     IndexInput get(long index, byte[] b, int offset, int length);

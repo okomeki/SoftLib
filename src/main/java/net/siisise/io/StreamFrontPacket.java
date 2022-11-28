@@ -21,7 +21,6 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.siisise.block.OverBlock;
 
 /**
  * PacketのふりをするStream.
@@ -55,24 +54,12 @@ public class StreamFrontPacket implements FrontPacket {
     }
 
     @Override
-    public long get(byte[] d) {
-        return get(d,0,d.length);
-    }
-
-    @Override
     public long get(byte[] d, int offset, int length) {
         if ( size() < length ) {
             throw new java.nio.BufferOverflowException();
         }
         read(d,offset,length);
         return length;
-    }
-
-    @Override
-    public long get(OverBlock bb) {
-        long p = bb.backLength();
-        bb.write(this);
-        return bb.backLength() - p;
     }
 
     private class StreamFrontInputStream extends InputStream {
@@ -228,13 +215,23 @@ public class StreamFrontPacket implements FrontPacket {
     }
 
     @Override
+    public void backWrite(byte[] data) {
+        inpac.backWrite(data);
+    }
+
+    @Override
     public void backWrite(byte[] data, int offset, int length) {
         inpac.backWrite(data, offset, length);
     }
 
     @Override
-    public void backWrite(byte[] data) {
-        inpac.backWrite(data);
+    public long backWrite(RevInput rin) {
+        return inpac.backWrite(rin);
+    }
+
+    @Override
+    public long backWrite(RevInput rin, long length) {
+        return inpac.backWrite(rin, length);
     }
 
     @Override

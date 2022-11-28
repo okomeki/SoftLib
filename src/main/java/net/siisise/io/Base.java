@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 import net.siisise.block.EditBlock;
 import net.siisise.block.OverBlock;
+import net.siisise.math.Matics;
 
 /**
  * Packet と Block の簡易実装.
@@ -69,8 +70,8 @@ public abstract class Base extends ReadBase implements FrontPacket, BackPacket, 
     }
 
     @Override
-    public void dbackWrite(byte[] data) {
-        backWrite(data, 0, data.length);
+    public void dbackWrite(byte[] src) {
+        backWrite(src, 0, src.length);
     }
 
     @Override
@@ -88,10 +89,11 @@ public abstract class Base extends ReadBase implements FrontPacket, BackPacket, 
     }
 
     /**
-     * 上限なし.
+     * データ移動 上限あり.
+     * OverBlock の上限を超えない範囲で書き込む.
      * OverBlock / Packet 用実装かも.
-     * @param src
-     * @return 
+     * @param src 元Buffer
+     * @return 転送できたサイズ
      */
     @Override
     public int write(ByteBuffer src) {
@@ -122,14 +124,54 @@ public abstract class Base extends ReadBase implements FrontPacket, BackPacket, 
 
     /**
      * Block系
-     * @param pac 
+     * @param pac 元
+     * @return 移動したサイズ
      */
     @Override
-    public void write(Input pac) {
+    public long write(Input pac) {
         if ( !(this instanceof EditBlock) && (this instanceof OverBlock) ) {
-            Output.write(this, pac, Math.min(length(), pac.length()));
+            return Output.write(this, pac, Math.min(length(), pac.length()));
         } else {
-            Output.write(this, pac, pac.length());
+            return Output.write(this, pac, pac.length());
+        }
+    }
+
+    @Override
+    public long write(Input pac, long length) {
+        if ( pac.length() < length ) {
+            throw new java.nio.BufferOverflowException();
+        }
+        if ( !(this instanceof EditBlock) && (this instanceof OverBlock) ) {
+            if ( length() < length ) {
+                throw new java.nio.BufferOverflowException();
+            }
+            return Output.write(this, pac, Matics.min(length(), pac.length(), length));
+        } else {
+            return Output.write(this, pac, Math.min(pac.length(), length));
+        }
+    }
+
+    /**
+     * 転送元、転送先どちらかの上限まで移動する.
+     * 
+     * @param pac
+     * @return 
+     */
+    @Override
+    public long backWrite(RevInput pac) {
+        if ( !(this instanceof EditBlock) && (this instanceof OverBlock) ) {
+            return RevOutput.backWrite(this, pac, Math.min(backLength(), pac.backLength()));
+        } else {
+            return RevOutput.backWrite(this, pac, pac.backLength());
+        }
+    }
+
+    @Override
+    public long backWrite(RevInput pac, long length) {
+        if ( !(this instanceof EditBlock) && (this instanceof OverBlock) ) {
+            return RevOutput.backWrite(this, pac, Matics.min(backLength(), pac.backLength(), length));
+        } else {
+            return RevOutput.backWrite(this, pac, Math.min(pac.backLength(), length));
         }
     }
 

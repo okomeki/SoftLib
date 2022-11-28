@@ -202,8 +202,9 @@ public class PacketA extends BasePacket {
      * @param pac null不可
      */
     @Override
-    public void write(Input pac) {
+    public long write(Input pac) {
         if (pac instanceof PacketA) {
+            long len = pac.length();
             if ( pac.length() < 500 ) {
                 byte[] d = pac.toByteArray();
                 write(d,0,d.length);
@@ -212,22 +213,28 @@ public class PacketA extends BasePacket {
                 nullPack.excPrev(an);
                 an.excPrev(an.next); // an を nullPack のみにする
             }
+            return len;
         } else {
-            Output.write(this, pac, pac.length());
+            return Output.write(this, pac, pac.length());
         }
     }
 
     /**
      * 中身の移動.
+     * 転送元、転送先どちらかの上限まで移動する.
      * @param pac null不可
+     * @return 移動したサイズ
      */
-    public void backWrite(RevInput pac) {
+    @Override
+    public long backWrite(RevInput pac) {
         if (pac instanceof PacketA) {
+            long len = pac.backLength();
             PacketIn an = ((PacketA)pac).nullPack;
             an.excPrev(nullPack);
             an.excPrev(an.next); // an を nullPack のみにする
+            return len;
         } else {
-            RevOutput.backWrite(this, pac, pac.backLength());
+            return RevOutput.backWrite(this, pac, pac.backLength());
         }
     }
 
@@ -237,6 +244,7 @@ public class PacketA extends BasePacket {
      * @param length
      * @return 移動したサイズ
      */
+    @Override
     public long write(Input pac, long length) {
         if (pac instanceof PacketA) {
             Packet an = ((PacketA)pac).readPacket(length);

@@ -47,16 +47,33 @@ public interface RevOutput {
 
     /**
      * 読み出しの手前にデータを足す.
+     * OverBlock等で先頭を超えるとエラーの場合あり
      * 読んだデータを戻すのに便利.
-     * @param data データを含む配列.
+     * @param src データを含む配列.
      */
-    void backWrite(byte[] data);
+    void backWrite(byte[] src);
+    
+    /**
+     * 上限配慮あり.
+     * 転送元、転送先どちらかの上限まで移動する.
+     * @param rin 逆入力.
+     * @return 戻ったサイズ
+     */
+    long backWrite(RevInput rin);
+
+    /**
+     * 逆書き込み
+     * @param rin 逆入力
+     * @param length 長さ
+     * @return 戻ったサイズ
+     */
+    long backWrite(RevInput rin, long length);
 
     /**
      * 複製しない(可能な場合)
-     * @param data データ列
+     * @param src データ列
      */
-    void dbackWrite(byte[] data);
+    void dbackWrite(byte[] src);
 
     void flush();
 

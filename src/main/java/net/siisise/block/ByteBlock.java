@@ -136,6 +136,21 @@ public class ByteBlock extends OverBlock.AbstractSubOverBlock {
     public ByteBuffer asByteBuffer() {
         return ByteBuffer.wrap(block, (int)pos, (int)(max - pos));
     }
+    
+    @Override
+    public boolean hasArray() {
+        return true;
+    }
+    
+    @Override
+    public byte[] array() {
+        return block;
+    }
+    
+    @Override
+    public int arrayOffset() {
+        return (int)min;
+    }
 
     @Override
     public ByteBlock get(long index, byte[] b, int offset, int length) {

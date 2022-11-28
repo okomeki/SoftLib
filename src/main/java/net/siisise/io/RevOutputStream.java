@@ -77,4 +77,14 @@ public class RevOutputStream extends OutputStream implements RevOutput {
     public void flush() {
         out.flush();
     }
+
+    @Override
+    public long backWrite(RevInput rin) {
+        return out.backWrite(rin);
+    }
+
+    @Override
+    public long backWrite(RevInput rin, long length) {
+        return out.backWrite(rin, length);
+    }
 }

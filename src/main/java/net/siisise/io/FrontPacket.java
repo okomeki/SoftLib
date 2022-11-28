@@ -21,6 +21,6 @@ package net.siisise.io;
  * BackPacket と メソッド名が重複しないのでいろいろな用途で.
  * Packet と InputStream の共通のものにしたい
  */
-public interface FrontPacket extends FrontInput, RevOutput {
+public interface FrontPacket extends Input, RevOutput {
 
 }

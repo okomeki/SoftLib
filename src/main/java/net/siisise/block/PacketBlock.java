@@ -147,6 +147,7 @@ public class PacketBlock extends Edit implements EditBlock {
     /**
      * 直書き.
      * data列は再利用しないこと
+     * 上限越えはエラー
      * @param data 配列、データ
      */
     @Override
@@ -158,13 +159,27 @@ public class PacketBlock extends Edit implements EditBlock {
         front.dwrite(data);
     }
 
+    /**
+     * 書き込む.
+     * 
+     * @param pac 入力
+     * @return 上書きしたサイズ
+     */
     @Override
-    public void write(Input pac) {
-        if ( pac.length() > length() ) {
+    public long write(Input pac) {
+        long len = pac.length();
+        back.skip(len);
+        return front.write(pac);
+    }
+
+    @Override
+    public long write(Input pac, long length) {
+        if ( length > pac.length() ) {
             throw new java.nio.BufferOverflowException();
         }
-        back.skip(pac.length());
-        front.write(pac);
+        long len = Math.min(pac.length(), length);
+        len = back.skip(len);
+        return front.write(pac, len);
     }
 
     @Override

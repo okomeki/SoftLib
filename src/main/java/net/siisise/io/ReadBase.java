@@ -18,13 +18,12 @@ package net.siisise.io;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
-import net.siisise.block.OverBlock;
 import net.siisise.math.Matics;
 
 /**
  * Packet Block の共通項を探る抽象クラス.
  */
-public abstract class ReadBase implements FrontInput, IndexInput, RevInput, ReadableByteChannel {
+public abstract class ReadBase implements Input, IndexInput, RevInput, ReadableByteChannel {
 
     @Override
     public InputStream getInputStream() {
@@ -42,31 +41,13 @@ public abstract class ReadBase implements FrontInput, IndexInput, RevInput, Read
         get(b,0,1);
         return b[0];
     }
-    
-    @Override
-    public long get(byte[] b) {
-        return get(b, 0, b.length);
-    }
-    
+
     @Override
     public long get(byte[] b, int offset, int length) {
         if ( !Matics.sorted(0,offset,offset + length, b.length) ||  length() < length ) {
             throw new java.nio.BufferOverflowException();
         }
         return read(b,offset,length);
-    }
-
-    /**
-     * 読み,
-     * OverBlock以上への書き込み
-     * @param bb 書き込めるBlock
-     * @return 
-     */
-    @Override
-    public long get(OverBlock bb) {
-        long p = bb.backLength();
-        bb.write(this);
-        return bb.backLength() - p;
     }
 
     @Override
@@ -100,18 +81,19 @@ public abstract class ReadBase implements FrontInput, IndexInput, RevInput, Read
      */
     @Override
     public int read(ByteBuffer dst) {
+        int size = Math.min(dst.remaining(), size());
         if ( dst.hasArray() ) {
             int p = dst.position();
-            int size = read(dst.array(), dst.arrayOffset() + p, dst.remaining());
-            dst.position(p+size);
-            return size;
+            int s = read(dst.array(), dst.arrayOffset() + p, size);
+            dst.position(p+s);
+            return s;
         }
-        byte[] d = new byte[Math.min(dst.remaining(),size())];
-        int s = read(d);
-        dst.put(d, 0, s);
-        return s;
+        byte[] d = new byte[size];
+        size = read(d,0,size);
+        dst.put(d, 0, size);
+        return size;
     }
-    
+
     /**
      * 残りを配列にする
      * @return 配列
@@ -122,16 +104,16 @@ public abstract class ReadBase implements FrontInput, IndexInput, RevInput, Read
         read(b);
         return b;
     }
-    
+
     @Override
     public long skip(long length) {
         return Input.skipImpl(this, length);
     }
-    
+
     /**
      * backSkip
-     * @param length
-     * @return 
+     * @param length 移動量
+     * @return 移動した量
      */
     @Override
     public long back(long length) {

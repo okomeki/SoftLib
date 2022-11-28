@@ -20,7 +20,7 @@ import net.siisise.math.Matics;
 
 /**
  * limit が変えられない ByteBuffer っぽい.
- * 
+ *
  */
 public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
 
@@ -29,22 +29,38 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
     /**
      * バイト列をByteBufferにしてByteBlockにする二重構造.
      * 仮なので使わないかも.
-     * 
+     *
      * @param src バイト列
      */
     public ByteBufferBlock(byte[] src) {
-        super(0,src.length);
+        super(0, src.length);
         buff = ByteBuffer.wrap(src);
     }
 
     /**
      * src の 0 から limit までを共有する。
      * position も同一.
+     *
      * @param src Buffer
      */
     public ByteBufferBlock(ByteBuffer src) {
-        super(0,src.limit());
+        super(0, src.limit());
         buff = src;
+    }
+
+    @Override
+    public boolean hasArray() {
+        return buff.hasArray();
+    }
+
+    @Override
+    public byte[] array() {
+        return buff.array();
+    }
+
+    @Override
+    public int arrayOffset() {
+        return buff.arrayOffset();
     }
 
     /**
@@ -69,19 +85,20 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
         if (!Matics.sorted(0, index, index + length, max - min)) {
             throw new java.nio.BufferOverflowException();
         }
-        if ( buff.hasArray() ) {
+        if (buff.hasArray()) {
             return new ByteBlock(buff.array(), buff.arrayOffset() + min + index, length);
         }
         int p = buff.position();
         buff.position((int) index);
         ByteBuffer bb = buff.slice();
-        bb.limit((int)length);
+        bb.limit((int) length);
         buff.position(p);
         return new ByteBufferBlock(bb);
     }
 
     /**
      * 残り remaining() size() 分を配列にする
+     *
      * @return 配列
      */
     @Override
@@ -116,7 +133,7 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
     public long length() {
         return buff.remaining();
     }
-    
+
     /**
      * position がほしいか たぶん0からの位置
      *
@@ -130,38 +147,41 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
     /**
      * 範囲内で移動する.
      * ReadableBlockと同じ.
+     *
      * @param position
      * @return 位置.
      */
     @Override
     public long seek(long position) {
-        int p = (int)Matics.range(position, 0, buff.limit());
+        int p = (int) Matics.range(position, 0, buff.limit());
         buff.position(p);
         return p;
     }
 
     /**
      * 読み書きせずに進む.
+     *
      * @param length マイナスも使えるといい
      * @return 進んだサイズ
      */
     @Override
     public long skip(long length) {
         int p = buff.position();
-        int mp = (int)Matics.range(length, -p, buff.remaining());
+        int mp = (int) Matics.range(length, -p, buff.remaining());
         buff.position(p + mp);
         return mp;
     }
 
     /**
      * 読み書きせずに戻る.
+     *
      * @param length マイナスも使えるといい
      * @return 戻ったサイズ
      */
     @Override
     public long back(long length) {
         int p = buff.position();
-        int mp = (int)Matics.range(length, -buff.remaining(), p);
+        int mp = (int) Matics.range(length, -buff.remaining(), p);
         buff.position(p - mp);
         return mp;
     }
@@ -169,7 +189,7 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
     @Override
     public OverBlock get(long index, byte[] b, int offset, int length) {
         int p = buff.position();
-        buff.position((int)index);
+        buff.position((int) index);
         buff.get(b, offset, length);
         buff.position(p);
         return this;
@@ -177,6 +197,7 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
 
     /**
      * buffの上限サイズまで書ける、length が size() を超えると何かのエラー
+     *
      * @param d データ
      * @param offset 位置
      * @param length サイズ

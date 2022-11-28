@@ -67,8 +67,9 @@ public abstract class Edit extends Base implements IndexEdit {
     
     /**
      * 上書き
-     * @param src
-     * @return 
+     * EditBlockは上限はないことにする.
+     * @param src 転送元
+     * @return 転送サイズ = src.remaining
      */
     @Override
     public int write(ByteBuffer src) {
@@ -81,7 +82,7 @@ public abstract class Edit extends Base implements IndexEdit {
         } else {
             byte[] d = new byte[src.remaining()];
             src.get(d);
-            write(d);
+            write(d, 0, d.length);
             return d.length;
         }
     }

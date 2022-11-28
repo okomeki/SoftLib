@@ -18,7 +18,7 @@ package net.siisise.io;
 /**
  * Output を OutputとOutputStream に変える
  */
-public class FilterOutput extends AbstractOutput {
+public class FilterOutput extends Output.AbstractOutput {
 
     private final Output out;
     
@@ -42,8 +42,13 @@ public class FilterOutput extends AbstractOutput {
     }
     
     @Override
-    public void write(Input pac) {
-        out.write(pac);
+    public long write(Input pac) {
+        return out.write(pac);
+    }
+
+    @Override
+    public long write(Input pac, long length) {
+        return out.write(pac, length);
     }
 
     @Override

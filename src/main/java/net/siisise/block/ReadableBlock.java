@@ -23,7 +23,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import net.siisise.io.FilterInput;
-import net.siisise.io.FrontInput;
 import net.siisise.io.FrontPacket;
 import net.siisise.io.IndexInput;
 import net.siisise.io.Input;
@@ -39,8 +38,21 @@ import net.siisise.math.Matics;
  * Buffer の読み込み専用 っぽいものをStream風メソッドで実装したもの.
  * position() は backSize()
  */
-public interface ReadableBlock extends Block, FrontInput, RevInput, IndexInput {
+public interface ReadableBlock extends Block, Input, RevInput, IndexInput {
 
+    default boolean hasArray() {
+        return false;
+    }
+
+    default byte[] array() {
+        throw new java.lang.UnsupportedOperationException();
+    }
+
+    default int arrayOffset() {
+        throw new java.lang.UnsupportedOperationException();
+    }
+    
+    
     /**
      * 読み込み専用のpositionまでの切り取り.
      * @return 読み専用
@@ -61,6 +73,15 @@ public interface ReadableBlock extends Block, FrontInput, RevInput, IndexInput {
 // 実装が上の方(Base)にあると型が解決できないのとgetの戻り型は重要ではないので略
 //    @Override
 //    ReadableBlock get(long index, byte[] b);
+    /**
+     * 切り取り.
+     * 範囲を超えないこと.
+     * @param index 位置
+     * @param b バッファ
+     * @param offset バッファ位置
+     * @param length サイズ
+     * @return これ
+     */
     @Override
     ReadableBlock get(long index, byte[] b, int offset, int length);
     

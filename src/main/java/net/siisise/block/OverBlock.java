@@ -18,7 +18,6 @@ package net.siisise.block;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import net.siisise.io.BackPacket;
@@ -46,14 +45,21 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
     }
 
     /**
-     * position は byte列の場合共有していない. どうする?
-     * @param bb
-     * @return 
+     * ByteBuffer を持ったOverBlock を作る.
+     * 使えるのは 0 から limit まで。
+     * position も共有する.
+     * position を別にするにはsubブロックなど
+     * @param bb 参照先
+     * @return ラップしたBlock
      */
     public static OverBlock wrap(ByteBuffer bb) {
+        /* // ByteBlock にすると position が共有できないので仮
         if ( bb.hasArray() ) {
-            return wrap(bb.array(),bb.arrayOffset(),bb.limit());
+            OverBlock block = wrap(bb.array(),bb.arrayOffset(), bb.limit());
+            block.seek(bb.position());
+            return block;
         }
+        */ 
         return new ByteBufferBlock(bb);
     }
 
@@ -74,8 +80,8 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
     }
 
     public static OverBlock wrap(FileChannel ch) throws IOException {
-        MappedByteBuffer bb = ch.map(FileChannel.MapMode.READ_WRITE, 0, ch.size());
-        return new ByteBufferBlock(bb);
+        ByteBuffer bb = ch.map(FileChannel.MapMode.READ_WRITE, 0, ch.size());
+        return wrap(bb);
     }
 
     public static SeekableByteChannel channel(OverBlock b) {
