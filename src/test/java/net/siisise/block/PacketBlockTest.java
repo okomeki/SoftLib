@@ -15,6 +15,7 @@
  */
 package net.siisise.block;
 
+import net.siisise.io.IndexEditTest;
 import net.siisise.io.PacketA;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,9 +23,13 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  *
  */
-public class PacketBlockTest {
+public class PacketBlockTest extends IndexEditTest {
     
     public PacketBlockTest() {
+    }
+    
+    PacketBlock block(byte[] src) {
+        return new PacketBlock(src);
     }
 
     /**
@@ -42,7 +47,7 @@ public class PacketBlockTest {
         PacketA b = p.readPacket(length);
         assertEquals(expResult, b.size());
         
-        PacketBlock instance = new PacketBlock(data);
+        PacketBlock instance = block(data);
         assertEquals(10, instance.length());
         long result = instance.skip(length);
         assertEquals(expResult, result);

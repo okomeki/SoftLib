@@ -27,6 +27,10 @@ public class IndexEditTest {
     
     public IndexEditTest() {
     }
+    
+    EditBlock block(byte[] ar) {
+        return new SinglePacketBlock(ar);
+    }
 
     /**
      * Test of del method, of class IndexEdit.
@@ -35,7 +39,7 @@ public class IndexEditTest {
     public void testDel_long() {
         System.out.println("del");
         long index = 2L;
-        IndexEdit instance = new SinglePacketBlock(new byte[] {6,5,4,3,2,1});
+        IndexEdit instance = block(new byte[] {6,5,4,3,2,1});
         byte expResult = 4;
         byte result = instance.del(index);
         assertEquals(expResult, result);
@@ -49,7 +53,7 @@ public class IndexEditTest {
         System.out.println("del");
         long index = 2L;
         long size = 3L;
-        EditBlock instance = new SinglePacketBlock(new byte[] {5,6,7,8,9,10});
+        EditBlock instance = block(new byte[] {5,6,7,8,9,10});
         instance.del(index, size);
         assertEquals(0, instance.backLength() );
         assertEquals(3, instance.length() );
@@ -65,7 +69,7 @@ public class IndexEditTest {
         System.out.println("del");
         long index = 1L;
         byte[] buf = new byte[3];
-        EditBlock instance = new SinglePacketBlock(new byte[] {5,6,7,8,9,10});
+        EditBlock instance = block(new byte[] {5,6,7,8,9,10});
         byte[] expResult = new byte[] {6,7,8};
         EditBlock result = instance.del(index, buf);
         assertArrayEquals(expResult, buf);
@@ -82,7 +86,7 @@ public class IndexEditTest {
         byte[] buf = new byte[4];
         int offset = 1;
         int length = 2;
-        EditBlock instance = new SinglePacketBlock(new byte[] {5,6,7,8,9,10});
+        EditBlock instance = block(new byte[] {5,6,7,8,9,10});
         byte[] expResult = new byte[] {0,8,9,0};
         EditBlock result = instance.del(index, buf, offset, length);
         assertEquals(result, instance);
@@ -98,7 +102,7 @@ public class IndexEditTest {
         long index = 2L;
         byte src = 11;
         byte[] exr = new byte[] {5,6,11,7,8,9,10};
-        EditBlock instance = new SinglePacketBlock(new byte[] {5,6,7,8,9,10});
+        EditBlock instance = block(new byte[] {5,6,7,8,9,10});
         instance.add(index, src);
         assertArrayEquals(exr, instance.toByteArray());
     }
@@ -112,7 +116,7 @@ public class IndexEditTest {
         long index = 4L;
         byte[] src = new byte[] {0,1,2};
         byte[] exr = new byte[] {5,6,7,8,0,1,2,9,10};
-        EditBlock instance = new SinglePacketBlock(new byte[] {5,6,7,8,9,10});
+        EditBlock instance = block(new byte[] {5,6,7,8,9,10});
         instance.add(index, src);
         assertArrayEquals(exr, instance.toByteArray());
     }
@@ -127,7 +131,7 @@ public class IndexEditTest {
         byte[] src = new byte[] {9,8,7,6};
         int offset = 1;
         int length = 2;
-        EditBlock instance = new SinglePacketBlock(new byte[] {5,6,7,8,9,10});
+        EditBlock instance = block(new byte[] {5,6,7,8,9,10});
         instance.add(index, src, offset, length);
         byte[] exr = new byte[] {5,6,7,8,8,7,9,10};
         assertArrayEquals(exr, instance.toByteArray());

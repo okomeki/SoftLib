@@ -64,18 +64,25 @@ public class BlockChannel implements SeekableByteChannel {
     }
 
     /**
-     * 詰める subブロックで茶を濁す
+     * 詰める.
+     * EditBlock は詰め.
+     * OverBlock の場合は subブロックで茶を濁す
      * @param size 全体のサイズ
      * @return 縮めたブロック
      * @throws IOException 
      */
     @Override
     public SeekableByteChannel truncate(long size) throws IOException {
-        long p = block.backLength();
-        block = block.sub(0, size);
-        block.seek(p);
+        if ( block.backLength() + block.length() > size ) {
+            long p = Math.min(block.backLength(), size);
+            if ( block instanceof EditBlock ) {
+                ((EditBlock)block).del(size, block.backLength() + block.length() - size);
+            } else {
+                block = block.sub(0, size);
+            }
+            block.seek(p);
+        }
         return this;
-    //    return new BlockChannel(block.sub(0, size));
     }
 
     @Override

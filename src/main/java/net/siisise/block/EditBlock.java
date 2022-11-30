@@ -28,7 +28,7 @@ public interface EditBlock extends OverBlock, IndexEdit {
 
     /**
      * 切り取る.
-     * 編集可能な場合のみ、不要なサイズを切り取る.
+     * 不要なサイズを切り取る.
      * del と類似.
      * 
      * @param length 長さ

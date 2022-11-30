@@ -26,6 +26,10 @@ public class ByteBlockTest {
     
     public ByteBlockTest() {
     }
+    
+    ByteBlock block(byte[] src) {
+        return new ByteBlock(src);
+    }
 
     /**
      * Test of readBlock method, of class ByteBlock.
@@ -34,7 +38,7 @@ public class ByteBlockTest {
     public void testReadBlock() {
         System.out.println("readBlock");
         byte[] ss = "utca".getBytes(StandardCharsets.UTF_8);
-        ByteBlock block = new ByteBlock(ss);
+        ByteBlock block = block(ss);
         byte[] rd = new byte[1];
         
         assertEquals(4,block.size());
