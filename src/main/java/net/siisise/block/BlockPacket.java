@@ -16,7 +16,6 @@
 package net.siisise.block;
 
 import net.siisise.io.BasePacket;
-import net.siisise.io.IndexEdit;
 
 /**
  * ByteBlock の集合.
@@ -24,16 +23,16 @@ import net.siisise.io.IndexEdit;
  */
 public class BlockPacket extends BasePacket {
 
-    static class BlockIn {
+    private static class BlockIn {
         private BlockIn prev = this;
         private BlockIn next = this;
         // data, offset, length の代わり
         private OverBlock block;
         
-        BlockIn() {
+        private BlockIn() {
         }
         
-        BlockIn(OverBlock b) {
+        private BlockIn(OverBlock b) {
             block = b;
         }
         
@@ -229,7 +228,7 @@ public class BlockPacket extends BasePacket {
      * @return これ
      */
     @Override
-    public IndexEdit del(long index, byte[] buf, int offset, int length) {
+    public BlockPacket del(long index, byte[] buf, int offset, int length) {
         get(index, buf, offset, length);
         del(index, length);
         return this;

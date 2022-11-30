@@ -18,7 +18,8 @@ package net.siisise.io;
 import java.io.OutputStream;
 
 /**
- *
+ * 逆書き.
+ * ヘッダを付け足したり(Packet)読み機したところを戻って書いたり(Block)したいことがあるかもしれず
  */
 public interface RevOutput {
 

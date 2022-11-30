@@ -115,7 +115,7 @@ public class PacketBlock extends Edit implements EditBlock {
         } else if ( length < 0 ) {
             return -skip(-Math.max(length, -back.length()));
         }
-        Packet ff = front.backSplit(length);
+        Packet ff = front.backReadPacket(length);
         return RevOutput.backWrite(back, ff, ff.length());
     }
 

@@ -61,7 +61,7 @@ public abstract class Edit extends Base implements IndexEdit {
      * @return これ
      */
     @Override
-    public IndexEdit del(long index, byte[] d) {
+    public Edit del(long index, byte[] d) {
         return del(index, d, 0, d.length);
     }
     

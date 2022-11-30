@@ -17,7 +17,6 @@ package net.siisise.block;
 
 import net.siisise.io.Edit;
 import net.siisise.io.PacketA;
-import net.siisise.io.IndexEdit;
 import net.siisise.io.Packet;
 import net.siisise.math.Matics;
 
@@ -200,7 +199,7 @@ public class SinglePacketBlock extends Edit implements EditBlock {
      * @return これ
      */
     @Override
-    public IndexEdit del(long index, byte[] buf, int offset, int length) {
+    public SinglePacketBlock del(long index, byte[] buf, int offset, int length) {
         block.del(index, buf, offset, length);
         return this;
     }

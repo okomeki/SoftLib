@@ -21,6 +21,11 @@ package net.siisise.io;
  */
 public class BigBitPacket extends BaseBitPac {
 
+    @Override
+    public BigBitPacket del(long index, byte[] buf, int offset, int length) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
     class BigBitInputStream extends BitInputStream {
         /**
          *
@@ -413,7 +418,7 @@ public class BigBitPacket extends BaseBitPac {
     }
 
     @Override
-    public Packet backSplit(long length) {
+    public Packet backReadPacket(long length) {
         BigBitPacket bb = new BigBitPacket();
         RevOutput.backWrite(bb, this, length);
         return bb;

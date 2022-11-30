@@ -50,7 +50,7 @@ public interface RevInput {
      * @param length
      * @return 
      */
-    Packet backSplit(long length);
+    Packet backReadPacket(long length);
     /**
      * Input#skip(long) の逆
      * @param length 読みとばすサイズ skip size.

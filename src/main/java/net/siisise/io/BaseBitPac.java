@@ -18,7 +18,7 @@ package net.siisise.io;
 /**
  * ビット操作用.
  * index系まだつかえない.
- *
+ * 
  * 上位ビット優先(Big Endian)/下位ビット(Little Endian)優先共通実装
  */
 public abstract class BaseBitPac extends BasePacket implements BitPacket {
@@ -292,7 +292,7 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
     }
 
     @Override
-    public IndexEdit del(long index, byte[] d, int offset, int length) {
+    public BaseBitPac del(long index, byte[] d, int offset, int length) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 }

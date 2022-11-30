@@ -22,8 +22,8 @@ public interface IndexEdit extends IndexInput,IndexOutput {
     
     byte del(long index);
     void del(long index, long size);
-    IndexEdit del(long index, byte[] buf);
-    IndexEdit del(long index, byte[] buf, int offset, int length);
+    <T extends IndexEdit> T del(long index, byte[] buf);
+    <T extends IndexEdit> T del(long index, byte[] buf, int offset, int length);
 
     /**
      * 1バイト追加.

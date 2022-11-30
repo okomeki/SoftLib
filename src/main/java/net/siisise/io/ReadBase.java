@@ -174,7 +174,7 @@ public abstract class ReadBase implements Input, IndexInput, RevInput, ReadableB
     }
 
     @Override
-    public Packet backSplit(long length) {
+    public Packet backReadPacket(long length) {
         Packet bp = new PacketA();
         RevOutput.backWrite(bp, this, length);
         return bp;

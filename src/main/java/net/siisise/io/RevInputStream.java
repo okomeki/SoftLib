@@ -100,8 +100,8 @@ public class RevInputStream extends InputStream implements RevInput {
     }
 
     @Override
-    public Packet backSplit(long length) {
-        return in.backSplit(length);
+    public Packet backReadPacket(long length) {
+        return in.backReadPacket(length);
     }
 
     @Override

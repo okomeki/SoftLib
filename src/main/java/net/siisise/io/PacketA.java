@@ -41,7 +41,7 @@ public class PacketA extends BasePacket {
          */
         int length;
 
-        PacketIn() { // NULLPACK
+        private PacketIn() { // NULLPACK
             offset = 0;
             length = 0;
         }
@@ -94,9 +94,9 @@ public class PacketA extends BasePacket {
 
     }
 
-    final PacketIn nullPack = new PacketIn();
+    private final PacketIn nullPack = new PacketIn();
 
-    /**
+    /*
      * ちょっと違うので分けたい (未使用?)
      */
     enum Mode {
@@ -241,7 +241,7 @@ public class PacketA extends BasePacket {
     /**
      * PacketA 以外のsplit で使いやすそうな形
      * @param pac 入力
-     * @param length
+     * @param length 読みたい長さ
      * @return 移動したサイズ
      */
     @Override
@@ -257,11 +257,12 @@ public class PacketA extends BasePacket {
     }
 
     /**
+     * 書き込み.
      * ToDo: まとめて変換してから追加してもいい
      *
-     * @param src
-     * @param offset
-     * @param length
+     * @param src 元データ
+     * @param offset データ位置
+     * @param length データ長さ
      */
     @Override
     public void write(byte[] src, int offset, int length) {
@@ -406,7 +407,7 @@ public class PacketA extends BasePacket {
      * @return 後半
      */
     @Override
-    public PacketA backSplit(long length) {
+    public PacketA backReadPacket(long length) {
         long limit = length;
         PacketA newPac = new PacketA();
         PacketIn n = nullPack.prev; // write 方向
@@ -422,7 +423,7 @@ public class PacketA extends BasePacket {
         }
 
         if ( limit > 0 ) {
-            byte[] d = new byte[(int)Long.min(limit, size())];
+            byte[] d = new byte[(int)Math.min(limit, size())];
             backRead(d);
             newPac.dbackWrite(d);
         }
@@ -447,7 +448,7 @@ public class PacketA extends BasePacket {
      */
     @Override
     public long back(long length) {
-        Packet p = backSplit(length);
+        Packet p = backReadPacket(length);
         return p.length();
     }
 
@@ -464,8 +465,8 @@ public class PacketA extends BasePacket {
         if ( length() < length) {
             throw new java.nio.BufferOverflowException();
         }
-        PacketA bb = backSplit(length() - index - length);
-        PacketA t = backSplit(length);
+        PacketA bb = backReadPacket(length() - index - length);
+        PacketA t = backReadPacket(length);
         t.read(b, offset, length);
         write(b, offset, length);
         write(bb);
@@ -482,7 +483,7 @@ public class PacketA extends BasePacket {
      */
     @Override
     public void put(long index, byte[] b, int offset, int length) {
-        PacketA bb = backSplit(length() - index);
+        PacketA bb = backReadPacket(length() - index);
         bb.readPacket(length);
         bb.backWrite(b, offset, length);
         write(bb);
@@ -497,7 +498,7 @@ public class PacketA extends BasePacket {
      */
     @Override
     public void add(long index, byte[] b, int offset, int length) {
-        PacketA bb = backSplit(length() - index);
+        PacketA bb = backReadPacket(length() - index);
         write(b, offset, length);
         write(bb);
     }
@@ -509,8 +510,8 @@ public class PacketA extends BasePacket {
      */
     @Override
     public void del(long index, long length) {
-        PacketA bb = backSplit(length() - index - length);
-        backSplit(length);
+        PacketA bb = backReadPacket(length() - index - length);
+        backReadPacket(length);
         write(bb);
     }
 
@@ -524,7 +525,7 @@ public class PacketA extends BasePacket {
      */
     @Override
     public PacketA del(long index, byte[] b, int offset, int length) {
-        PacketA bb = backSplit(length() - index);
+        PacketA bb = backReadPacket(length() - index - length);
         backRead(b, offset, length);
         write(bb);
         return this;

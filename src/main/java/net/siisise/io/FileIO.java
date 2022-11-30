@@ -38,8 +38,8 @@ public class FileIO {
     /**
      * DER? pkcs7 x509 など
      *
-     * @param path
-     * @return
+     * @param path File path
+     * @return ファイルのバイト列
      * @throws java.io.IOException
      */
     public static byte[] binRead(String path) throws IOException {

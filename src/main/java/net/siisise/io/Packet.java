@@ -21,7 +21,7 @@ package net.siisise.io;
  * メモリとストレージの中間を狙ったようなそうでもないような Bufferの可変長。
  * PipedInputStream / PipedOutputStream のような延長線。
  * 逆向きの読み書きが可能。中間の読み書きは使わないのでやめた。
- * 
+ *
  * @since JDK 1.1
  */
 public interface Packet extends FrontPacket,BackPacket,IndexEdit {

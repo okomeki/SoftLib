@@ -30,7 +30,7 @@ public class PacketATest {
      * Test of readPacket method, of class PacketA.
      */
     @Test
-    public void testSplit() {
+    public void testReadPacket() {
         System.out.println("split");
         byte[] data = "012".getBytes();
         byte[] data2 = "3456789".getBytes();
@@ -45,6 +45,25 @@ public class PacketATest {
         System.out.println(new String(tmp));
         result.read(tmp);
         assertArrayEquals(expResult, tmp);
+    }
+    
+    @Test
+    public void testBackReadPacket() {
+        System.out.println("backSplit");
+        byte[] data = "0123456".getBytes();
+        byte[] data2 = "789".getBytes();
+        int length = 4;
+        byte[] expResult = "6789".getBytes();
+        PacketA instance = new PacketA(data);
+        instance.write(data2);
+        PacketA result = instance.backReadPacket(length);
+        System.out.println("result.size " + result.size());
+        byte[] tmp = new byte[result.size()];
+        System.out.println(tmp.length);
+        System.out.println(new String(tmp));
+        result.read(tmp);
+        assertArrayEquals(expResult, tmp);
+        
     }
     
     @Test

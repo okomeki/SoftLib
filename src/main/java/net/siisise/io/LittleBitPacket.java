@@ -377,7 +377,7 @@ public class LittleBitPacket extends BaseBitPac {
 
 
     @Override
-    public LittleBitPacket backSplit(long length) {
+    public LittleBitPacket backReadPacket(long length) {
         LittleBitPacket bp = new LittleBitPacket();
         RevOutput.backWrite(bp, this, length);
         return bp;

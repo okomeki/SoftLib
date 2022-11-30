@@ -20,6 +20,8 @@ package net.siisise.io;
  */
 public abstract class BasePacket extends Edit implements Packet {
 
+    @Override
+    public abstract BasePacket del(long index, byte[] buf, int offset, int length);
     /**
      * エラーなしで書き込む.
      * @param b データ

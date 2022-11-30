@@ -260,7 +260,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput {
          * @return
          */
         @Override
-        public Packet backSplit(long length) {
+        public Packet backReadPacket(long length) {
             length = Math.min(length, backSize());
             PacketA pac = new PacketA();
             RevOutput.backWrite(pac, this, length);
