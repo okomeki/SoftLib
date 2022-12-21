@@ -65,6 +65,18 @@ public class FileIO {
     }
 
     /**
+     * Socket等ブロックしない程度に読む.
+     * @param in
+     * @return
+     * @throws IOException 
+     */
+    public static byte[] readAvailablie(InputStream in) throws IOException {
+        Packet pac = new PacketA();
+        available(in,pac.getOutputStream());
+        return pac.toByteArray();
+    }
+
+    /**
      * inとoutを繋ぐだけ
      * @param in
      * @param out
@@ -84,6 +96,20 @@ public class FileIO {
         out.flush();
         return size;
     }
+    
+    public static int available(InputStream in, OutputStream out) throws IOException {
+        byte[] data = new byte[102400];
+        int len = in.available();
+        int flen = 0;
+        while ( len > 0) {
+            int s = in.read(data);
+            if ( s < 0 ) break;
+            out.write(data, 0, s);
+            flen += s;
+            len = in.available();
+        }
+        return flen;
+   }
     
     /**
      * 

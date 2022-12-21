@@ -119,20 +119,20 @@ public class CodePoint {
         int len;
         int min;
         int srd = rd;
-        if (rd < 0x80) {        // 0xxx xxxx 1バイト 7bit 00 - 7f
+        if (rd < 0x80) {        // 0xxx xxxx 00 - 7F 1バイト 7bit 00 - 7f
             return rd;
-        } else if (rd < 0xc0) { // 10xx xxxx 80 - 7ff 2バイト目以降
+        } else if (rd < 0xc0) { // 10xx xxxx 80 - BF 80 - 7ff 2バイト目以降
             pac.backWrite(rd);
             return -1;
-        } else if (rd < 0xe0) { // 110x xxxx 2バイト 11bit
+        } else if (rd < 0xe0) { // 110x xxxx C0 - DF 2バイト 11bit
             rd &= 0x1f;
             len = 1;
             min = 0x80;
-        } else if (rd < 0xf0) { // 1110 xxxx 3バイト 16bit
+        } else if (rd < 0xf0) { // 1110 xxxx E0 - EF 3バイト 16bit
             rd &= 0xf;
             len = 2;
             min = 0x800;
-        } else {                  // 1111 0xxx 4バイト 21bit
+        } else {                  // 1111 0xxx F0 - F7 4バイト 21bit
             rd &= 0x7;
             len = 3;
             min = 0x10000;
