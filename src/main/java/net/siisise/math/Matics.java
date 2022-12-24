@@ -19,7 +19,7 @@ package net.siisise.math;
  * 仮 名前は変わるかも.
  */
 public class Matics {
-    
+
     /**
      * 複数の値からの最小.
      * @param v 候補
@@ -91,7 +91,7 @@ public class Matics {
     public static int range(int v, int min, int max) {
         return ( v < min ) ? min : ( v > max ) ? max : v; 
     }
- 
+
     /**
      * 数値を範囲内に丸める.
      * @param v 元

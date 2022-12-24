@@ -150,5 +150,198 @@ public class BinTest {
         FileIO.dump(result);
         assertArrayEquals(expResult, result);
     }
+
+    /**
+     * Test of toByte method, of class Bin.
+     */
+    @Test
+    public void testToByte_short() {
+        System.out.println("toByte");
+        short i = 0x1234;
+        byte[] expResult = new byte[] {0x12,0x34};
+        byte[] result = Bin.toByte(i);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of toByte method, of class Bin.
+     */
+    @Test
+    public void testToByte_3args_1() {
+        System.out.println("toByte");
+        short i = 0x2345;
+        byte[] out = new byte[2];
+        int offset = 0;
+        byte[] expResult = new byte[] {0x23,0x45};
+        byte[] result = Bin.toByte(i, out, offset);
+        assertArrayEquals(expResult, out);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of toByte method, of class Bin.
+     */
+    @Test
+    public void testToByte_int() {
+        System.out.println("toByte");
+        int i = 0x12345678;
+        byte[] expResult = new byte[] {0x12,0x34,0x56,0x78};
+        byte[] result = Bin.toByte(i);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of toByte method, of class Bin.
+     */
+    @Test
+    public void testToByte_3args_2() {
+        System.out.println("toByte");
+        int i = 0x23456789;
+        byte[] out = new byte[4];
+        int offset = 0;
+        byte[] expResult = new byte[] {0x23,0x45,0x67,(byte)0x89};
+        byte[] result = Bin.toByte(i, out, offset);
+        assertArrayEquals(expResult, out);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of toByte method, of class Bin.
+     */
+    @Test
+    public void testToByte_long() {
+        System.out.println("toByte");
+        long l = 0x789abcdef0123456L;
+        byte[] expResult = new byte[] {0x78,(byte)0x9a,(byte)0xbc,(byte)0xde,(byte)0xf0,0x12,0x34,0x56};
+        byte[] result = Bin.toByte(l);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of toByte method, of class Bin.
+     */
+    @Test
+    public void testToByte_3args_3() {
+        System.out.println("toByte");
+        long l = 0xabcdef0123456789L;
+        byte[] out = new byte[8];
+        int offset = 0;
+        byte[] expResult = new byte[] {(byte)0xab,(byte)0xcd,(byte)0xef,0x01,0x23,0x45,0x67,(byte)0x89};
+        byte[] result = Bin.toByte(l, out, offset);
+        assertArrayEquals(expResult, out);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of and method, of class Bin.
+     */
+    @Test
+    public void testAnd() {
+        System.out.println("and");
+        byte[] a = {0x01,0x22,0x03,0x44};
+        byte[] b = {0x11,0x02,0x33,0x04};
+        byte[] expResult = {0x01,0x02,0x03,0x04};
+        byte[] result = Bin.and(a, b);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of or method, of class Bin.
+     */
+    @Test
+    public void testOr() {
+        System.out.println("or");
+        byte[] a = new byte[] {0x01,0x02,0x03,0x04};
+        byte[] b = new byte[] {0x10,0x20,0x30,0x44};
+        byte[] expResult = {0x11,0x22,0x33,0x44};
+        byte[] result = Bin.or(a, b);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of xor method, of class Bin.
+     */
+    @Test
+    public void testXor() {
+        System.out.println("xor");
+        byte[] a = new byte[] {0x01,0x02,0x03,0x04};
+        byte[] b = new byte[] {0x10,0x20,0x30,0x44};
+        byte[] expResult = {0x11,0x22,0x33,0x40};
+        byte[] result = Bin.xor(a, b);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of shl method, of class Bin.
+     */
+    @Test
+    public void testShl() {
+        System.out.println("shl");
+        byte[] a = {0x01,0x02,(byte)0xf3,(byte)0xe4,0x75,0x63};
+        byte[] expResult = {0x02,0x05,(byte)0xe7,(byte)0xc8,(byte)0xea,(byte)0xc6};
+        byte[] result = Bin.shl(a);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of rol method, of class Bin.
+     */
+    @Test
+    public void testRol() {
+        System.out.println("rol");
+        byte[] a = {(byte)0x81,0x02,(byte)0xf3,(byte)0xe4,0x75,0x63};
+        byte[] expResult = {0x02,0x05,(byte)0xe7,(byte)0xc8,(byte)0xea,(byte)0xc7};
+        byte[] result = Bin.rol(a);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of shr method, of class Bin.
+     */
+    @Test
+    public void testShr() {
+        System.out.println("shr");
+        byte[] a = {0x02,0x05,(byte)0xe7,(byte)0xc8,(byte)0xea,(byte)0xc6};
+        byte[] expResult = {0x01,0x02,(byte)0xf3,(byte)0xe4,0x75,0x63};
+        byte[] result = Bin.shr(a);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of ror method, of class Bin.
+     */
+    @Test
+    public void testRor() {
+        System.out.println("ror");
+        byte[] a = {0x02,0x05,(byte)0xe7,(byte)0xc8,(byte)0xea,(byte)0xc7};
+        byte[] expResult = {(byte)0x81,0x02,(byte)0xf3,(byte)0xe4,0x75,0x63};
+        byte[] result = Bin.ror(a);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of left method, of class Bin.
+     */
+    @Test
+    public void testLeft() {
+        System.out.println("left");
+        byte[] a = {0x01,0x02,(byte)0xf3,(byte)0xe4,0x75,0x63};
+        byte[] expResult = Bin.shl(new byte[] {0x02,0x05,(byte)0xe7,(byte)0xc8,(byte)0xea,(byte)0xc6});
+        int shift = 2;
+        byte[] result = Bin.left(a, shift);
+        assertArrayEquals(expResult, result);
+    }
     
+    /**
+     * Test of left method, of class Bin.
+     */
+    @Test
+    public void testRight() {
+        System.out.println("right");
+        byte[] a = {0x02,0x05,(byte)0xe7,(byte)0xc8,(byte)0xea,(byte)0xc6};
+        byte[] expResult = Bin.shr(new byte[] {0x01,0x02,(byte)0xf3,(byte)0xe4,0x75,0x63});
+        int shift = 2;
+        byte[] result = Bin.right(a, shift);
+        assertArrayEquals(expResult, result);
+    }
 }

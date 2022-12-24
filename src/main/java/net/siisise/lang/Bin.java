@@ -300,6 +300,29 @@ public class Bin {
         }
         return ret;
     }
+
+    /**
+     * Bin へ
+     * @param a 元列
+     * @return 1ビット左シフト
+     */
+    public static byte[] shl(byte[] a) {
+        byte[] n = new byte[a.length];
+        int v = Byte.toUnsignedInt(a[0]);
+        for (int i = 1; i < a.length; i++) {
+            v = (v << 8) | Byte.toUnsignedInt(a[i]);
+            n[i - 1] = (byte)(v >>> 7);
+        }
+        n[a.length - 1] = (byte)(v << 1);
+        return n;
+    }
+    
+    public static byte[] rol(byte[] a) {
+        int b = Byte.toUnsignedInt(a[0]) >> 7;
+        byte[] n = shl(a);
+        n[a.length - 1] |= b;
+        return n;
+    }
     
     /**
      * MSB が 配列 0 側にある想定のシフト演算
@@ -309,10 +332,45 @@ public class Bin {
      */
     public static byte[] left(byte[] a, int shift) {
         byte[] b = new byte[a.length];
-        for ( int i = 0; i < a.length - 1 ; i++ ) {
-            b[i] = (byte)((a[i] & 0xff) << shift | ((a[i+1] & 0xff) >> (shift - 8)));
+        int v = Byte.toUnsignedInt(a[0]);
+        for (int i = 1; i < a.length ; i++) {
+            v = (v << 8) | Byte.toUnsignedInt(a[i]);
+            b[i - 1] |= (byte)(v >>> (8 - shift));
         }
-        b[a.length - 1] = (byte)((a[a.length - 1] & 0xff) << shift);
+        b[a.length - 1] = (byte)(v << shift);
         return b;
     }
+
+    /**
+     * @param a 元列
+     * @return 右シフト
+     */
+    public static byte[] shr(byte[] a) {
+        byte[] n = new byte[a.length];
+        int v = Byte.toUnsignedInt(a[a.length - 1]) << 8;
+        for (int i = a.length - 2; i >= 0; i--) {
+            v = (Byte.toUnsignedInt(a[i]) << 8) | (v >> 8);
+            n[i + 1] = (byte)(v >>> 1);
+        }
+        n[0] = (byte)(v >>> 9);
+        return n;
+    }    
+
+    public static byte[] ror(byte[] a) {
+        byte b = (byte)(a[a.length - 1] << 7);
+        byte[] n = shr(a);
+        n[0] |= b;
+        return n;
+    }    
+
+    public static byte[] right(byte[] a, int shift) {
+        byte[] n = new byte[a.length];
+        int v = Byte.toUnsignedInt(a[a.length - 1]) << 8;
+        for (int i = a.length - 2; i >= 0; i--) {
+            v = (Byte.toUnsignedInt(a[i]) << 8) | (v >> 8);
+            n[i + 1] = (byte)(v >>> shift);
+        }
+        n[0] = (byte)(v >>> (shift + 8));
+        return n;
+    }    
 }
