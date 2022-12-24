@@ -9,7 +9,7 @@ public class GF {
 
     final int N;   // 7
     final int root; // 0x11b
-    final byte[] constRb; // root と同じ 
+    final byte constRb; // root と同じ 
     int size; // 255
 
     final int[] x; // 計算済みのGF8
@@ -18,10 +18,10 @@ public class GF {
 
     // ガロア 有限体
 //  final byte FF4 = 0x3; // 0x13 10011
-    static final byte FF8 = 0x1b; // 0x11b 100011011 AES
-    static final byte FF128 = (byte)0x87; // 0x10000000000000087 x10000111
-    static final byte[] GF8 = {FF8}; // 0x11b
-    public static final byte[] GF128 = {0,0,0,0,0,0,0,FF128}; // 0x10000000000000087 CMAC
+    public static final byte FF8 = 0x1b; // 0x11b 100011011 AES
+    public static final byte FF128 = (byte)0x87; // 0x10000000000000087 x10000111
+    public static final byte[] GF8 = {FF8}; // 0x11b
+    public static final byte[] GF128 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,FF128}; // 0x100000000000000000000000000000087 CMAC
 
     public GF() {
         this(8, 0x11b);
@@ -35,7 +35,7 @@ public class GF {
     public GF(int n, int m) {
         N = n - 1;
         root = m;
-        constRb = null; // root側を使う
+        constRb = 0; // root側を使う
         size = (1 << n) - 1;
         x = new int[size + 1];
         log = new int[size + 1];
@@ -57,11 +57,20 @@ public class GF {
     }
 
     /**
+     * rb は1バイトだけ使う仮実装
+     * @param n ビット数 128を想定
+     * @param rb 0x87 を想定
+     */
+    public GF(int n, byte[] rb) {
+        this(n, rb[rb.length - 1]);
+    }
+
+    /**
      * 長い用
      * @param n 128
      * @param rb MSBを外したもの constやfinalなので複製しなくてもいい?
      */
-    public GF(int n, byte[] rb) {
+    public GF(int n, byte rb) {
         N = n - 1;
 //        size = (1 << n) - 1; // 使わない
         root = 0; // constRb 側をつかう
@@ -79,7 +88,7 @@ public class GF {
     public byte[] x(byte[] s) {
         byte[] v = Bin.shl(s);
         if ((s[0] & 0x80) != 0) {
-            v = Bin.xor(v, constRb);
+            v[v.length - 1] ^= constRb;
         }
         return v;
     }
@@ -91,7 +100,7 @@ public class GF {
      */
     public byte[] r(byte[] s) {
         if ((s[0] & 0x01) != 0) {
-            s = Bin.xor(s, constRb);
+            s[s.length - 1] ^= constRb;
         }
         return Bin.ror(s);
     }
