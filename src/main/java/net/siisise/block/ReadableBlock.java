@@ -22,6 +22,7 @@ import java.io.Reader;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
+import net.siisise.io.BinInput;
 import net.siisise.io.FilterInput;
 import net.siisise.io.FrontPacket;
 import net.siisise.io.IndexInput;
@@ -38,7 +39,7 @@ import net.siisise.math.Matics;
  * Buffer の読み込み専用 っぽいものをStream風メソッドで実装したもの.
  * position() は backSize()
  */
-public interface ReadableBlock extends Block, Input, RevInput, IndexInput {
+public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinInput {
 
     default boolean hasArray() {
         return false;

@@ -17,6 +17,7 @@ package net.siisise.lang;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import net.siisise.math.Matics;
 
 /**
  * 名前候補 BinかHex
@@ -244,61 +245,137 @@ public class Bin {
      * c = a AND b
      * returnでcとして返すタイプ
      * @param a 長さの基準
+     * @param aoffset aの開始位置
      * @param b
-     * @return a AND b
+     * @param boffset bの開始位置
+     * @param ret 長さの制限
+     * @return a AND b 新配列
      */
-    public static byte[] and(byte[] a, byte[] b) {
-        int len, min;
-        len = a.length;
-        min = ( len > b.length ) ? b.length : len;
-        byte[] ret = new byte[len];
+    public static byte[] and(byte[] a, int aoffset, byte[] b, int boffset, byte[] ret ) {
+        int min = Matics.min( ret.length, a.length - aoffset, b.length - boffset );
         for ( int i = 0; i < min; i++ ) {
-            ret[i] = (byte)(a[i] & b[i]);
+            ret[i] = (byte)(a[aoffset + i] & b[boffset + i]);
         }
-        if ( min < len ) {
-            System.arraycopy(a, min, ret, min, len - min);
+        if ( min < ret.length ) {
+            Arrays.fill(ret, min, ret.length, (byte)0);
         }
         return ret;
+    }
+
+    public static byte[] and(byte[] a, byte[] b) {
+        return and(a, 0, b, 0, new byte[a.length]);
     }
 
     /**
      * OR
      * @param a 長さの基準
+     * @param aoffset
      * @param b
+     * @param boffset
+     * @param ret
      * @return a OR b
      */
-    public static byte[] or(byte[] a, byte[] b) {
-        int len, min;
-        len = a.length;
-        min = ( len > b.length ) ? b.length : len;
-        byte[] ret = new byte[len];
+    public static byte[] or(byte[] a, int aoffset, byte[] b, int boffset, byte[] ret) {
+        int min = Matics.min( ret.length, a.length - aoffset, b.length - boffset );
         for ( int i = 0; i < min; i++ ) {
-            ret[i] = (byte)(a[i] | b[i]);
+            ret[i] = (byte)(a[aoffset + i] | b[boffset + i]);
         }
-        if ( min < len ) {
-            System.arraycopy(a, min, ret, min, len - min);
+        if ( min < ret.length ) {
+            if ( min < a.length - aoffset ) {
+                System.arraycopy(a, aoffset + min, ret, min, Math.min(ret.length, a.length - aoffset) - min);
+            } else {
+                System.arraycopy(b, boffset + min, ret, min, Math.min(ret.length, b.length - boffset) - min);
+            }
+        }
+        return ret;
+    }
+
+    public static byte[] or(byte[] a, byte[] b) {
+        return or(a, 0, b, 0, new byte[a.length]);
+    }
+
+    /**
+     * ret = a XOR b
+     * @deprecated まだ未確定
+     * @param a
+     * @param aoffset
+     * @param b
+     * @param boffset
+     * @param ret
+     * @param roffset
+     * @return a XOR b
+     */
+    public static byte[] xor(byte[] a, int aoffset, byte[] b, int boffset, byte[] ret, int roffset) {
+        int min = Matics.min( ret.length - roffset, a.length - aoffset, b.length - boffset );
+        for ( int i = 0; i < min; i++ ) {
+            ret[roffset + i] = (byte)(a[aoffset + i] ^ b[boffset + i]);
+        }
+        if ( min < ret.length - roffset ) {
+            if ( min < a.length - aoffset ) {
+                System.arraycopy(a, aoffset + min, ret, roffset + min, Math.min(ret.length, a.length - aoffset) - min);
+            } else {
+                System.arraycopy(b, boffset + min, ret, roffset + min, Math.min(ret.length, b.length - boffset) - min);
+            }
         }
         return ret;
     }
 
     /**
-     * XOR
+     * XORを計算するよ
      * @param a 長さの基準
      * @param b
-     * @return a XOR b
+     * @return a ^ b
      */
     public static byte[] xor(byte[] a, byte[] b) {
-        int len, min;
-        len = a.length;
-        min = ( len > b.length ) ? b.length : len;
-        byte[] ret = new byte[len];
-        for ( int i = 0; i < min; i++ ) {
-            ret[i] = (byte)(a[i] ^ b[i]);
+        return xor(a, 0, b, 0, new byte[a.length], 0);
+    }
+
+    /**
+     * 
+     * @param a 結果もこっちへ
+     * @param b
+     * @return 
+     */
+    public static byte[] xorl(byte[] a, byte[] b) {
+        int len = Math.min(a.length, b.length);
+        for ( int i = 0; i < len; i++ ) {
+            a[i] ^= b[i];
         }
-        if ( min < len ) {
-            System.arraycopy(a, min, ret, min, len - min);
+        return a;
+    }
+
+    public static long[] xor(long[] a, int aoffset, long[] b, int boffset, long[] ret) {
+        int min = Matics.min( ret.length, a.length - aoffset, b.length - boffset );
+        for ( int i = 0; i < min; i++ ) {
+            ret[i] = a[aoffset + i] ^ b[boffset + i];
+        }
+        if ( min < ret.length ) {
+            if ( min < a.length - aoffset ) {
+                System.arraycopy(a, aoffset + min, ret, min, Math.min(ret.length, a.length - aoffset) - min);
+            } else {
+                System.arraycopy(b, boffset + min, ret, min, Math.min(ret.length, b.length - boffset) - min);
+            }
         }
         return ret;
+    }
+
+    public static long[] xor(long[] a, long[] b) {
+        return xor(a, 0, b, 0, new long[a.length]);
+    }
+
+    public static byte[] not(byte[] a, int aoffset, byte[] ret) {
+        int min = Matics.min( ret.length, a.length - aoffset );
+        for ( int i = 0; i < min; i++ ) {
+            ret[i] = (byte)(~a[aoffset + i]);
+        }
+        if ( min < ret.length ) {
+            Arrays.fill(ret, min, ret.length, (byte)0xff);
+        }
+        return ret;
+    }
+
+    public static byte[] not(byte[] a) {
+        return not(a, 0, new byte[a.length]);
     }
 
     /**
@@ -314,6 +391,15 @@ public class Bin {
             n[i - 1] = (byte)(v >>> 7);
         }
         n[a.length - 1] = (byte)(v << 1);
+        return n;
+    }
+    
+    public static long[] shl(long[] a) {
+        long[] n = new long[a.length];
+        for (int i = 0; i < a.length - 1; i++) {
+            n[i] = (a[i] << 1) | (a[i + 1] >>> 63);
+        }
+        n[a.length - 1] = a[a.length - 1] << 1;
         return n;
     }
     
@@ -353,6 +439,15 @@ public class Bin {
             n[i + 1] = (byte)(v >>> 1);
         }
         n[0] = (byte)(v >>> 9);
+        return n;
+    }    
+
+    public static long[] shr(long[] a) {
+        long[] n = new long[a.length];
+        for (int i = a.length - 1; i > 0; i--) {
+            n[i] = (a[i] >>> 1) | ( a[i - 1] >>> 63);
+        }
+        n[0] = (byte)(a[0] >>> 1);
         return n;
     }    
 

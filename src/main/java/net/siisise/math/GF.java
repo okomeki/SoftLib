@@ -67,7 +67,7 @@ public class GF {
 
     /**
      * 長い用
-     * @param n 128
+     * @param n ビット長 128bit
      * @param rb MSBを外したもの constやfinalなので複製しなくてもいい?
      */
     public GF(int n, byte rb) {
@@ -82,6 +82,7 @@ public class GF {
 
     /**
      * ふつうのGF *2
+     * バイト数は未検証. てきとう.
      * @param s 数
      * @return s・2
      */
@@ -89,6 +90,14 @@ public class GF {
         byte[] v = Bin.shl(s);
         if ((s[0] & 0x80) != 0) {
             v[v.length - 1] ^= constRb;
+        }
+        return v;
+    }
+    
+    public long[] x(long[] s) {
+        long[] v = Bin.shl(s);
+        if ((s[0] & 0x8000000000000000l) != 0) {
+            v[v.length - 1] ^= constRb & 0xffl;
         }
         return v;
     }
@@ -157,6 +166,13 @@ public class GF {
         return true;
     }
 
+    private boolean isZero(long[] a) {
+        for ( long c : a ) {
+            if ( c != 0 ) return false;
+        }
+        return true;
+    }
+
     /**
      * a・b
      * @param a
@@ -165,6 +181,18 @@ public class GF {
      */
     public byte[] mul(byte[] a, byte[] b) {
         byte[] r = new byte[a.length];
+        while ( !isZero(a) ) {
+            if ( (a[a.length - 1] & 0x01) != 0 ) {
+                r = Bin.xor(r, b);
+            }
+            a = Bin.shr(a);
+            b = x(b);
+        }
+        return r;
+    }
+
+    public long[] mul(long[] a, long[] b) {
+        long[] r = new long[a.length];
         while ( !isZero(a) ) {
             if ( (a[a.length - 1] & 0x01) != 0 ) {
                 r = Bin.xor(r, b);

@@ -20,6 +20,7 @@ package net.siisise.block;
  * java.nio Buffer っぽいかな
  * 違い mark は offset を取得して外部で管理する.
  * Read Only.
+ * Block同士でデータ移動が可能.
  * 切り取りが可能. min と max が固定できるため.
  * 
  * 0スタートではない。min 以下は読み書き禁止.

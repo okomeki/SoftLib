@@ -101,16 +101,17 @@ public interface Input {
         return out.write(this);
     }
 
-    default int read(ByteBuffer buf) {
-        if (buf.hasArray()) {
-            int p = buf.position();
-            int size = read(buf.array(), buf.arrayOffset() + p, buf.remaining());
-            buf.position(p + size);
+    default int read(ByteBuffer dst) {
+        int len = Math.min(dst.remaining(), size());
+        if (dst.hasArray()) {
+            int p = dst.position();
+            int size = read(dst.array(), dst.arrayOffset() + p, len);
+            dst.position(p + size);
             return size;
         } else {
-            byte[] d = new byte[buf.remaining()];
+            byte[] d = new byte[len];
             int size = read(d);
-            buf.put(d, 0, size);
+            dst.put(d, 0, size);
             return size;
         }
     }
@@ -118,7 +119,7 @@ public interface Input {
     /**
      * byte配列に変換する。
      *
-     * @return 全データの配列
+     * @return readするデータの配列
      */
     byte[] toByteArray();
 
