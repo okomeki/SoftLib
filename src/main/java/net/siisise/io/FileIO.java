@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,6 +57,13 @@ public class FileIO {
             in.close();
         }
         return data;
+    }
+    
+    public static byte[] binRead(URL url) throws IOException {
+        InputStream in = url.openStream();
+        byte[] bin = binRead(in);
+        in.close();
+        return bin;
     }
     
     public static byte[] binRead(InputStream in) throws IOException {
