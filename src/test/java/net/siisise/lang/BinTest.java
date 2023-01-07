@@ -301,8 +301,8 @@ public class BinTest {
     @Test
     public void testShr() {
         System.out.println("shr");
-        byte[] a = {0x02,0x05,(byte)0xe7,(byte)0xc8,(byte)0xea,(byte)0xc6};
-        byte[] expResult = {0x01,0x02,(byte)0xf3,(byte)0xe4,0x75,0x63};
+        byte[] a = {(byte)0x82,0x05,(byte)0xe7,(byte)0xc8,(byte)0xea,(byte)0xc6};
+        byte[] expResult = {0x41,0x02,(byte)0xf3,(byte)0xe4,0x75,0x63};
         byte[] result = Bin.shr(a);
         assertArrayEquals(expResult, result);
     }
@@ -342,6 +342,54 @@ public class BinTest {
         byte[] expResult = Bin.shr(new byte[] {0x01,0x02,(byte)0xf3,(byte)0xe4,0x75,0x63});
         int shift = 2;
         byte[] result = Bin.right(a, shift);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of shl method, of class Bin.
+     */
+    @Test
+    public void testShl_byteArr() {
+        System.out.println("shl");
+        byte[] a = {0,(byte)0x80,1};
+        byte[] expResult = {1,0,2};
+        byte[] result = Bin.shl(a);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of shl method, of class Bin.
+     */
+    @Test
+    public void testShl_longArr() {
+        System.out.println("shl");
+        long[] a = {0,0x8400000000000000l,1};
+        long[] expResult = {1,0x0800000000000000l,2};
+        long[] result = Bin.shl(a);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of shr method, of class Bin.
+     */
+    @Test
+    public void testShr_byteArr() {
+        System.out.println("shr");
+        byte[] a = {1,0,2};
+        byte[] expResult = {0,(byte)0x80,1};
+        byte[] result = Bin.shr(a);
+        assertArrayEquals(expResult, result);
+    }
+
+    /**
+     * Test of shr method, of class Bin.
+     */
+    @Test
+    public void testShr_longArr() {
+        System.out.println("shr");
+        long[] a = {1,0x0800000000000000l,2};
+        long[] expResult = {0,0x8400000000000000l,1};
+        long[] result = Bin.shr(a);
         assertArrayEquals(expResult, result);
     }
 }

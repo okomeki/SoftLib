@@ -27,9 +27,9 @@ public class Matics {
      */
     public static int min(int... v) {
         int r = Integer.MAX_VALUE;
-        for (int i = 0; i < v.length; i++) {
-            if ( r > v[i] ) {
-                r = v[i];
+        for (int i : v) {
+            if ( r > i ) {
+                r = i;
             }
         }
         return r;
@@ -42,9 +42,9 @@ public class Matics {
      */
     public static long min(long... v) {
         long r = Long.MAX_VALUE;
-        for (int i = 0; i < v.length; i++) {
-            if ( r > v[i] ) {
-                r = v[i];
+        for (long i : v) {
+            if ( r > i ) {
+                r = i;
             }
         }
         return r;
@@ -57,9 +57,9 @@ public class Matics {
      */
     public static int max(int... v) {
         int r = Integer.MIN_VALUE;
-        for (int i = 0; i < v.length; i++) {
-            if ( r < v[i] ) {
-                r = v[i];
+        for (int i : v) {
+            if ( r < i ) {
+                r = i;
             }
         }
         return r;
@@ -72,9 +72,9 @@ public class Matics {
      */
     public static long max(long... v) {
         long r = Long.MIN_VALUE;
-        for (int i = 0; i < v.length; i++) {
-            if ( r < v[i] ) {
-                r = v[i];
+        for (long i : v) {
+            if ( r < i ) {
+                r = i;
             }
         }
         return r;
@@ -104,6 +104,7 @@ public class Matics {
     }
 
     /**
+     * ascending order.  orderd
      * 複数の大小を比較したいこともある.
      * java.math.Math#min(int,int)
      * @param v 要素
@@ -119,6 +120,7 @@ public class Matics {
     }
 
     /**
+     * ascending order.  orderd
      * 複数の大小を比較したいこともある.
      * java.math.Math#min(int,int)
      * @param v 要素

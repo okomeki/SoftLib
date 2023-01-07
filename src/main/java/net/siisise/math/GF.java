@@ -4,9 +4,11 @@ import net.siisise.lang.Bin;
 
 /**
  * ガロア体のなにか
+ * 8bit用とbyte列,long列用
  */
 public class GF {
 
+    // 8bit - 32bit?
     final int N;   // 7
     final int root; // 0x11b
     final byte constRb; // root と同じ 
@@ -72,7 +74,6 @@ public class GF {
      */
     public GF(int n, byte rb) {
         N = n - 1;
-//        size = (1 << n) - 1; // 使わない
         root = 0; // constRb 側をつかう
         constRb = rb;
         x = null;
@@ -81,7 +82,7 @@ public class GF {
     }
 
     /**
-     * ふつうのGF *2
+     * ふつうのGF s・2
      * バイト数は未検証. てきとう.
      * @param s 数
      * @return s・2
@@ -93,7 +94,12 @@ public class GF {
         }
         return v;
     }
-    
+
+    /**
+     * long列 GF s・2
+     * @param s 数
+     * @return s・2
+     */
     public long[] x(long[] s) {
         long[] v = Bin.shl(s);
         if ((s[0] & 0x8000000000000000l) != 0) {
@@ -101,11 +107,11 @@ public class GF {
         }
         return v;
     }
-
+    
     /**
-     * GFの逆 /2
-     * @param s
-     * @return 
+     * GF s・2の逆 /2
+     * @param s・2
+     * @return s
      */
     public byte[] r(byte[] s) {
         if ((s[0] & 0x01) != 0) {
@@ -114,6 +120,11 @@ public class GF {
         return Bin.ror(s);
     }
 
+    /**
+     * a・2
+     * @param a
+     * @return a・2
+     */
     public final int x(int a) {
 //        return (a << 1) ^ ((a >>> N) * root); 
         return x[a];
@@ -159,20 +170,20 @@ public class GF {
     }
 */
 
-    private boolean isZero(byte[] a) {
+    private static boolean isZero(byte[] a) {
         for ( byte c : a ) {
             if ( c != 0 ) return false;
         }
         return true;
     }
 
-    private boolean isZero(long[] a) {
+    private static boolean isZero(long[] a) {
         for ( long c : a ) {
             if ( c != 0 ) return false;
         }
         return true;
     }
-
+    
     /**
      * a・b
      * @param a
@@ -191,6 +202,12 @@ public class GF {
         return r;
     }
 
+    /**
+     * a・b
+     * @param a
+     * @param b
+     * @return a・b
+     */
     public long[] mul(long[] a, long[] b) {
         long[] r = new long[a.length];
         while ( !isZero(a) ) {
@@ -215,4 +232,12 @@ public class GF {
         return exp[e];
     }
 
+    public static String toHexString(long[] s) {
+        StringBuilder sb = new StringBuilder(32);
+        for ( long v : s ) {
+            String h = "000000000000000" + Long.toHexString(v);
+            sb.append(h.substring(h.length() - 16));
+        }
+        return sb.toString();
+    }
 }

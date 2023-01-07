@@ -433,21 +433,19 @@ public class Bin {
      */
     public static byte[] shr(byte[] a) {
         byte[] n = new byte[a.length];
-        int v = Byte.toUnsignedInt(a[a.length - 1]) << 8;
-        for (int i = a.length - 2; i >= 0; i--) {
-            v = (Byte.toUnsignedInt(a[i]) << 8) | (v >> 8);
-            n[i + 1] = (byte)(v >>> 1);
+        for (int i = a.length - 1; i > 0; i--) {
+            n[i] = (byte)((Byte.toUnsignedInt(a[i]) >> 1) | (Byte.toUnsignedInt(a[i - 1]) << 7));
         }
-        n[0] = (byte)(v >>> 9);
+        n[0] = (byte)(Byte.toUnsignedInt(a[0]) >> 1);
         return n;
     }    
 
     public static long[] shr(long[] a) {
         long[] n = new long[a.length];
         for (int i = a.length - 1; i > 0; i--) {
-            n[i] = (a[i] >>> 1) | ( a[i - 1] >>> 63);
+            n[i] = (a[i] >>> 1) | ( a[i - 1] << 63);
         }
-        n[0] = (byte)(a[0] >>> 1);
+        n[0] = a[0] >>> 1;
         return n;
     }    
 
