@@ -109,27 +109,35 @@ public class BASE32 {
     }
 
     /**
+     * BASE32エンコード.
      * ビット処理はBitPacketに任せた.
-     * @param src
-     * @param offset
-     * @param length
-     * @return 
+     * @param src バイト列
+     * @param offset 位置
+     * @param length 長さ
+     * @return BASE32
      */
     public String encode(byte[] src, int offset, int length) {
         BitPacket bp = new BigBitPacket();
         bp.write(src, offset, length);
         char[] encd = new char[(length * 8 + 4) / 5];
         int r = (length * 8) % 5;
-        if (r > 0) {
+        if (r > 0) { // 端数
             bp.writeBit(0, 5 - r);
         }
-        for (int i = 0; bp.length() >= 5; i++) {
+        int s = (int) (bp.bitLength() / 5);
+        for (int i = 0; i < s; i++) {
             int v = bp.readInt(5);
             encd[i] = enc[v];
         }
         return new String(encd);
     }
 
+    /**
+     * BESE32デコード.
+     * 対象外の文字は無視する.
+     * @param src BASE32
+     * @return バイト列
+     */
     public byte[] decode(String src) {
         char[] chs = src.toCharArray();
         BitPacket pb = new BigBitPacket();
