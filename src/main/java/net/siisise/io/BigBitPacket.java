@@ -23,7 +23,7 @@ public class BigBitPacket extends BaseBitPac {
 
     @Override
     public BigBitPacket del(long index, byte[] buf, int offset, int length) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     class BigBitInputStream extends BitInputStream {
@@ -166,9 +166,8 @@ public class BigBitPacket extends BaseBitPac {
         @Override
         public void writeBit(int data, int bitLength) {
             data &= andMask(bitLength);
-            int oldData = 0;
             if (writePadding > 0) {
-                oldData = pac.backRead();
+                int oldData = pac.backRead();
                 if (bitLength >= writePadding) { // | oooo nnnn |
                     int d = oldData | (data >>> (bitLength - writePadding));
                     pac.write(d);
@@ -252,7 +251,7 @@ public class BigBitPacket extends BaseBitPac {
                 bit -= flen;
                 writePadding = 0;
             }
-            int len = (int) bit / 8;
+            int len = bit / 8;
             if (len > 0) {
                 byte[] d = new byte[len];
                 pac.backRead(d);

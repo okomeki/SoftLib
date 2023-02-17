@@ -110,6 +110,11 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
             writeBit(data, 0, bitLength);
         }
 
+        /**
+         * 
+         * @param data
+         * @param bitLength 0でも可
+         */
         public abstract void writeBit(int data, int bitLength);
         public abstract void writeBit(byte[] data, long bitOffset, long bitLength);
     }

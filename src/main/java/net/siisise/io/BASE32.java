@@ -19,7 +19,8 @@ import java.util.Arrays;
 
 /**
  * RFC 4648 The Base16, Base32, and Base64 Data Encodings.
- * Bech32はBASE32互換部分のみ
+ * Bech32はBASE32互換部分のみ。デコードのみ可。エンコードは別で作った。
+ * 
  * FIXはいくつかの誤字をそれっぽく解釈する.
  */
 public class BASE32 {
@@ -32,11 +33,9 @@ public class BASE32 {
         Bech32FIX("qpzry9x8gf2tvdw0s3jn54khce6mua7l");
         final char[] ENC = new char[32];
         final byte[] DEC = new byte[128];
-        
+
         Type(String code) {
-            for (int i = 0; i < DEC.length; i++) {
-                DEC[i] = -1;
-            }
+            Arrays.fill(DEC, (byte) -1);
             for (byte i = 0; i < ENC.length; i++) {
                 char ch = code.charAt(i);
                 ENC[i] = ch;
@@ -66,7 +65,7 @@ public class BASE32 {
 
     private char[] enc;
     private byte[] dec;
-    
+
     public static final Type BASE32 = Type.BASE32;
     public static final Type BASE32HEX = Type.BASE32HEX;
     public static final Type Bech32 = Type.Bech32;
@@ -74,9 +73,9 @@ public class BASE32 {
     public BASE32() {
         this(Type.BASE32);
     }
-    
+
     public BASE32(Type type) {
-        if ( type != null ) {
+        if (type != null) {
             enc = type.ENC;
             dec = type.DEC;
         }
@@ -109,48 +108,63 @@ public class BASE32 {
     }
 
     /**
-     * BASE32エンコード.
-     * ビット処理はBitPacketに任せた.
+     * BASE32エンコード. ビット処理はBitPacketに任せた.
+     *
      * @param src バイト列
      * @param offset 位置
      * @param length 長さ
      * @return BASE32
      */
     public String encode(byte[] src, int offset, int length) {
-        BitPacket bp = new BigBitPacket();
+        BigBitPacket bp = new BigBitPacket();
         bp.write(src, offset, length);
-        char[] encd = new char[(length * 8 + 4) / 5];
-        int r = (length * 8) % 5;
+        return encode(bp);
+    }
+
+    public String encode(BigBitPacket bp) {
+        int r = (int) bp.bitLength() % 5;
         if (r > 0) { // 端数
             bp.writeBit(0, 5 - r);
         }
-        int s = (int) (bp.bitLength() / 5);
-        for (int i = 0; i < s; i++) {
-            int v = bp.readInt(5);
-            encd[i] = enc[v];
+        int len = (int) (bp.bitLength() / 5);
+        char[] encd = new char[len];
+        for (int i = 0; i < len; i++) {
+            encd[i] = enc[bp.readInt(5)];
         }
         return new String(encd);
     }
 
     /**
-     * BESE32デコード.
-     * 対象外の文字は無視する.
+     * BESE32デコード. データ用。
+     * チェックサムは削られるのでBech32などでは不向き. 対象外の文字は無視する.
+     *
      * @param src BASE32
-     * @return バイト列
+     * @return バイト列 余りは捨てる.
      */
     public byte[] decode(String src) {
+        BitPacket bp = decodePacket(src);
+        int r = (int) (bp.bitLength() % 8);
+        bp.backReadInt(r);
+        return bp.toByteArray();
+    }
+
+    /**
+     * チェックサム付きのBash32デコード用.
+     *
+     * @param src
+     * @return ビット単位のパケット
+     */
+    public BigBitPacket decodePacket(String src) {
         char[] chs = src.toCharArray();
-        BitPacket pb = new BigBitPacket();
+        BigBitPacket bp = new BigBitPacket();
         for (char ch : chs) {
             if (ch < 128) {
                 int d = dec[ch];
                 if (d >= 0) { // 知らない文字は無視する
-                    pb.writeBit(dec[ch], 5);
+                    bp.writeBit(d, 5);
                 }
             }
         }
-        int r = (int) (pb.bitLength() % 8);
-        pb.backReadInt(r);
-        return pb.toByteArray();
+        return bp;
     }
 }
