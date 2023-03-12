@@ -16,21 +16,33 @@
 package net.siisise.io;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.StringReader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * PEM系をBASE64から分離しておく
  */
-public class PEM {
+public class PEM implements TextEncode {
+    
+    public static final String RSA_PRIVATE_KEY = "RSA PRIVATE KEY";
+
+    public static final String OPENSSH_PRIVATE_KEY = "OPENSSH PRIVATE KEY";
+
+    String type;
+
+    /**
+     * @param type エンコードの名
+     */
+    public PEM(String type) {
+        this.type = type;
+    }
 
     /**
      * RFCエンコード.
@@ -39,36 +51,67 @@ public class PEM {
      * 64桁を指定しよう
      *
      * @param data バイト列ソース
-     * @param type エンコードの名
      * @param fout テキスト出力先
      * @throws java.io.IOException
      */
-    public void encode(byte[] data, String type, Writer fout) throws IOException {
-        PrintWriter out = new PrintWriter(
-                new BufferedWriter(fout));
+    public void encode(byte[] data, Writer fout) throws IOException {
+        fout.write(encode(data));
+    }
+    
+    @Override
+    public String encode(byte[] src) {
+        return encode(src, 0, src.length);
+    }
+    
+    @Override
+    public String encode(byte[] src, int offset, int length) {
+        StringBuilder sb = new StringBuilder();
         BASE64 b64 = new BASE64(64);
-        out.print("-----BEGIN " + type + "-----\r\n");
-        out.print(b64.encode(data));
-        out.print("-----END " + type + "-----\r\n");
-//        out.flush();
+        sb.append("-----BEGIN ");
+        sb.append(type);
+        sb.append("-----\r\n");
+        sb.append(b64.encode(src, offset, length));
+        sb.append("-----END ");
+        sb.append(type);
+        sb.append("-----\r\n");
+        return sb.toString();
     }
 
     /**
      * ファイルに書き出します
      *
      * @param data データ
-     * @param type エンコードの名
      * @param fileName 出力先ファイル名
      * @throws java.io.IOException
      */
-    public void save(byte[] data, String type, String fileName) throws IOException {
-        Writer out = new OutputStreamWriter(
-                new FileOutputStream(fileName), "ASCII");
+    public void save(byte[] data, String fileName) throws IOException {
+        FileOutputStream out = new FileOutputStream(fileName);
         try {
-            encode(data, type, out);
+            out.write(encode(data).getBytes(StandardCharsets.US_ASCII));
             out.flush();
         } finally {
             out.close();
+        }
+    }
+
+    /**
+     * 
+     * @param base64
+     * @return
+     */
+    @Override
+    public byte[] decode(String base64) {
+        Map<String, Object> map = decodeMap(base64);
+        return (byte[]) map.get(null);
+    }
+    
+    @Override
+    public Map<String,Object> decodeMap(String base64) {
+        StringReader in = new StringReader(base64);
+        try {
+            return decodeMap(in);
+        } catch (IOException e) {
+            return null;
         }
     }
 
@@ -77,12 +120,11 @@ public class PEM {
      * typeは1種類のみ指定可能
      * RFC 7468 にまとまっている 
      *
-     * @param type エンコードの名
      * @param fin テキストの入力
      * @return
      * @throws java.io.IOException
      */
-    public static Map<String,Object> decode(String type, java.io.Reader fin) throws IOException {
+    public Map<String,Object> decodeMap(java.io.Reader fin) throws IOException {
         BufferedReader in = new BufferedReader(fin);
         String line;
         String begin = "-----BEGIN " + type + "-----";
@@ -117,14 +159,13 @@ public class PEM {
     /**
      * ファイルから読み込み
      *
-     * @param type エンコードの名 BEGIN XXXXXXというところ
      * @param fileName ファイル名
      * @return
      * @throws java.io.IOException
      */
-    public static Map<String,Object> load(String type, String fileName) throws IOException {
+    public Map<String,Object> load(String fileName) throws IOException {
         InputStreamReader in = new InputStreamReader(new FileInputStream(fileName), "ASCII");
-        Map<String,Object> m = decode(type, in);
+        Map<String,Object> m = decodeMap(in);
         in.close();
         return m;
     }

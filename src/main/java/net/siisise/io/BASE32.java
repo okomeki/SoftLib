@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 okome.
+ * Copyright 2023 Siisise Net.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@ import java.util.Arrays;
 
 /**
  * RFC 4648 The Base16, Base32, and Base64 Data Encodings.
- * Bech32はBASE32互換部分のみ。デコードのみ可。エンコードは別で作った。
+ * Bech32はデコードのみ可。エンコードは別で作った。
  * 
  * FIXはいくつかの誤字をそれっぽく解釈する.
  */
-public class BASE32 {
+public class BASE32 implements TextEncode {
 
     public static enum Type {
         BASE32("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"),
@@ -103,10 +103,6 @@ public class BASE32 {
         }
     }
 
-    public String encode(byte[] src) {
-        return encode(src, 0, src.length);
-    }
-
     /**
      * BASE32エンコード. ビット処理はBitPacketに任せた.
      *
@@ -115,6 +111,7 @@ public class BASE32 {
      * @param length 長さ
      * @return BASE32
      */
+    @Override
     public String encode(byte[] src, int offset, int length) {
         BigBitPacket bp = new BigBitPacket();
         bp.write(src, offset, length);
@@ -141,13 +138,14 @@ public class BASE32 {
      * @param src BASE32
      * @return バイト列 余りは捨てる.
      */
+    @Override
     public byte[] decode(String src) {
         BitPacket bp = decodePacket(src);
         int r = (int) (bp.bitLength() % 8);
         bp.backReadInt(r);
         return bp.toByteArray();
     }
-
+    
     /**
      * チェックサム付きのBash32デコード用.
      *

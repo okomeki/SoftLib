@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Siisise Net.
+ * Copyright 2019-2023 Siisise Net.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import java.io.OutputStream;
  * 2006/10/25 0.3 RFCヘッダフッタ処理機能追加
  *
  */
-public class BASE64 {
+public class BASE64 implements TextEncode {
 
     /**
      * エンコード時の1行の長さ
@@ -194,8 +194,9 @@ public class BASE64 {
         return cols;
     }
 
-    public final String encode(byte[] data) {
-        return encode(data, 0, data.length);
+    @Override
+    public final String encode(byte[] src) {
+        return encode(src, 0, src.length);
     }
 
     /**
@@ -207,6 +208,7 @@ public class BASE64 {
      * @param length サイズ
      * @return 文字列型
      */
+    @Override
     public final String encode(byte[] data, int offset, int length) {
         return String.valueOf(encodeToChar(data, offset, length));
     }
@@ -343,10 +345,10 @@ public class BASE64 {
      * ISO-8859-1なのでデータ節約用
      * 速くない
      *
-     * @param data
-     * @param out
-     * @param offset
-     * @param length
+     * @param data source
+     * @param out output stream
+     * @param offset source offset
+     * @param length source length
      * @return BASE64の長さ
      * @throws java.io.IOException
      */
@@ -468,6 +470,7 @@ public class BASE64 {
      * @param data 余計な文字のないBASE64コード
      * @return バイト列
      */
+    @Override
     public byte[] decode(String data) {
         PacketA pac = new PacketA();
         byte[] tmp = new byte[3];
