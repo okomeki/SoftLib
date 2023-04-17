@@ -31,14 +31,14 @@ public class BASE32 implements TextEncode {
         BASE32HEX("0123456789ABCDEFGHIJKLMNOPQRSTUV"),
         Bech32("qpzry9x8gf2tvdw0s3jn54khce6mua7l"),
         Bech32FIX("qpzry9x8gf2tvdw0s3jn54khce6mua7l");
-        final char[] ENC = new char[32];
-        final byte[] DEC = new byte[128];
+        private final char[] ENC;
+        private final byte[] DEC = new byte[128];
 
         Type(String code) {
+            ENC = code.toCharArray();
             Arrays.fill(DEC, (byte) -1);
             for (byte i = 0; i < ENC.length; i++) {
-                char ch = code.charAt(i);
-                ENC[i] = ch;
+                char ch = ENC[i];
                 DEC[ch] = i;
                 if (ch >= 'A' && ch <= 'Z') {
                     DEC[ch + 32] = i;
@@ -46,6 +46,41 @@ public class BASE32 implements TextEncode {
                     DEC[ch - 32] = i;
                 }
             }
+        }
+        
+        public char[] encodeToChar(byte[] src, int offset, int length) {
+            BigBitPacket bp = new BigBitPacket();
+            bp.write(src, offset, length);
+            int r = (int) bp.bitLength() % 5;
+            if (r > 0) { // 端数
+                bp.writeBit(0, 5 - r);
+            }
+            int len = (int) (bp.bitLength() / 5);
+            char[] encd = new char[len];
+            for (int i = 0; i < len; i++) {
+                encd[i] = ENC[bp.readInt(5)];
+            }
+            return encd;
+        }
+
+        /**
+         * チェックサム付きのBash32デコード用.
+         *
+         * @param src
+         * @return ビット単位のパケット
+         */
+        public BigBitPacket decodePacket(String src) {
+            char[] chs = src.toCharArray();
+            BigBitPacket bp = new BigBitPacket();
+            for (char ch : chs) {
+                if (ch < 128) {
+                    int d = DEC[ch];
+                    if (d >= 0) { // 知らない文字は無視する
+                        bp.writeBit(d, 5);
+                    }
+                }
+            }
+            return bp;
         }
     }
 
@@ -63,6 +98,7 @@ public class BASE32 implements TextEncode {
         Type.Bech32FIX.DEC['O'] = 15; // 0
     }
 
+    private Type type;
     private char[] enc;
     private byte[] dec;
 
@@ -75,6 +111,7 @@ public class BASE32 implements TextEncode {
     }
 
     public BASE32(Type type) {
+        this.type = type;
         if (type != null) {
             enc = type.ENC;
             dec = type.DEC;
@@ -88,12 +125,11 @@ public class BASE32 implements TextEncode {
      * @param code 並びパターン ASCII32文字
      */
     public BASE32(String code) {
-        enc = new char[32];
+        enc = code.toCharArray();
         dec = new byte[128];
         Arrays.fill(dec, (byte) -1);
         for (byte i = 0; i < 32; i++) {
-            char ch = code.charAt(i);
-            enc[i] = ch;
+            char ch = enc[i];
             dec[ch] = i;
             if (ch >= 'A' && ch <= 'Z') {
                 dec[ch + 32] = i;
@@ -113,12 +149,19 @@ public class BASE32 implements TextEncode {
      */
     @Override
     public String encode(byte[] src, int offset, int length) {
-        BigBitPacket bp = new BigBitPacket();
-        bp.write(src, offset, length);
-        return encode(bp);
+        return String.valueOf(encodeToChar(src, offset, length));
     }
 
-    public String encode(BigBitPacket bp) {
+    /**
+     * BASE32エンコード char[] 版.
+     * @param src データ
+     * @param offset 位置
+     * @param length サイズ
+     * @return BASE32
+     */
+    public char[] encodeToChar(byte[] src, int offset, int length) {
+        BigBitPacket bp = new BigBitPacket();
+        bp.write(src, offset, length);
         int r = (int) bp.bitLength() % 5;
         if (r > 0) { // 端数
             bp.writeBit(0, 5 - r);
@@ -128,7 +171,7 @@ public class BASE32 implements TextEncode {
         for (int i = 0; i < len; i++) {
             encd[i] = enc[bp.readInt(5)];
         }
-        return new String(encd);
+        return encd;
     }
 
     /**

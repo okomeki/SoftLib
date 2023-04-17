@@ -33,6 +33,13 @@ public interface TextEncode {
         return encode(bytes, 0, bytes.length);
     }
 
+    /**
+     * バイト列をテキストエンコードで符号化する.
+     * @param bytes バイト列
+     * @param offset 開始位置
+     * @param length 長さ
+     * @return 符号化文字列
+     */
     String encode(byte[] bytes, int offset, int length);
 
     /**
@@ -46,8 +53,8 @@ public interface TextEncode {
     /**
      * ヘッダなど付加データを別で持つものをデコードする場合
      * key null がデータのよてい
-     * @param base64
-     * @return 
+     * @param base64 など符号化文字列
+     * @return 元データ列 が key:null に含まれるMap
      */
     default Map<String,Object> decodeMap(String base64) {
         Map<String, Object> map = new HashMap<>();
