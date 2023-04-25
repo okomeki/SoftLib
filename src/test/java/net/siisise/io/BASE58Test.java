@@ -38,7 +38,6 @@ public class BASE58Test {
         int length = bytes.length;
         BASE58 instance = new BASE58();
         String expResult = "StV1DL6CwTryKyV";
-//                         "TcgsESe9XJSrakNTEQQ";
         String result = instance.encode(bytes, offset, length);
         
         System.out.println(new String(instance.decode(result), StandardCharsets.UTF_8));
