@@ -136,6 +136,12 @@ public abstract class Base extends ReadBase implements FrontPacket, BackPacket, 
         }
     }
 
+    /**
+     * 指定長データの移動.
+     * @param pac data
+     * @param length pac data length
+     * @return 移動したサイズ
+     */
     @Override
     public long write(Input pac, long length) {
         if ( pac.length() < length ) {
@@ -154,8 +160,8 @@ public abstract class Base extends ReadBase implements FrontPacket, BackPacket, 
     /**
      * 転送元、転送先どちらかの上限まで移動する.
      * 
-     * @param pac
-     * @return 
+     * @param pac src data
+     * @return write length
      */
     @Override
     public long backWrite(RevInput pac) {
@@ -166,6 +172,12 @@ public abstract class Base extends ReadBase implements FrontPacket, BackPacket, 
         }
     }
 
+    /**
+     * 指定長までの範囲で移動する.
+     * @param pac src data
+     * @param length write length
+     * @return 
+     */
     @Override
     public long backWrite(RevInput pac, long length) {
         if ( !(this instanceof EditBlock) && (this instanceof OverBlock) ) {

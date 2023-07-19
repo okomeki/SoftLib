@@ -69,7 +69,7 @@ public class BlockChannel implements SeekableByteChannel {
      * OverBlock の場合は subブロックで茶を濁す
      * @param size 全体のサイズ
      * @return 縮めたブロック
-     * @throws IOException 
+     * @throws IOException some I/O error
      */
     @Override
     public SeekableByteChannel truncate(long size) throws IOException {

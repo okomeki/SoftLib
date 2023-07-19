@@ -78,8 +78,8 @@ public interface Output {
      * データ移動.
      * length OverBlock で length 以下の場合はエラー
      *
-     * @param pac
-     * @param length
+     * @param pac データ
+     * @param length pac data length
      * @return
      */
     long write(Input pac, long length);

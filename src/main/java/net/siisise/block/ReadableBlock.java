@@ -99,6 +99,10 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
         return new SubReadableBlock(offset,Math.min(offset + length,rb.backLength() + rb.length()), rb);
     }
 
+    public static ReadableBlock wrap(CharSequence seq) {
+        return wrap(seq.toString());
+    }
+    
     public static ReadableBlock wrap(String s) {
         return new ByteBlock(s.getBytes(StandardCharsets.UTF_8));
     }
