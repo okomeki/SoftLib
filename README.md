@@ -57,7 +57,16 @@ JSONまではほどほどに使えますが、他は実験感覚で作ってい�
 - net.siisise.io.BackPacket
 - net.siisise.io.PacketA
 
-可変長配列、のようなものを目指してみたらこうなった。
+可変長配列、スタック構造、Stream込み込みのようなものを目指してみたらこうなった。
+
+~~~
+                   Top                    Last
+                   ----------------------------
+                   |FrontPacket    BackPacket|
+                   |Read 読み  データ          |Write 追加
+ 逆書き BackWrite  |          ← 逆読みBackRead|
+~~~
+Packet の構造
 
 FrontPacket, BackPacketが頭と尻のようなもので双方でInputStream,OutputStreamっぽいものが使える。
 バイト列でFIFOでもLIFOでもできるような抽象構造。
@@ -66,6 +75,8 @@ BitStreamも扱えるようにしてみたが、まだ片方しか実装して�
 
 ## Block
 
+基本的には固定サイズ Packet を2つ繋いで読み書きした分読み書き位置が移動する感じの実装
+
 - net.siisise.block.Block 形
 - net.siisise.block.ReadableBlock 読み専用
 - net.siisise.block.ByteBlock byte[]配列の実装
@@ -73,6 +84,13 @@ BitStreamも扱えるようにしてみたが、まだ片方しか実装して�
 - net.siisise.block.OverBlock 上書き
 - net.siisise.block.PacketBlock Packet 2つの実装
 - net.siisise.block.SinglePacketBlock Packet 1つの実装
+
+~~~
+     Top              読み書き位置       末尾
+     |           BackPacket|FrontPacket  |
+     |                     |Read/Write→  |
+     |  ←BackRead/BackWrite|             |
+~~~
 
 Packetから読んだ後に戻りたかったのでjava.nio の Buffer や Channel と互換性など考慮しながら拡張してみたらこうなった。
 
