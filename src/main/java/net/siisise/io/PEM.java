@@ -35,7 +35,7 @@ public class PEM implements TextEncode {
 
     public static final String OPENSSH_PRIVATE_KEY = "OPENSSH PRIVATE KEY";
 
-    String type;
+    final String type;
 
     /**
      * @param type エンコードの名
@@ -134,7 +134,8 @@ public class PEM implements TextEncode {
         do { // 頭確認
             line = in.readLine();
         } while (line != null && !line.equals(begin));
-        
+
+        // てきとうなMIMEでこーど
         Map<String,Object> m = new HashMap<>();
 
         if (line != null) {

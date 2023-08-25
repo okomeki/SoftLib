@@ -24,6 +24,7 @@ import net.siisise.math.Matics;
  * Hexというよりバイト列変換の主なもの.
  * HexとBASE64は統合したいかもしれない
  * Number べーす
+ * java.util.BitSet があるらしい 
  */
 public class Bin {
 
@@ -196,6 +197,11 @@ public class Bin {
         return data;
     }
     
+    /**
+     * short を big endian 2バイトに変換する
+     * @param i 数値
+     * @return 2バイト列
+     */
     public static byte[] toByte(short i) {
         byte[] out = new byte[2];
         out[0] = (byte) (i >>> 8);
@@ -203,16 +209,36 @@ public class Bin {
         return out;
     }
 
+    /**
+     * short を out の offset位置から big endian 2バイトで書き込む.
+     * @param i 数値
+     * @param out 書き込む先
+     * @param offset 書き込み位置
+     * @return outと同じ列
+     */
     public static byte[] toByte(short i, byte[] out, int offset) {
         out[offset++] = (byte) (i >>> 8);
         out[offset] = (byte) i;
         return out;
     }
-    
+
+    /**
+     * intを4バイトに変換する
+     * @param i 入力値
+     * @return 4バイト列
+     */
     public static byte[] toByte(int i) {
         return toByte(i, new byte[4], 0);
     }
 
+    /**
+     * 
+     * int を out の offset位置から big endian 4バイトで書き込む.
+     * @param i 数値
+     * @param out 書き込む先
+     * @param offset 書き込み位置
+     * @return outと同じ列
+     */
     public static byte[] toByte(int i, byte[] out, int offset) {
         out[offset++] = (byte) (i >>> 24);
         out[offset++] = (byte) (i >> 16);
@@ -221,10 +247,23 @@ public class Bin {
         return out;
     }
     
+    /**
+     * longをbig endian 8バイトに変換する
+     * @param l 入力値
+     * @return 8バイト列
+     */
     public static byte[] toByte(long l) {
         byte[] out = new byte[8];
         return toByte(l, out, 0);
     }
+
+    /**
+     * long を out の offset位置から big endian 8バイトで書き込む.
+     * @param l 数値
+     * @param out 書き込む先
+     * @param offset 書き込み位置
+     * @return outと同じ列
+     */
     public static byte[] toByte(long l, byte[] out, int offset) {
         out[0] = (byte) (l >>> 56);
         out[1] = (byte) (l >> 48);
@@ -322,8 +361,8 @@ public class Bin {
 
     /**
      * XORを計算するよ
-     * @param a 長さの基準
-     * @param b
+     * @param a バイト列 長さの基準
+     * @param b バイト列
      * @return a ^ b
      */
     public static byte[] xor(byte[] a, byte[] b) {
@@ -331,7 +370,7 @@ public class Bin {
     }
 
     /**
-     * 
+     * a と b の xor 計算を a に戻す
      * @param a 結果もこっちへ
      * @param b
      * @return 
@@ -344,6 +383,16 @@ public class Bin {
         return a;
     }
 
+    /**
+     * a と b の offset からの xor.
+     * 
+     * @param a 入力a
+     * @param aoffset aのバイト位置
+     * @param b 入力b
+     * @param boffset bのバイト位置
+     * @param ret 結果格納用
+     * @return retと同じ
+     */
     public static long[] xor(long[] a, int aoffset, long[] b, int boffset, long[] ret) {
         int min = Matics.min( ret.length, a.length - aoffset, b.length - boffset );
         for ( int i = 0; i < min; i++ ) {
@@ -359,6 +408,12 @@ public class Bin {
         return ret;
     }
 
+    /**
+     * aとbのxorを返す.
+     * @param a 入力a
+     * @param b 入力b
+     * @return xor結果, 長さはaと同じ
+     */
     public static long[] xor(long[] a, long[] b) {
         return xor(a, 0, b, 0, new long[a.length]);
     }
@@ -379,7 +434,7 @@ public class Bin {
     }
 
     /**
-     * Bin へ
+     * Big endian 左シフト
      * @param a 元列
      * @return 1ビット左シフト
      */
@@ -393,7 +448,12 @@ public class Bin {
         n[a.length - 1] = (byte)(v << 1);
         return n;
     }
-    
+
+    /**
+     * Big endian 左シフト
+     * @param a 元列
+     * @return シフトした列
+     */
     public static long[] shl(long[] a) {
         long[] n = new long[a.length];
         for (int i = 0; i < a.length - 1; i++) {

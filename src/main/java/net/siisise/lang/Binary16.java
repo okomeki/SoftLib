@@ -39,26 +39,46 @@ public class Binary16 extends Number {
         value = v;
     }
 
+    /**
+     * float に変換してからintにする
+     * @return intっぽい値
+     */
     @Override
     public int intValue() {
         return (int) floatValue();
     }
 
+    /**
+     * floatに変換してからlongにする
+     * @return longっぽい値
+     */
     @Override
     public long longValue() {
         return (long) floatValue();
     }
 
+    /**
+     * てきとーに変換.
+     * @return floatっぽい値
+     */
     @Override
     public float floatValue() {
         return binary16BitsToFloat(value);
     }
 
+    /**
+     * floatにしてからdoubleに変換.
+     * @return doubleっぽい値
+     */
     @Override
     public double doubleValue() {
         return (double) floatValue();
     }
 
+    /**
+     * floatにしてからshortに変換した値.
+     * @return shortっぽい値
+     */
     @Override
     public short shortValue() {
         return (short) floatValue();
@@ -129,7 +149,9 @@ public class Binary16 extends Number {
     }
 
     /**
-     * 1 to 1 bit 符号部 sign 5 to 8 bit 指数部 10 to 23 bit 仮数部
+     * 1 to 1 bit 符号部
+     * sign 5 to 8 bit 指数部
+     * 10 to 23 bit 仮数部
      *
      * @param val
      * @return
@@ -173,6 +195,11 @@ public class Binary16 extends Number {
         return isNaN(value);
     }
 
+    /**
+     * NaN 判定
+     * @param value 16bit列
+     * @return true NaN false その他
+     */
     public static boolean isNaN(short value) {
         return ((value & 0x7c00) == 0x7c00) && ((value & 0x3ff) != 0);
     }
