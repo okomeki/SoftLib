@@ -15,6 +15,9 @@
  */
 package net.siisise.math;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import net.siisise.lang.Bin;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -29,16 +32,33 @@ public class GFTest {
 
     /**
      * Test of r method, of class GF.
+     * @throws java.security.NoSuchAlgorithmException
      */
     @Test
-    public void testR() {
+    public void testR() throws NoSuchAlgorithmException {
         System.out.println("r");
-        byte[] s = new byte[] {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+        byte[] s = new byte[] {-60,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
         GF gf = new GF(128,GF.FF128);
         
         byte[] expResult = s;
-        byte[] result = gf.r(gf.x(s));
+        byte[] m = gf.x(s);
+        System.out.println(Bin.toHex(s));
+        System.out.println(Bin.toHex(m));
+        byte[] result = gf.r(m);
+        System.out.println(Bin.toHex(result));
         assertArrayEquals(expResult, result);
+        m = gf.r(s);
+        result = gf.x(m);
+        System.out.println(Bin.toHex(s));
+        System.out.println(Bin.toHex(m));
+        System.out.println("res:" + Bin.toHex(result));
+        assertArrayEquals(s, result);
+        SecureRandom rnd = SecureRandom.getInstanceStrong();
+        rnd.nextBytes(s);
+        result = gf.r(gf.x(s));
+        assertArrayEquals(s, result);
+        result = gf.x(gf.r(s));
+        assertArrayEquals(s, result);
     }
 
     /**

@@ -21,8 +21,10 @@ public class GF {
     // ガロア 有限体
 //  final byte FF4 = 0x3; // 0x13 10011
     public static final byte FF8 = 0x1b; // 0x11b 100011011 AES
-    public static final byte FF128 = (byte)0x87; // 0x10000000000000087 x10000111
+    public static final byte FF64  = 0x1b; // 0x1000000000000001b x11011
+    public static final byte FF128 = (byte)0x87; // 0x100000000000000000000000000000087 x10000111
     public static final byte[] GF8 = {FF8}; // 0x11b
+    public static final byte[] GF64 = {0,0,0,0,0,0,0,FF64}; // 0x1000000000000001b
     public static final byte[] GF128 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,FF128}; // 0x100000000000000000000000000000087 CMAC
 
     public GF() {
@@ -88,8 +90,8 @@ public class GF {
      * @return s・2
      */
     public byte[] x(byte[] s) {
-        byte[] v = Bin.shl(s);
-        if ((s[0] & 0x80) != 0) {
+        byte[] v = Bin.shl(s); // constRb に 1bit 持っているのでこっちは消す
+        if (s[0] < 0) {
             v[v.length - 1] ^= constRb;
         }
         return v;
@@ -101,8 +103,8 @@ public class GF {
      * @return s・2
      */
     public long[] x(long[] s) {
-        long[] v = Bin.shl(s);
-        if ((s[0] & 0x8000000000000000l) != 0) {
+        long[] v = Bin.shl(s); // constRb に 1bit 持っているのでこっちは消す
+        if (s[0] < 0) {
             v[v.length - 1] ^= constRb & 0xffl;
         }
         return v;
@@ -114,10 +116,19 @@ public class GF {
      * @return s
      */
     public byte[] r(byte[] s) {
-        if ((s[0] & 0x01) != 0) {
-            s[s.length - 1] ^= constRb;
+        byte[] r = Bin.ror(s); // constRb の 1bit が消えるのでこっちでつける
+        if (r[0] < 0) {
+            r[r.length - 1] ^= (constRb & 0xff) >>> 1;
         }
-        return Bin.ror(s);
+        return r;
+    }
+    
+    public long[] r(long[] s) {
+        long[] r = Bin.ror(s); // constRb の 1bit が消えるのでこっちでつける
+        if (r[0] < 0) {
+            r[r.length - 1] ^= (constRb & 0xffl) >>> 1;
+        }
+        return r;
     }
 
     /**
@@ -192,9 +203,10 @@ public class GF {
      */
     public byte[] mul(byte[] a, byte[] b) {
         byte[] r = new byte[a.length];
+        int last = a.length - 1;
         while ( !isZero(a) ) {
-            if ( (a[a.length - 1] & 0x01) != 0 ) {
-                r = Bin.xor(r, b);
+            if ( (a[last] & 0x01) != 0 ) {
+                Bin.xorl(r, b);
             }
             a = Bin.shr(a);
             b = x(b);
@@ -210,8 +222,9 @@ public class GF {
      */
     public long[] mul(long[] a, long[] b) {
         long[] r = new long[a.length];
+        int last = a.length - 1;
         while ( !isZero(a) ) {
-            if ( (a[a.length - 1] & 0x01) != 0 ) {
+            if ( (a[last] & 0x01) != 0 ) {
                 r = Bin.xor(r, b);
             }
             a = Bin.shr(a);

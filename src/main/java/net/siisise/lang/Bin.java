@@ -516,6 +516,13 @@ public class Bin {
         return n;
     }    
 
+    public static long[] ror(long[] a) {
+        long b = a[a.length - 1] << 63;
+        long[] n = shr(a);
+        n[0] |= b;
+        return n;
+    }    
+
     public static byte[] right(byte[] a, int shift) {
         byte[] n = new byte[a.length];
         int v = Byte.toUnsignedInt(a[a.length - 1]) << 8;
