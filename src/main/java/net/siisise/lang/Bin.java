@@ -383,6 +383,14 @@ public class Bin {
         return a;
     }
 
+    public static long[] xorl(long[] a, long[] b) {
+        int len = Math.min(a.length, b.length);
+        for ( int i = 0; i < len; i++ ) {
+            a[i] ^= b[i];
+        }
+        return a;
+    }
+
     /**
      * a と b の offset からの xor.
      * 
@@ -488,6 +496,7 @@ public class Bin {
     }
 
     /**
+     * 右1bitシフト
      * @param a 元列
      * @return 右シフト
      */
@@ -500,6 +509,25 @@ public class Bin {
         return n;
     }    
 
+    /**
+     * 右1bitシフト
+     * @param a 非破壊
+     * @return 右シフト
+     */
+    public static int[] shr(int[] a) {
+        int[] n = new int[a.length];
+        for (int i = a.length - 1; i > 0; i--) {
+            n[i] = (a[i] >>> 1) | ( a[i - 1] << 31);
+        }
+        n[0] = a[0] >>> 1;
+        return n;
+    }    
+
+    /**
+     * 右1bitシフト
+     * @param a 非破壊
+     * @return 右シフト
+     */
     public static long[] shr(long[] a) {
         long[] n = new long[a.length];
         for (int i = a.length - 1; i > 0; i--) {
@@ -509,6 +537,11 @@ public class Bin {
         return n;
     }    
 
+    /**
+     * 右1bit rotate
+     * @param a 非破壊
+     * @return 
+     */
     public static byte[] ror(byte[] a) {
         byte b = (byte)(a[a.length - 1] << 7);
         byte[] n = shr(a);
@@ -516,6 +549,23 @@ public class Bin {
         return n;
     }    
 
+    /**
+     * 右1bit rotate
+     * @param a 非破壊
+     * @return 
+     */
+    public static int[] ror(int[] a) {
+        int b = a[a.length - 1] << 31;
+        int[] n = shr(a);
+        n[0] |= b;
+        return n;
+    }    
+
+    /**
+     * 
+     * @param a 非破壊
+     * @return 
+     */
     public static long[] ror(long[] a) {
         long b = a[a.length - 1] << 63;
         long[] n = shr(a);

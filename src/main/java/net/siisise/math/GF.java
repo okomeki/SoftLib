@@ -39,22 +39,22 @@ public class GF {
     public GF(int n, int m) {
         N = n - 1;
         root = m;
-        constRb = 0; // root側を使う
+        constRb = (byte) root; // root側を使う
         size = (1 << n) - 1;
         x = new int[size + 1];
         log = new int[size + 1];
         exp = new int[size + 1];
 
-        for (int a = 0; a <= size; a++) {
-            x[a] = (a << 1) ^ ((a >>> N) * root);
-        }
+//        for (int a = 0; a <= size; a++) {
+//            x[a] = (a << 1) ^ ((a >>> N) * root);
+//        }
 
         int a = 1;
         for (int e = 0; e < size; e++) {
             log[a] = e;
             exp[e] = a;
 
-            a ^= x(a);
+            a ^= x(a); // a・3 // ・5 ・17でもいい
         }
         log[0] = 0;
         exp[size] = exp[0];
@@ -82,7 +82,7 @@ public class GF {
         log = null;
         exp = null;
     }
-
+    
     /**
      * ふつうのGF s・2
      * バイト数は未検証. てきとう.
@@ -92,7 +92,7 @@ public class GF {
     public byte[] x(byte[] s) {
         byte[] v = Bin.shl(s); // constRb に 1bit 持っているのでこっちは消す
         if (s[0] < 0) {
-            v[v.length - 1] ^= constRb;
+            v[v.length - 1] ^= constRb; // 長い用
         }
         return v;
     }
@@ -123,6 +123,25 @@ public class GF {
         return r;
     }
     
+    /**
+     * GF s・2の逆 /2
+     * @param s・2
+     * @return s
+     */
+    public int[] r(int[] s) {
+        int[] r = Bin.ror(s); // constRb の 1bit が消えるのでこっちでつける
+        if (r[0] < 0) {
+            r[r.length - 1] ^= (constRb & 0xff) >>> 1;
+        }
+        return r;
+    }
+    
+    /**
+     * s / 2.
+     * s・2ができるならs/2も比較的単純な計算でできる 2以外はできない
+     * @param s
+     * @return 
+     */
     public long[] r(long[] s) {
         long[] r = Bin.ror(s); // constRb の 1bit が消えるのでこっちでつける
         if (r[0] < 0) {
@@ -137,12 +156,56 @@ public class GF {
      * @return a・2
      */
     public final int x(int a) {
-//        return (a << 1) ^ ((a >>> N) * root); 
-        return x[a];
+        return (a << 1) ^ ((a >>> N) * root); 
+//        return x[a];
+    }
+    
+    public int r(int s) {
+        return (s >>> 1) ^ ((s & 1) * root);
     }
 
+    /**
+     * 8bit 逆数計算的なもの(高速版)
+     * @param a
+     * @return aの逆数
+     */
     public int inv(int a) {
         return a == 0 ? 0 : exp[size - log[a]];
+    }
+    
+    /**
+     * 逆数計算的なもの(簡易版)
+     * @param a
+     * @return aの逆数
+     * @deprecated いろいろ間違っている
+     */
+    public byte[] inv(byte[] a) {
+        return modPow(a, (2 << (N+1)) - 2);
+    }
+    
+    /**
+     * あれ
+     * @param a
+     * @param p 1以上
+     * @return a^p mod xx
+     */
+    public byte[] modPow(byte[] a, int p) {
+        byte[] x;
+        if ( p == 1 ) {
+            return a;
+        } else {
+            if ( p % 3 == 0 ) {
+                x = modPow(a, p / 3 );
+                return mul(mul(x,x),x);
+            }
+            x = modPow(a, p / 2);
+            x = mul(x, x);
+            if ( p % 2 != 0 ) {
+                x = mul(x, a);
+//            Bin.xorl(x, a);
+            }
+        }
+        return x;
     }
 //*    
 
@@ -159,6 +222,15 @@ public class GF {
         }
         return exp[e];
     }
+
+    public byte[] add(byte[] a, byte[] b) {
+        return Bin.xor(a, b);
+    }
+
+    public long[] add(long[] a, long[] b) {
+        return Bin.xor(a, b);
+    }
+
 
 /*
     public int mul(int x, int y) {
@@ -225,7 +297,7 @@ public class GF {
         int last = a.length - 1;
         while ( !isZero(a) ) {
             if ( (a[last] & 0x01) != 0 ) {
-                r = Bin.xor(r, b);
+                Bin.xorl(r, b);
             }
             a = Bin.shr(a);
             b = x(b);

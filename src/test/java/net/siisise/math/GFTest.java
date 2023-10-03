@@ -15,6 +15,7 @@
  */
 package net.siisise.math;
 
+import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import net.siisise.lang.Bin;
@@ -23,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *
- * @author okome
  */
 public class GFTest {
     
@@ -73,6 +73,11 @@ public class GFTest {
         byte[] expResult = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,(byte)0x85};
         byte[] result = gf.x(s);
         assertArrayEquals(expResult, result);
+        s = new byte[] {(byte)0x80};
+        gf = new GF();
+        expResult = new byte[] {0x1b};
+        result = gf.x(s);
+        assertArrayEquals(expResult, result);
     }
 
     /**
@@ -99,5 +104,62 @@ public class GFTest {
         int expResult = 0x1b;
         int result = instance.x(a);
         assertEquals(expResult, result);
+    }
+
+    /**
+     *  3  0b00000011
+     *  5  0b00000101
+     * 17  0b00010001
+     * 0x11b 0b100011011 283 256 + 16 + 8 + 2 + 1
+     */
+    @Test
+    public void testXXX() {
+        System.out.println();
+        BigInteger ff = BigInteger.valueOf(0x11b);
+        GF gf = new GF(8, 0x11b);
+        // 100011011
+        // 279
+        int x = 3;
+        int x5 = 5;
+        for ( int i = 1; i < 0x100; i++ ) {
+            System.out.print("x = 0x" + Integer.toHexString(i));
+            System.out.print(" = " + i);
+            System.out.print(" 2x = " + Integer.toHexString(gf.x(i)));
+            System.out.print(" x^2 = " + Integer.toHexString(gf.mul(i,i)));
+            System.out.print(" x^2 + x = 0x" + Integer.toHexString(gf.mul(i,i)));
+            System.out.print(" = " + gf.mul(i,i));
+            byte[] n = new byte[1];
+            n[0] = (byte)i;
+            n = gf.inv(n);
+            System.out.print(" inv = 0x" + Integer.toHexString(n[0]));
+            System.out.print(" = " + Integer.toHexString(gf.inv(i)));
+            System.out.print(" = " + gf.inv(i));
+            System.out.print(" 3^"+i+"= " + Integer.toHexString(x));
+            System.out.print(" inv = 0x" + Integer.toHexString(gf.inv(x)));
+            x = gf.mul(x,3);
+            System.out.print(" 5^"+i+"= " + Integer.toHexString(x5));
+            System.out.print(" inv = 0x" + Integer.toHexString(gf.inv(x5)));
+            x5 = gf.mul(x5,5);
+            System.out.print(" mod3 " + i % 3);
+            System.out.print(" mod5 " + i % 5);
+            System.out.print(" mod17 " + i % 17);
+            System.out.print(" mod3 " + gf.inv(i) % 3);
+            System.out.print(" mod5 " + gf.inv(i) % 5);
+            System.out.println(" mod17 " + gf.inv(i) % 17);
+        }
+        
+        
+        System.out.println("e 6 inv " + gf.mul(0x8d, 0xf6));
+        System.out.println("e 6 inv " + gf.inv(gf.mul(0x8d, 0xf6)));
+    }
+    
+    public void testLongGF() {
+        System.out.println("longGF");
+        GF gf = new GF(8,GF.FF8);
+        byte[] a = new byte[1];
+        byte[] b = new byte[1];
+        byte[] c;
+        c = gf.mul(a, b);
+        System.out.println(Bin.toHex(c));
     }
 }
