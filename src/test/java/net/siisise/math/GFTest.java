@@ -121,24 +121,25 @@ public class GFTest {
         // 279
         int x = 3;
         int x5 = 5;
+        int x7 = 7;
         for ( int i = 1; i < 0x100; i++ ) {
-            System.out.print("x = 0x" + Integer.toHexString(i));
-            System.out.print(" = " + i);
-            System.out.print(" 2x = " + Integer.toHexString(gf.x(i)));
-            System.out.print(" x^2 = " + Integer.toHexString(gf.mul(i,i)));
-            System.out.print(" x^2 + x = 0x" + Integer.toHexString(gf.mul(i,i)));
-            System.out.print(" = " + gf.mul(i,i));
+            System.out.print("x = 0x"        + hex(i,2));
+            System.out.print("("           + sub(i,3));
             byte[] n = new byte[1];
             n[0] = (byte)i;
-            n = gf.inv(n);
-            System.out.print(" inv = 0x" + Integer.toHexString(n[0]));
-            System.out.print(" = " + Integer.toHexString(gf.inv(i)));
-            System.out.print(" = " + gf.inv(i));
-            System.out.print(" 3^"+i+"= " + Integer.toHexString(x));
-            System.out.print(" inv = 0x" + Integer.toHexString(gf.inv(x)));
+//            n = gf.inv(n);
+            System.out.print(") inv = 0x" + hex(gf.inv(n)[0] & 0xff,2));
+            System.out.print(" = " + hex(gf.inv(i),2));
+            System.out.print("(" + sub("" + gf.inv(i), 3));
+            System.out.print(") 2x = "        + hex(gf.x(i),2));
+            System.out.print(" x^2 = "       + hex(gf.mul(i,i),2)); // 意味のない計算?
+//            System.out.print(" x^2 + x = 0x" + sub(Integer.toHexString(gf.mul(i,i)),2));
+            System.out.print("(" + sub(gf.mul(i,i),3));
+            System.out.print(") 3^"+sub(i,3)+"= " + hex(x,2));
+            System.out.print(" inv = 0x" + hex(gf.inv(x),2));
             x = gf.mul(x,3);
-            System.out.print(" 5^"+i+"= " + Integer.toHexString(x5));
-            System.out.print(" inv = 0x" + Integer.toHexString(gf.inv(x5)));
+            System.out.print(" 5^"+sub(i,3)+"= " + hex(x5,2));
+            System.out.print(" inv = 0x" + hex(gf.inv(x5),2));
             x5 = gf.mul(x5,5);
             System.out.print(" mod3 " + i % 3);
             System.out.print(" mod5 " + i % 5);
@@ -151,6 +152,19 @@ public class GFTest {
         
         System.out.println("e 6 inv " + gf.mul(0x8d, 0xf6));
         System.out.println("e 6 inv " + gf.inv(gf.mul(0x8d, 0xf6)));
+    }
+    
+    String sub(int src, int len) {
+        String t = "" + src;
+        return "       ".substring(0, len - t.length()) + t;
+    }
+
+    String hex(int src, int len) {
+        return sub(Integer.toHexString(src),len);
+    }
+    
+    String sub(String src, int len) {
+        return "0000000".substring(0, len - src.length()) + src;
     }
     
     public void testLongGF() {

@@ -1,5 +1,6 @@
 package net.siisise.math;
 
+import java.math.BigInteger;
 import net.siisise.lang.Bin;
 
 /**
@@ -18,7 +19,7 @@ public class GF {
     final int[] log;
     final int[] exp;
 
-    // ガロア 有限体
+    // ガロア 有限体 原始多項式?
 //  final byte FF4 = 0x3; // 0x13 10011
     public static final byte FF8 = 0x1b; // 0x11b 100011011 AES
     public static final byte FF64  = 0x1b; // 0x1000000000000001b x11011
@@ -44,10 +45,6 @@ public class GF {
         x = new int[size + 1];
         log = new int[size + 1];
         exp = new int[size + 1];
-
-//        for (int a = 0; a <= size; a++) {
-//            x[a] = (a << 1) ^ ((a >>> N) * root);
-//        }
 
         int a = 1;
         for (int e = 0; e < size; e++) {
@@ -157,7 +154,7 @@ public class GF {
      */
     public final int x(int a) {
         return (a << 1) ^ ((a >>> N) * root); 
-//        return x[a];
+//        return n[a];
     }
     
     public int r(int s) {
@@ -173,40 +170,71 @@ public class GF {
         return a == 0 ? 0 : exp[size - log[a]];
     }
     
+    static final BigInteger TWO = BigInteger.valueOf(2);
+    static final BigInteger THREE = BigInteger.valueOf(3);
+    
     /**
      * 逆数計算的なもの(簡易版)
+     * 256 - 2 で ^254 ぐらいの位置づけ
+     * ビット長*2回掛けるぐらいで計算はできる
      * @param a
-     * @return aの逆数
-     * @deprecated いろいろ間違っている
+     * @return aの逆数 60bit程度まで
      */
     public byte[] inv(byte[] a) {
-        return modPow(a, (2 << (N+1)) - 2);
+        BigInteger p = TWO.shiftLeft(N).subtract(TWO);
+        return pow(a, p);
+//        return pow(a, (2l << N) - 2);
     }
     
     /**
      * あれ
      * @param a
-     * @param p 1以上
+     * @param p exponent 1以上
      * @return a^p mod xx
      */
-    public byte[] modPow(byte[] a, int p) {
-        byte[] x;
+    public byte[] pow(byte[] a, long p) {
         if ( p == 1 ) {
             return a;
         } else {
+            byte[] n;
             if ( p % 3 == 0 ) {
-                x = modPow(a, p / 3 );
-                return mul(mul(x,x),x);
+                n = pow(a, p / 3 );
+                return mul(mul(n,n),n);
             }
-            x = modPow(a, p / 2);
-            x = mul(x, x);
+            n = pow(a, p / 2);
+            n = mul(n, n);
             if ( p % 2 != 0 ) {
-                x = mul(x, a);
-//            Bin.xorl(x, a);
+                n = mul(n, a);
+//            Bin.xorl(n, a);
             }
+            return n;
         }
-        return x;
     }
+
+    /**
+     * 簡易版
+     * @param a 元
+     * @param p exponent 1以上
+     * @return 
+     */
+    public byte[] pow(byte[] a, BigInteger p) {
+        if ( p.equals(BigInteger.ONE)) {
+            return a;
+        } else {
+            byte[] n;
+            if ( p.mod(THREE).equals(BigInteger.ZERO)) {
+                n = pow(a, p.divide(THREE));
+                return mul(mul(n,n),n);
+            }
+            n = pow( a, p.divide(TWO));
+            n = mul(n,n);
+            if ( !p.mod(TWO).equals(BigInteger.ZERO)) {
+                n = mul(n,a);
+            }
+            return n;
+        }
+    }
+
 //*    
 
     public int mul(int a, int b) {
@@ -233,21 +261,21 @@ public class GF {
 
 
 /*
-    public int mul(int x, int y) {
-        if (x == 0 || y == 0) {
+    public int mul(int n, int y) {
+        if (n == 0 || y == 0) {
             return 0;
         }
         int m = 0;
     
-        x &= size;
+        n &= size;
         y &= size;
 
-        while (x > 0) {
-            if ((x & 1) != 0) {
+        while (n > 0) {
+            if ((n & 1) != 0) {
                 m ^= y;
             }
-            y = x(y);
-            x >>>= 1;
+            y = n(y);
+            n >>>= 1;
         }
         return m;
     }
