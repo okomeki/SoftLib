@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.siisise</groupId>
     <artifactId>softlib</artifactId>
-    <version>1.1.12</version>
+    <version>1.1.13</version>
     <packaging>jar</packaging>
     <name>SoftLib</name>
     <description>Java simple API Packet io, base64, etc...</description>
@@ -50,7 +50,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.6.0</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>

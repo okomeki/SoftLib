@@ -28,14 +28,14 @@ JSONまではほどほどに使えますが、他は実験感覚で作ってい�
 <dependency>
     <groupId>net.siisise</groupId>
     <artifactId>softlib</artifactId>
-    <version>1.1.12</version>
+    <version>1.1.13</version>
     <type>jar</type>
 </dependency>
 ~~~
 時々変わることがあるので特定バージョンを指定するか、SoftLibJSONなど使用したい機能経由で指定するのがおすすめです。
 
-リリース版 1.1.12 ぐらい。
-次版 1.1.13-SNAPSHOT
+リリース版 1.1.13 ぐらい。
+次版 1.1.14-SNAPSHOT
 
 ~~~
 <version>[1.1.8,)</version>
