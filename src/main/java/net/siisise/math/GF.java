@@ -23,7 +23,7 @@ public class GF {
 //  final byte FF4 = 0x3; // 0x13 10011
     public static final byte FF8 = 0x1b; // 0x11b 100011011 AES
     public static final byte FF64  = 0x1b; // 0x1000000000000001b x11011
-    public static final byte FF128 = (byte)0x87; // 0x100000000000000000000000000000087 x10000111
+    public static final byte FF128 = (byte)0x87; // 0x100000000000000000000000000000087 x10000111 // GMAC
     public static final byte[] GF8 = {FF8}; // 0x11b
     public static final byte[] GF64 = {0,0,0,0,0,0,0,FF64}; // 0x1000000000000001b
     public static final byte[] GF128 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,FF128}; // 0x100000000000000000000000000000087 CMAC
@@ -211,6 +211,25 @@ public class GF {
         }
     }
 
+    public long[] pow(long[] a, long p) {
+        if ( p == 1 ) {
+            return a;
+        } else {
+            long[] n;
+            if ( p % 3 == 0 ) {
+                n = pow(a, p / 3 );
+                return mul(mul(n,n),n);
+            }
+            n = pow(a, p / 2);
+            n = mul(n, n);
+            if ( p % 2 != 0 ) {
+                n = mul(n, a);
+//            Bin.xorl(n, a);
+            }
+            return n;
+        }
+    }
+    
     /**
      * 簡易版
      * @param a 元
@@ -343,6 +362,16 @@ public class GF {
             e += size;
         }
         return exp[e];
+    }
+
+    /**
+     * @deprecated 未検証
+     * @param a
+     * @param b
+     * @return a / b
+     */
+    public byte[] div(byte[] a, byte[] b) {
+        return mul(a, inv(b));
     }
 
     public static String toHexString(long[] s) {

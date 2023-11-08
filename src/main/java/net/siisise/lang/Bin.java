@@ -373,7 +373,7 @@ public class Bin {
      * a と b の xor 計算を a に戻す
      * @param a 結果もこっちへ
      * @param b
-     * @return 
+     * @return a = a ^ b
      */
     public static byte[] xorl(byte[] a, byte[] b) {
         int len = Math.min(a.length, b.length);
@@ -383,6 +383,12 @@ public class Bin {
         return a;
     }
 
+    /**
+     * long列のXOR
+     * @param a
+     * @param b
+     * @return a = a ^ b
+     */
     public static long[] xorl(long[] a, long[] b) {
         int len = Math.min(a.length, b.length);
         for ( int i = 0; i < len; i++ ) {
@@ -500,7 +506,7 @@ public class Bin {
      * @param a 元列
      * @return 右シフト
      */
-    public static byte[] shr(byte[] a) {
+    public static byte[] shr(final byte[] a) {
         byte[] n = new byte[a.length];
         for (int i = a.length - 1; i > 0; i--) {
             n[i] = (byte)((Byte.toUnsignedInt(a[i]) >> 1) | (Byte.toUnsignedInt(a[i - 1]) << 7));
@@ -514,7 +520,7 @@ public class Bin {
      * @param a 非破壊
      * @return 右シフト
      */
-    public static int[] shr(int[] a) {
+    public static int[] shr(final int[] a) {
         int[] n = new int[a.length];
         for (int i = a.length - 1; i > 0; i--) {
             n[i] = (a[i] >>> 1) | ( a[i - 1] << 31);
@@ -528,7 +534,7 @@ public class Bin {
      * @param a 非破壊
      * @return 右シフト
      */
-    public static long[] shr(long[] a) {
+    public static long[] shr(final long[] a) {
         long[] n = new long[a.length];
         for (int i = a.length - 1; i > 0; i--) {
             n[i] = (a[i] >>> 1) | ( a[i - 1] << 63);
@@ -571,7 +577,7 @@ public class Bin {
         long[] n = shr(a);
         n[0] |= b;
         return n;
-    }    
+    }
 
     public static byte[] right(byte[] a, int shift) {
         byte[] n = new byte[a.length];
@@ -582,5 +588,352 @@ public class Bin {
         }
         n[0] = (byte)(v >>> (shift + 8));
         return n;
-    }    
+    }
+
+    /**
+     * byte[]をint[]に変換する.
+     * @param src byte列
+     * @return int列
+     */
+    public static final int[] btoi(final byte[] src) {
+        int t = 0;
+        int dl = src.length / 4;
+        int[] dst = new int[dl];
+        for (int i = 0; i < dst.length; i++, t+= 4) {
+            dst[i]
+                    = ( src[t]         << 24)
+                    | ((src[t+1] & 0xff) << 16)
+                    | ((src[t+2] & 0xff) <<  8)
+                    |  (src[t+3] & 0xff);
+        }
+        return dst;
+    }
+
+    /**
+     * byte[]をlong[]に変換する.
+     * @param src byte列
+     * @return long列
+     */
+    public static final long[] btol(final byte[] src) {
+        int t = 0;
+        long[] dst = new long[src.length / 8];
+        for (int i = 0; i < dst.length; i++, t+= 8) {
+            dst[i]
+                    = (((long)src[t])    << 56)
+                    | ((((long)src[t+1]) & 0xff) << 48)
+                    | ((((long)src[t+2]) & 0xff) << 40)
+                    | ((((long)src[t+3]) & 0xff) << 32)
+                    | ((((long)src[t+4]) & 0xff) << 24)
+                    | ((((long)src[t+5]) & 0xff) << 16)
+                    | ((((long)src[t+6]) & 0xff) <<  8)
+                    |  (((long)src[t+7]) & 0xff);
+        }
+        return dst;
+    }
+
+    /**
+     * int列をbyte列に変換する.
+     * @param src int配列
+     * @return byte配列
+     */
+    public static byte[] itob(final int[] src) {
+        byte[] ss = new byte[src.length*4];
+        for (int i = 0; i < src.length; i++) {
+            int l = i*4;
+            ss[l++] = (byte) (src[i] >> 24);
+            ss[l++] = (byte) (src[i] >> 16);
+            ss[l++] = (byte) (src[i] >>  8);
+            ss[l  ] = (byte)  src[i]       ;
+        }
+        return ss;
+    }
+
+    /**
+     * long列をbyte列に変換する
+     * @param src long列
+     * @return byte列
+     */
+    public static byte[] ltob(final long[] src) {
+        byte[] ds = new byte[src.length*8];
+        for (int i = 0; i < src.length; i++) {
+            long s = src[i];
+            int l = i*8;
+            ds[l  ] = (byte)(s >> 56);
+            ds[l+1] = (byte)(s >> 48);
+            ds[l+2] = (byte)(s >> 40);
+            ds[l+3] = (byte)(s >> 32);
+            ds[l+4] = (byte)(s >> 24);
+            ds[l+5] = (byte)(s >> 16);
+            ds[l+6] = (byte)(s >>  8);
+            ds[l+7] = (byte)(s      );
+        }
+        return ds;
+    }
+
+    /**
+     * long列をint列に変換する
+     * @param src long列
+     * @return int列
+     */
+    public static final int[] ltoi(final long[] src) {
+        int[] ss = new int[src.length*2];
+        for (int i = 0; i < src.length; i++) {
+            int l = i*2;
+            ss[l+1] = (int)src[i];
+            ss[l] = (int)(src[i] >> 32);
+        }
+        return ss;
+    }
+
+    /**
+     * int列をlong列に変換する
+     * @param src int列
+     * @return long列
+     */
+    public static final long[] itol(final int[] src) {
+        long[] ss = new long[src.length/2];
+        for (int i = 0; i < ss.length; i++) {
+            ss[i] = (((long)src[i*2]) << 32)
+                  | (((long)src[i*2+1]) & 0xffffffffl);
+        }
+        return ss;
+    }
+
+    /**
+     * int列の一部をbyte列に変換する
+     * @param src int列
+     * @param offset 位置
+     * @param len 長さ
+     * @return byte列
+     */
+    public static final byte[] itob(final int[] src, int offset, int len) {
+        byte[] ss = new byte[len * 4];
+        int l = 0;
+        for (int i = len; i > 0; i--) {
+            int v = src[offset++];
+            ss[l++] = (byte) (v >> 24);
+            ss[l++] = (byte) (v >> 16);
+            ss[l++] = (byte) (v >>  8);
+            ss[l++] = (byte)  v       ;
+        }
+        return ss;
+    }
+
+    /**
+     * byte列の一部をint列に変換する
+     * @param src byte列
+     * @param offset 位置
+     * @param length 長さ
+     * @return int列
+     */
+    public static final int[] btoi(final byte[] src, int offset, int length) {
+        int[] dst = new int[length];
+        for (int i = 0; i < dst.length; i++) {
+            dst[i]
+                    = ( src[offset]         << 24)
+                    | ((src[offset+1] & 0xff) << 16)
+                    | ((src[offset+2] & 0xff) <<  8)
+                    |  (src[offset+3] & 0xff);
+            offset+=4;
+        }
+        return dst;
+    }
+
+    /**
+     * byte列の一部をlong列に変換する
+     * @param src byte列
+     * @param offset 位置
+     * @param length 長さ
+     * @return long列
+     */
+    public static final long[] btol(final byte[] src, int offset, int length) {
+        long[] dst = new long[length];
+        for (int i = 0; i < dst.length; i++, offset+=8) {
+            dst[i]
+                    = (((long) src[offset])           << 56)
+                    | (((long)(src[offset+1] & 0xff)) << 48)
+                    | (((long)(src[offset+2] & 0xff)) << 40)
+                    | (((long)(src[offset+3] & 0xff)) << 32)
+                    | (((long)(src[offset+4] & 0xff)) << 24)
+                    | (((long)(src[offset+5] & 0xff)) << 16)
+                    | (((long)(src[offset+6] & 0xff)) <<  8)
+                    |  ((long)(src[offset+7] & 0xff));
+        }
+        return dst;
+    }
+
+    /**
+     * long列の一部をint列に変換する
+     * @param src long列
+     * @param offset src位置
+     * @param length src長さ
+     * @return int列
+     */
+    public static final int[] ltoi(final long[] src, int offset, int length) {
+        int[] dst = new int[length];
+        for (int i = 0; i < dst.length; i+=2) {
+            dst[i  ] = (int)(src[offset] >> 32);
+            dst[i+1] = (int)(src[offset++] & 0xffffffffl);
+        }
+        return dst;
+    }
+
+    /**
+     * long列の一部をbyte列に変換する
+     * @param src long列
+     * @param offset src位置
+     * @param srclen src長さ
+     * @return byte列
+     */
+    public static byte[] ltob(final long[] src, int offset, int srclen) {
+        byte[] ss = new byte[srclen * 8];
+        int l = 0;
+        for (int i = srclen; i > 0; i--) {
+            long v = src[offset++];
+            ss[l  ] = (byte) (v >> 56);
+            ss[l+1] = (byte) (v >> 48);
+            ss[l+2] = (byte) (v >> 40);
+            ss[l+3] = (byte) (v >> 32);
+            ss[l+4] = (byte) (v >> 24);
+            ss[l+5] = (byte) (v >> 16);
+            ss[l+6] = (byte) (v >>  8);
+            ss[l+7] = (byte)  v       ;
+            l+=8;
+        }
+        return ss;
+    }
+
+    /**
+     * byte列の一部をlong列に変換する
+     * @param src 転送元byte列
+     * @param offset 転送元位置
+     * @param dst 転送先long列
+     * @param length 転送先長
+     */
+    public static final void btol(final byte[] src, int offset, long[] dst, int length) {
+        for (int i = 0; i < length; i++, offset+= 8) {
+            dst[i]
+                    = ( (long)src[offset]         << 56)
+                    | (((long)src[offset+1] & 0xff) << 48)
+                    | (((long)src[offset+2] & 0xff) << 40)
+                    | (((long)src[offset+3] & 0xff) << 32)
+                    | (((long)src[offset+4] & 0xff) << 24)
+                    | (((long)src[offset+5] & 0xff) << 16)
+                    | (((long)src[offset+6] & 0xff) <<  8)
+                    |  ((long)src[offset+7] & 0xff);
+        }
+    }
+
+    /**
+     * byte列の一部をlong列に変換する
+     * @param src byte列
+     * @param offset src位置
+     * @param dst long列
+     * @param length 長さ
+     */
+    public static final void itol(final int[] src, int offset, long[] dst, int length) {
+        for (int i = 0; i < length; i++) {
+            dst[i]
+                    = ( ((long)src[offset])        << 32)
+                    |  ((long)src[offset+1] & 0xffffffffl);
+            offset+=2;
+        }
+    }
+
+    /**
+     * byte[]をint[]に変換する.
+     * 
+     * @param src バイト列
+     * @param offset src位置
+     * @param dst 戻りint列
+     * @param length int長
+     */
+    public static void btoi(final byte[] src, int offset, int[] dst, int length) {
+        for (int i = 0; i < length; i++) {
+            dst[i]
+                    = ( src[offset]         << 24)
+                    | ((src[offset+1] & 0xff) << 16)
+                    | ((src[offset+2] & 0xff) <<  8)
+                    |  (src[offset+3] & 0xff);
+            offset+=4;
+        }
+    }
+    
+    /**
+     * long列の一部をint列に変換する
+     * @param src long列
+     * @param offset src位置
+     * @param dst 戻りint列
+     * @param length 長さ
+     */
+    public static void ltoi(final long[] src, int offset, int[] dst, int length) {
+        for (int i = 0; i < length; i+=2) {
+            dst[i  ] = (int)(src[offset] >> 32);
+            dst[i+1] = (int)(src[offset++] & 0xffffffffl);
+        }
+    }
+    
+    /**
+     * int[]をbyte[]に戻す.
+     * @param src
+     * @param ss
+     * @param doffset
+     * @return 
+     */
+    public static byte[] itob(final int[] src, byte[] ss, int doffset) {
+        for (int i = 0; i < src.length; i++) {
+            int l = doffset + i*4;
+            ss[l++] = (byte) (src[i] >> 24);
+            ss[l++] = (byte) (src[i] >> 16);
+            ss[l++] = (byte) (src[i] >>  8);
+            ss[l  ] = (byte)  src[i]       ;
+        }
+        return ss;
+    }
+
+    /**
+     * 
+     * @param src
+     * @param ss
+     * @param doffset
+     * @return 
+     */
+    public static final byte[] ltob(final long[] src, byte[] ss, int doffset) {
+        for (int i = 0; i < src.length; i++) {
+            int l = doffset + i*8;
+            ss[l  ] = (byte) (src[i] >> 56);
+            ss[l+1] = (byte) (src[i] >> 48);
+            ss[l+2] = (byte) (src[i] >> 40);
+            ss[l+3] = (byte) (src[i] >> 32);
+            ss[l+4] = (byte) (src[i] >> 24);
+            ss[l+5] = (byte) (src[i] >> 16);
+            ss[l+6] = (byte) (src[i] >>  8);
+            ss[l+7] = (byte)  src[i]       ;
+        }
+        return ss;
+    }
+
+    /**
+     * byte列を大きな数値として+1する
+     * @param src 数値1つぶん
+     */
+    public static final void inc(byte[] src) {
+        int x = src.length;
+        do {
+            x--;
+            src[x]++;
+        } while (src[x] == 0 && x > 0);
+    }
+
+    /**
+     * long列を大きな数値として+1する
+     * @param src 数値1つぶん
+     */
+    public static final void inc(long[] src) {
+        int x = src.length;
+        do {
+            x--;
+            src[x]++;
+        } while (src[x] == 0 && x > 0);
+    }
 }

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 import net.siisise.io.Input;
+import net.siisise.lang.Bin;
 
 /**
  * Stream に変換する何か
@@ -30,11 +31,40 @@ public class StreamBox {
         byte[] d;
         List<byte[]> list = new ArrayList<>();
         
-        
-        while( in.size() >= len ) {
+        while ( in.size() >= len ) {
             d = new byte[len];
             in.read(d);
             list.add(d);
+        }
+        return list.stream();
+    }
+
+    /**
+     * int列のブロックのストリームを作るかもしれない.
+     * @param in
+     * @param len intのサイズ
+     * @return 
+     */
+    public static Stream intStream(Input in, int len) {
+        List<int[]> list = new ArrayList<>();
+        int x4 = len*4;
+        
+        while ( in.size() >= x4 ) {
+            byte[] t = new byte[x4];
+            in.read(t);
+            list.add(Bin.btoi(t));
+        }
+        return list.stream();
+    }
+
+    public static Stream longStream(Input in, int len) {
+        List<long[]> list = new ArrayList<>();
+        int x8 = len*8;
+        
+        while ( in.size() >= x8 ) {
+            byte[] t = new byte[x8];
+            in.read(t);
+            list.add(Bin.btol(t));
         }
         return list.stream();
     }
