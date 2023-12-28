@@ -53,6 +53,7 @@ public interface Block {
      * Buffer の position と同じ.
      * 参照するのは backLength()
      * 切り取った場合もSubBlockの先頭が0でReadableBlock,OverBlockで範囲を超えることはない。
+     * skipもある
      * 
      * @param offset 位置 相対
      * @return 移動した位置

@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
+import java.util.List;
 import net.siisise.io.BackPacket;
 import net.siisise.io.Base;
 import net.siisise.io.FrontPacket;
@@ -157,8 +158,8 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
         /**
          * 書く.
          * @param data データ
-         * @param offset 位置
-         * @param length 長さ
+         * @param offset データ位置
+         * @param length データ長
          * @return これ
          */
         @Override
@@ -170,6 +171,13 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
             return this;
         }
 
+        /**
+         * 書き.
+         * @param index Block位置
+         * @param d データ
+         * @param offset データ位置
+         * @param length データ長
+         */
         @Override
         public void put(long index, byte[] d, int offset, int length) {
             if ( !Matics.sorted(0, offset, offset + length, d.length) ) {
@@ -183,7 +191,13 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
             put(d,offset,length);
             seek(p);
         }
-        
+
+        /**
+         * 上書き.
+         * @param data データ
+         * @param offset データ位置
+         * @param length データ長
+         */
         @Override
         public void write(byte[] data, int offset, int length) {
             if ( !Matics.sorted( 0, length , length()) ) {
@@ -242,6 +256,20 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
             }
             this.min = pos = min;
             this.max = max;
+        }
+        
+        /**
+         * MultiBlock用
+         * @param subs 
+         */
+        AbstractSubOverBlock(List<OverBlock> subs) {
+            min = pos = 0;
+            long mx = 0;
+            for ( OverBlock sub : subs ) {
+                sub.seek(0);
+                mx += sub.length();
+            }
+            max = mx;
         }
 
         /**
@@ -312,6 +340,10 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
                 throw new java.lang.IllegalStateException();
             }
             this.block = block;
+        }
+
+        public SubOverBlock(OverBlock block) {
+            this(0, block.backLength() + block.length(), block);
         }
 
         @Override
