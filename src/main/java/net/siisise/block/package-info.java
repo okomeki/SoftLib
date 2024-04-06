@@ -17,5 +17,6 @@
 /**
  * java.nio っぽくなっている気がする.
  * Buffer (get/put)と Channel (read/write) っぽいもの。
+ * 転送量を減らすために作ってみた.
  */
 package net.siisise.block;

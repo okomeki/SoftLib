@@ -89,6 +89,15 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
         return new BlockChannel(b);
     }
 
+    /**
+     * バッファに複製する.
+     * 足りないときはException.
+     * @param index 位置
+     * @param d バッファ
+     * @param offset バッファ位置
+     * @param length 長さ
+     * @return これ
+     */
     @Override
     OverBlock get(long index, byte[] d, int offset, int length);
 
@@ -140,6 +149,14 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
             back(length);
         }
 
+        /**
+         * 
+         * @param index 位置
+         * @param d 複製先
+         * @param offset
+         * @param length
+         * @return これ
+         */
         @Override
         public OverBlock get(long index, byte[] d, int offset, int length) {
             if ( !Matics.sorted(0, offset, offset + length, d.length) ) {

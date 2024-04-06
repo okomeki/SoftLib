@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 
 /**
+ * Channelに擬態するBlock.
  * size() が違うのでラップ型で実装する
  */
 public class BlockChannel implements SeekableByteChannel {

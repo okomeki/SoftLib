@@ -137,11 +137,20 @@ public class ByteBlock extends OverBlock.AbstractSubOverBlock {
         return ByteBuffer.wrap(block, (int)pos, (int)(max - pos));
     }
     
+    /**
+     * 配列はお持ちですか.
+     * 内部配列を持っている
+     * @return はい
+     */
     @Override
     public boolean hasArray() {
         return true;
     }
     
+    /**
+     * 配列の直接参照.
+     * @return 配列
+     */
     @Override
     public byte[] array() {
         return block;
