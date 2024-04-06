@@ -16,8 +16,10 @@
 package net.siisise.io;
 
 /**
- * 上位ビットが先頭 |01234567|89abcdef|
- * byte列は左詰め、intは右詰め
+ * 上位ビットから処理するビット列系統.
+ * MSB上位ビットが先頭 |01234567|89abcdef|.
+ * byte列は左詰め、intは右詰め.
+ * バイト列に変換する場合は余りビットを捨てるのでパディングを先に実行すること.
  */
 public class BigBitPacket extends BaseBitPac {
 

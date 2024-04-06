@@ -19,7 +19,7 @@ import java.io.*;
 
 /**
  * 固定サイズ配列へのStream.
- *
+ * Block系でもできそう.
  * Created on 2007/03/11, 1:22
  *
  */

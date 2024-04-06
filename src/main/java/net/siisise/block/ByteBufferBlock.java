@@ -48,6 +48,11 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
         buff = src;
     }
 
+    /**
+     * 配列はお持ちですか.
+     * ByteBufferの答えを返す.
+     * @return たぶんはい
+     */
     @Override
     public boolean hasArray() {
         return buff.hasArray();

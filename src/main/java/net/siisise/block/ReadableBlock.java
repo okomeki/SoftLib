@@ -41,14 +41,27 @@ import net.siisise.math.Matics;
  */
 public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinInput {
 
+    /**
+     * 配列はお持ちですか.
+     * 持っていないことにしておく.
+     * @return いいえ
+     */
     default boolean hasArray() {
         return false;
     }
 
+    /**
+     * 持っていないときは見てはだめ.
+     * @return 返さない
+     */
     default byte[] array() {
         throw new java.lang.UnsupportedOperationException();
     }
 
+    /**
+     * 持ってないときは使えない.
+     * @return 返さない
+     */
     default int arrayOffset() {
         throw new java.lang.UnsupportedOperationException();
     }

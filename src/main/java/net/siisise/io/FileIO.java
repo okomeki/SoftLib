@@ -53,19 +53,22 @@ public class FileIO {
 
         try (InputStream in = new FileInputStream(file)) {
             int o = in.read(data);
-            System.out.println(o);
             in.close();
         }
         return data;
     }
-    
+
     public static byte[] binRead(URL url) throws IOException {
         InputStream in = url.openStream();
-        byte[] bin = binRead(in);
-        in.close();
+        byte[] bin;
+        try {
+            bin = binRead(in);
+        } finally {
+            in.close();
+        }
         return bin;
     }
-    
+
     public static byte[] binRead(InputStream in) throws IOException {
         Packet pac = new PacketA();
         io(in,pac.getOutputStream());
