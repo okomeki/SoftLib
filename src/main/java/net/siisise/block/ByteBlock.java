@@ -51,7 +51,7 @@ public class ByteBlock extends OverBlock.AbstractSubOverBlock {
     public ByteBlock(int length) {
         this(new byte[length], 0, length);
     }
-    
+
     /**
      * 配列の部分集合.
      * @param src 元配列.
@@ -103,6 +103,11 @@ public class ByteBlock extends OverBlock.AbstractSubOverBlock {
         return (int) size;
     }
 
+    /**
+     * 1バイト逆から読む.
+     * 読めないときは -1
+     * @return 1バイト または -1
+     */
     @Override
     public int backRead() {
         if ( pos > min ) {

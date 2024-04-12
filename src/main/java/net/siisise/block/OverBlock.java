@@ -80,6 +80,12 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
         return new SubOverBlock(offset, offset + length, block);
     }
 
+    /**
+     * FileChannel を OverBlock で操作できるようにする.
+     * @param ch
+     * @return
+     * @throws IOException 
+     */
     public static OverBlock wrap(FileChannel ch) throws IOException {
         ByteBuffer bb = ch.map(FileChannel.MapMode.READ_WRITE, 0, ch.size());
         return wrap(bb);
@@ -244,7 +250,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
             }
             return len;
         }
-
+        
         /**
          * 切り取りはできない
          *

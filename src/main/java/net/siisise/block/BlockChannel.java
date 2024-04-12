@@ -32,6 +32,12 @@ public class BlockChannel implements SeekableByteChannel {
         block = b;
     }
 
+    /**
+     * ここからバイト列をdstに読み込む.
+     * @param dst
+     * @return サイズ的なもの
+     * @throws IOException 
+     */
     @Override
     public int read(ByteBuffer dst) throws IOException {
         long bl = block.backLength();
@@ -86,6 +92,10 @@ public class BlockChannel implements SeekableByteChannel {
         return this;
     }
 
+    /**
+     * このチャンネルがOpenされているかどうか.
+     * @return openなら<tt>true</tt>
+     */
     @Override
     public boolean isOpen() {
         return block != null;

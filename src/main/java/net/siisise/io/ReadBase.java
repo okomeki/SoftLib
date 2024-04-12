@@ -162,6 +162,11 @@ public abstract class ReadBase implements Input, IndexInput, RevInput, ReadableB
         return this;
     }
 
+    /**
+     * 1バイト逆から読む.
+     * 読めないときは -1
+     * @return 1バイト または -1
+     */
     @Override
     public int backRead() {
         byte[] d = new byte[1];
