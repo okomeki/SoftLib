@@ -181,6 +181,11 @@ public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeab
             throw new java.nio.BufferOverflowException();
         }
     }
+    
+    @Override
+    public boolean isOpen() {
+        return ch != null && ch.isOpen();
+    }
 
     @Override
     public void close() throws IOException {

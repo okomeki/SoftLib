@@ -47,7 +47,7 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
         super(0, src.limit());
         buff = src;
     }
-
+    
     /**
      * 配列はお持ちですか.
      * ByteBufferの答えを返す.
@@ -113,6 +113,11 @@ public class ByteBufferBlock extends OverBlock.AbstractSubOverBlock {
         return tmp;
     }
 
+    /**
+     * 1バイト逆から読む.
+     * 読めないときは -1
+     * @return 1バイト または -1
+     */
     @Override
     public int backRead() {
         int p = buff.position();
