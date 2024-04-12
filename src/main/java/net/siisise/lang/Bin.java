@@ -779,6 +779,26 @@ public class Bin {
     }
 
     /**
+     * Little Endian っぽい
+     * @param src byte列
+     * @param offset 位置
+     * @param length 長さ
+     * @return int列
+     */
+    public static final int[] btoli(final byte[] src, int offset, int length) {
+        int[] dst = new int[length];
+        for (int i = 0; i < dst.length; i++) {
+            dst[i]
+                    =   src[offset]                   
+                    | ((src[offset + 1] & 0xff) <<  8)
+                    | ((src[offset + 2] & 0xff) << 16)
+                    | ((src[offset + 3] & 0xff) << 24);
+            offset += 4;
+        }
+        return dst;
+    }
+
+    /**
      * byte列の一部をlong列に変換する
      *
      * @param src byte列
@@ -899,6 +919,17 @@ public class Bin {
                     | ((src[offset + 1] & 0xff) << 16)
                     | ((src[offset + 2] & 0xff) <<  8)
                     |  (src[offset + 3] & 0xff);
+            offset += 4;
+        }
+    }
+
+    public static void btoli(final byte[] src, int offset, int[] dst, int length) {
+        for (int i = 0; i < length; i++) {
+            dst[i]
+                    =  (src[offset    ] & 0xff)      
+                    | ((src[offset + 1] & 0xff) <<  8)
+                    | ((src[offset + 2] & 0xff) << 16)
+                    |  (src[offset + 3]         << 24); 
             offset += 4;
         }
     }
