@@ -442,7 +442,7 @@ public class Bin {
      * @param offset b位置
      * @param length a長さ
      */
-    public static final void xor(long[] a, int[] b, int offset, int length) {
+    public static final void xorl(long[] a, int[] b, int offset, int length) {
         for (int i = 0; i < length; i++) {
             int of = offset + i * 2;
             a[i] ^= (((long)b[of]) << 32) ^ (b[of + 1] & 0xffffffffl);
