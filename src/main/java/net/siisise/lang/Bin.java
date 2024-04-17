@@ -443,6 +443,12 @@ public class Bin {
         }
     }
 
+    public static final void xorl(int[] a, int[] b, int offset, int length) {
+        for (int i = 0; i < length; i++) {
+            a[i] ^= b[offset + i];
+        }
+    }
+
     /**
      * long[] XOR int[]
      * @param a long列a
@@ -782,8 +788,8 @@ public class Bin {
     public static final long[] itol(final int[] src) {
         long[] ss = new long[src.length / 2];
         for (int i = 0; i < ss.length; i++) {
-            ss[i] = (((long) src[i * 2]) << 32)
-                    | (((long) src[i * 2 + 1]) & 0xffffffffl);
+            ss[i] = (((long) src[i * 2    ]) << 32)
+                  | (((long) src[i * 2 + 1]) & 0xffffffffl);
         }
         return ss;
     }
@@ -1000,7 +1006,7 @@ public class Bin {
             dst[i + 1] = (int) (src[offset++] & 0xffffffffl);
         }
     }
-
+    
     /**
      * int[]をbyte[]に戻す.
      *
@@ -1019,12 +1025,12 @@ public class Bin {
         }
         return ss;
     }
-
+    
     /**
      * long[] to byte[].
      *
-     * @param src
-     * @param ss
+     * @param src long列
+     * @param ss byte列
      * @param doffset
      * @return
      */
