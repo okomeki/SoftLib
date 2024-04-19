@@ -46,13 +46,17 @@ JSONまではほどほどに使えますが、他は実験感覚で作ってい�
 
 簡単な機能の実装です
 
+https://developer.jp/softlib-1.1.14-SNAPSHOT-javadoc/
+
 ## BASE64, Base32, Base58
+
+ - https://developer.jp/softlib-1.1.14-SNAPSHOT-javadoc/net/siisise/io/BASE64.html
 
 6種類程度のBASE64っぽいフォーマットが読み書きできる割と速いものです
 
 ## Packet
 
-- net.siisise.io.Packet
+- net.siisise.io.Packet https://developer.jp/softlib-1.1.14-SNAPSHOT-javadoc/net/siisise/io/Packet.html
 - net.siisise.io.FrontPacket
 - net.siisise.io.BackPacket
 - net.siisise.io.PacketA

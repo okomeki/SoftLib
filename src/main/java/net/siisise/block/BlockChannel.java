@@ -94,7 +94,7 @@ public class BlockChannel implements SeekableByteChannel {
 
     /**
      * このチャンネルがOpenされているかどうか.
-     * @return openなら<tt>true</tt>
+     * @return openならtrue
      */
     @Override
     public boolean isOpen() {
