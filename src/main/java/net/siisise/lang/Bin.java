@@ -89,8 +89,14 @@ public class Bin {
         return toByteArray(src.toCharArray(), 0, src.length());
     }
 
-    public static byte[] toByteArray(char[] txt) {
-        return toByteArray(txt, 0, txt.length);
+    /**
+     * 16進数をバイト列に変換する。
+     *
+     * @param hex 2の倍数の長さ限定 16進数文字列
+     * @return バイト列
+     */
+    public static byte[] toByteArray(char[] hex) {
+        return toByteArray(hex, 0, hex.length);
     }
 
     /**

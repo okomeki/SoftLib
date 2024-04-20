@@ -230,7 +230,7 @@ public class PacketA extends BasePacket {
         if (pac instanceof PacketA) {
             long len = pac.backLength();
             PacketIn an = ((PacketA)pac).nullPack;
-            an.excPrev(nullPack);
+            nullPack.next.excPrev(an);
             an.excPrev(an.next); // an を nullPack のみにする
             return len;
         } else {

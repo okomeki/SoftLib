@@ -81,4 +81,18 @@ public class PacketATest {
         
     }
     
+    @Test
+    public void testBackWrite() {
+        System.out.println("backWrite");
+        byte[] data = "012".getBytes();
+        byte[] data2 = "3456789".getBytes();
+        PacketA pac = new PacketA();
+        pac.write(data);
+        PacketA pac2 = new PacketA();
+        pac2.write(data2);
+        pac2.backWrite(pac);
+        byte[] expResult = "0123456789".getBytes();
+        assertArrayEquals(expResult, pac2.toByteArray());
+    }
+    
 }
