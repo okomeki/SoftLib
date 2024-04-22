@@ -16,7 +16,9 @@
 package net.siisise.lang;
 
 /**
- * IEEE 754 の 16bit 形式 中はshortをつかう
+ * IEEE 754 の 16bit 形式.
+ * 中はshortをつかう.
+ * CBORの符号化用に用意しただけ.
  */
 public class Binary16 extends Number {
 
@@ -35,10 +37,16 @@ public class Binary16 extends Number {
 
     final short value;
 
+    /**
+     * 使わない方がいいのかも valueOf が標準
+     * @param v
+     * @deprecated
+     */
+    @Deprecated(since="9")
     public Binary16(short v) {
         value = v;
     }
-
+    
     /**
      * float に変換してからintにする
      * @return intっぽい値
@@ -83,15 +91,39 @@ public class Binary16 extends Number {
     public short shortValue() {
         return (short) floatValue();
     }
+    
+    /**
+     * short で中身.
+     * @return binary16な中身
+     */
+    public short binary16Value() {
+        return value;
+    }
 
     /**
-     * short 形式をBinary16形式にするだけ
-     *
+     * short 形式をBinary16形式にするだけ.
+     * 型自動変換に注意.
      * @param value Binary16っぽい値
      * @return
      */
     public static Binary16 valueOf(short value) {
         return new Binary16(value);
+    }
+    
+    public static Binary16 valueOf(java.lang.String s) throws NumberFormatException {
+        return new Binary16(parseBinary16(s));
+    }
+    
+    /**
+     * 文字列をIEEE形式でどうにかする.
+     * 文字列をfloat に変えてからBinary16にしているので誤差などあるかもしれない.
+     * @param s
+     * @return
+     * @throws NumberFormatException 
+     */
+    public static short parseBinary16(java.lang.String s) throws NumberFormatException {
+        float f = Float.parseFloat(s);
+        return Binary16.FloatToBinary16bits(f);
     }
 
     /**
@@ -218,5 +250,23 @@ public class Binary16 extends Number {
             return !o16.isNaN() && o16.value == value; // 非NaN同士
         }
         return false; // NaN, 他の型
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 13 * hash + this.value;
+        return hash;
+    }
+
+    /**
+     * 
+     * Float経由で文字列化.
+     * @param b binary16 ビット列
+     * @return 浮動小数点表現だといいな
+     */
+    public static java.lang.String toString(short b) {
+        Float f = Binary16.binary16BitsToFloat(b);
+        return f.toString();
     }
 }

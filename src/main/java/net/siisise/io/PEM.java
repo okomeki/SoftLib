@@ -35,9 +35,10 @@ public class PEM implements TextEncode {
 
     public static final String OPENSSH_PRIVATE_KEY = "OPENSSH PRIVATE KEY";
 
-    final String type;
+    private final String type;
 
     /**
+     * 
      * @param type エンコードの名
      */
     public PEM(String type) {
@@ -56,11 +57,6 @@ public class PEM implements TextEncode {
      */
     public void encode(byte[] data, Writer fout) throws IOException {
         fout.write(encode(data));
-    }
-    
-    @Override
-    public String encode(byte[] src) {
-        return encode(src, 0, src.length);
     }
     
     @Override
@@ -104,10 +100,15 @@ public class PEM implements TextEncode {
         Map<String, Object> map = decodeMap(base64);
         return (byte[]) map.get(null);
     }
-    
+
+    /**
+     * ヘッダ、パラメータつきのデコード風
+     * @param pem ヘッダつきPEM
+     * @return 
+     */
     @Override
-    public Map<String,Object> decodeMap(String base64) {
-        StringReader in = new StringReader(base64);
+    public Map<String,Object> decodeMap(String pem) {
+        StringReader in = new StringReader(pem);
         try {
             return decodeMap(in);
         } catch (IOException e) {
@@ -120,12 +121,12 @@ public class PEM implements TextEncode {
      * typeは1種類のみ指定可能
      * RFC 7468 にまとまっている 
      *
-     * @param fin テキストの入力
+     * @param pem テキストの入力
      * @return
      * @throws java.io.IOException
      */
-    public Map<String,Object> decodeMap(java.io.Reader fin) throws IOException {
-        BufferedReader in = new BufferedReader(fin);
+    public Map<String,Object> decodeMap(java.io.Reader pem) throws IOException {
+        BufferedReader in = new BufferedReader(pem);
         String line;
         String begin = "-----BEGIN " + type + "-----";
         String end = "-----END " + type + "-----";

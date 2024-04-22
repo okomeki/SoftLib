@@ -19,8 +19,9 @@ package net.siisise.io;
  * little endian か?
  * 最下位ビットが先頭 |76543210|fedcba98|
  * byte列は左詰め?、intは右詰め
- * @deprecated まだ
+ * @deprecated テストはしていないかもしれない
  */
+@Deprecated
 public class LittleBitPacket extends BaseBitPac {
 
     class LittleBitInputStream extends BitInputStream {
@@ -124,10 +125,6 @@ public class LittleBitPacket extends BaseBitPac {
             return retLength;
         }
         
-        void cp(byte[] src, int srcOffset, byte[] dst, int dstOffset, int length, int bit) {
-            
-        }
-
         /**
          *
          * @param bit 1～32ぐらい

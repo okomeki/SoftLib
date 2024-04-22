@@ -370,6 +370,7 @@ public class GF {
      * @param b
      * @return a / b
      */
+    @Deprecated
     public byte[] div(byte[] a, byte[] b) {
         return mul(a, inv(b));
     }

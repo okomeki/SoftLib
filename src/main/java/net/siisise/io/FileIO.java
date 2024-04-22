@@ -123,10 +123,10 @@ public class FileIO {
    }
     
     /**
-     * 
-     * @param in
-     * @param out
-     * @return
+     * 移動.
+     * @param in 入力
+     * @param out 出力
+     * @return サイズ
      * @throws IOException 
      */
     public static int io(Reader in, Writer out) throws IOException {

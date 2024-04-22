@@ -51,6 +51,7 @@ public class Bin {
 
     /**
      * バイト列を16進数(大文字)に変換する.
+     * BASE16互換
      *
      * @param src バイト列
      * @return 16進文字列(大文字)
@@ -369,6 +370,7 @@ public class Bin {
      * @param roffset
      * @return a XOR b
      */
+    @Deprecated
     public static byte[] xor(byte[] a, int aoffset, byte[] b, int boffset, byte[] ret, int roffset) {
         int min = Matics.min(ret.length - roffset, a.length - aoffset, b.length - boffset);
         for (int i = 0; i < min; i++) {
