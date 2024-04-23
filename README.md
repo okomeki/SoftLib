@@ -6,6 +6,7 @@ SoftLibシリーズ化してきたのでまとめて1プロジェクトでMaven 
 RFCから拾って実装してみたものが多いかもしれません。
 
 - SoftLib BASE64やPacketなどをまとめたものです。
+- SoftLibRebind データ変換するもの。
 - SoltLibABNF BNF,ABNF,EBNFのparser, CC。
 - SoftLibRFC RFCのABNFを抽出したもの。HTTPなどの拡張にも対応。
 - SoftLibJSON JSONのparser, Object Mapping, JSON PやJSON Bの実装。
@@ -24,18 +25,28 @@ JSONまではほどほどに使えますが、他は実験感覚で作ってい�
 
 # Maven
 
+Java Module System JDK 11用
+~~~
+<dependency>
+    <groupId>net.siisise</groupId>
+    <artifactId>softlib.module</artifactId>
+    <version>1.1.14</version>
+    <type>jar</type>
+</dependency>
+~~~
+JDK 8用
 ~~~
 <dependency>
     <groupId>net.siisise</groupId>
     <artifactId>softlib</artifactId>
-    <version>1.1.13</version>
+    <version>1.1.14</version>
     <type>jar</type>
 </dependency>
 ~~~
 時々変わることがあるので特定バージョンを指定するか、SoftLibJSONなど使用したい機能経由で指定するのがおすすめです。
 
-リリース版 1.1.13 ぐらい。
-次版 1.1.14-SNAPSHOT
+リリース版 1.1.14 ぐらい。
+次版 1.1.15-SNAPSHOT
 
 ~~~
 <version>[1.1.8,)</version>
