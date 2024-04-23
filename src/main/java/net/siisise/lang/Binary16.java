@@ -42,7 +42,7 @@ public class Binary16 extends Number {
      * @param v
      * @deprecated
      */
-    @Deprecated(since="9")
+    @Deprecated
     public Binary16(short v) {
         value = v;
     }
