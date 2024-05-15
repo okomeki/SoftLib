@@ -16,12 +16,12 @@
 
 module net.siisise {
     requires java.logging;
-    requires org.junit.jupiter.api;
-    requires org.junit.jupiter.engine;
-    requires org.junit.platform.engine;
-    requires org.junit.platform.commons;
     exports net.siisise.block;
     exports net.siisise.io;
     exports net.siisise.lang;
     exports net.siisise.math;
+    requires org.junit.jupiter.api;
+    requires org.junit.jupiter.engine;
+    requires org.junit.platform.engine;
+    requires org.junit.platform.commons;
 }
