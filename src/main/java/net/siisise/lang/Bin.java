@@ -443,6 +443,22 @@ public class Bin {
         }
     }
 
+    /*
+     * int[] XOR byte[]
+     * a = x ^ b
+     * @param a CBCのvector 的なもの 
+     * @param b データ列
+     * @param offset データ列位置
+     * @param length aの長さ
+     */
+    public static final void xorl(int[] a, byte[] b, int offset, int length) {
+        for (int i = 0; i < length; i++) {
+            for ( int j = 0, k = 24; j < 4; j++, k -= 8) {
+                a[i] ^= ((((long)b[offset + i*8 + j]) & 0xff) << k);
+            }
+        }
+    }
+
     /**
      * long[] XOR int[]
      * @param a long列a
@@ -466,6 +482,20 @@ public class Bin {
      * @param length a長さ
      */
     public static final void xorl(long[] a, long[] b, int offset, int length) {
+        for (int i = 0; i < length; i++) {
+            a[i] ^= b[offset + i];
+        }
+    }
+
+    /**
+     * int[] XOR int[]
+     * a ^= b
+     * @param a long列a
+     * @param b long列b
+     * @param offset b位置
+     * @param length a長さ
+     */
+    public static final void xorl(int[] a, int[] b, int offset, int length) {
         for (int i = 0; i < length; i++) {
             a[i] ^= b[offset + i];
         }
