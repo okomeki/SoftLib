@@ -30,7 +30,8 @@ public class BASE32 implements TextEncode {
         BASE32FIX("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"),
         BASE32HEX("0123456789ABCDEFGHIJKLMNOPQRSTUV"),
         Bech32("qpzry9x8gf2tvdw0s3jn54khce6mua7l"),
-        Bech32FIX("qpzry9x8gf2tvdw0s3jn54khce6mua7l");
+        Bech32FIX("qpzry9x8gf2tvdw0s3jn54khce6mua7l"),
+        Crockfords("0123456789ABCDEFGHJKMNPQRSTVWXYZ");
         private final char[] ENC;
         private final byte[] DEC = new byte[128];
 
@@ -105,6 +106,7 @@ public class BASE32 implements TextEncode {
     public static final Type BASE32 = Type.BASE32;
     public static final Type BASE32HEX = Type.BASE32HEX;
     public static final Type Bech32 = Type.Bech32;
+    public static final Type Crockfords = Type.Crockfords;
 
     public BASE32() {
         this(Type.BASE32);
