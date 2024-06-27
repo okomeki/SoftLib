@@ -31,6 +31,8 @@ public class Binary16 extends Number {
     public static final short NEGATIVE_INFINITY = (short) 0xFC00;
     public static final short POSITIVE_INFINITY = (short) 0x7C00;
     public static final int SIZE = 16;
+    
+    public static final short NEGATIVE_ZERO = (short)0x8000;
 
     private static final short EXPONENT_MASK = 0x7c00;
     private static final short FRACTION_MASK = 0x03ff;
@@ -108,6 +110,10 @@ public class Binary16 extends Number {
      */
     public static Binary16 valueOf(short value) {
         return new Binary16(value);
+    }
+    
+    public static Binary16 valueOf(float value) {
+        return new Binary16(FloatToBinary16bits(value));
     }
     
     public static Binary16 valueOf(java.lang.String s) throws NumberFormatException {
@@ -200,6 +206,7 @@ public class Binary16 extends Number {
                 if (fraction != 0) { // 表現不能
                     fraction = 0;
                 }
+                break;
             case 0x3fc00:
                 if (fraction != 0) { // NaN の保存
                     // 上位ビットを保存する
@@ -209,6 +216,7 @@ public class Binary16 extends Number {
                 } else { // INFINITY
                     return (sign == 0) ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
                 }
+                break;
             default:
                 exponent -= 0x70; //  0x7f - 0x0f; // 112
                 if ((exponent & (-1 - 0x1f)) != 0) {
