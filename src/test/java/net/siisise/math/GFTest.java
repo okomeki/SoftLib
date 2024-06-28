@@ -176,4 +176,39 @@ public class GFTest {
         c = gf.mul(a, b);
         System.out.println(Bin.toHex(c));
     }
+
+    @Test
+    public void testGF() {
+        System.out.println("GFFFF");
+        byte[] a = Bin.toByteArray("0388dace60b6a392f328c2b971b2fe78");
+        byte[] b = Bin.toByteArray("66E94BD4EF8A2C3B884CFA59CA342B2E");
+        GF gf = new GF(128, GF.GF128);
+        long[] c = gf.mul(Bin.btol(a), Bin.btol(b));
+        byte[] d = gf.mul(a, b);
+        System.out.println(" a x b " + Bin.toUpperHex(Bin.ltob(c)));
+        System.out.println(" a x bd" + Bin.toUpperHex(d));
+    }   
+    
+    @Test
+    public void testA() {
+        System.out.println("GF割り算");
+        GF gf = new GF(128, GF.FF128);
+        long[] one = {0,1};
+        long[] x = gf.x(one);
+        long[] x3 = gf.add(one, gf.x(one));
+        long[] r = gf.r(one);
+        System.out.println(Bin.toHex(Bin.ltob(r)));
+        long[] m = gf.mul(x,r);
+        System.out.println(Bin.toHex(Bin.ltob(m)));
+        x = gf.x(one);
+        long[] r2 = gf.inv(x);
+        System.out.println(Bin.toHex(Bin.ltob(r2)));
+        
+        long[] r3 = gf.inv(x3);
+        System.out.println(Bin.toHex(Bin.ltob(r3)));
+        long[] xx = gf.mul(r3, x);
+
+        System.out.println(Bin.toHex(Bin.ltob(xx)));
+    }
+    
 }

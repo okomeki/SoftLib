@@ -4,7 +4,7 @@ import java.math.BigInteger;
 import net.siisise.lang.Bin;
 
 /**
- * ガロア体のなにか
+ * ガロア体のなにか.
  * 8bit用とbyte列,long列用
  */
 public class GF {
@@ -15,7 +15,6 @@ public class GF {
     final byte constRb; // root と同じ 
     int size; // 255
 
-    final int[] x; // 計算済みのGF8
     final int[] log;
     final int[] exp;
 
@@ -42,7 +41,6 @@ public class GF {
         root = m;
         constRb = (byte) root; // root側を使う
         size = (1 << n) - 1;
-        x = new int[size + 1];
         log = new int[size + 1];
         exp = new int[size + 1];
 
@@ -73,9 +71,8 @@ public class GF {
      */
     public GF(int n, byte rb) {
         N = n - 1;
-        root = 0; // constRb 側をつかう
+        root = rb & 0xff; // constRb 側をつかう
         constRb = rb;
-        x = null;
         log = null;
         exp = null;
     }
@@ -101,9 +98,7 @@ public class GF {
      */
     public long[] x(long[] s) {
         long[] v = Bin.shl(s); // constRb に 1bit 持っているのでこっちは消す
-        if (s[0] < 0) {
-            v[v.length - 1] ^= constRb & 0xffl;
-        }
+        v[v.length - 1] ^= (constRb & 0xffl) * (s[0] >>> 63);
         return v;
     }
     
@@ -154,7 +149,6 @@ public class GF {
      */
     public final int x(int a) {
         return (a << 1) ^ ((a >>> N) * root); 
-//        return n[a];
     }
     
     public int r(int s) {
@@ -172,6 +166,7 @@ public class GF {
     
     static final BigInteger TWO = BigInteger.valueOf(2);
     static final BigInteger THREE = BigInteger.valueOf(3);
+    static final BigInteger FIVE = BigInteger.valueOf(5);
     
     /**
      * 逆数計算的なもの(簡易版)
@@ -181,15 +176,17 @@ public class GF {
      * @return aの逆数 60bit程度まで
      */
     public byte[] inv(byte[] a) {
-        BigInteger p = TWO.shiftLeft(N).subtract(TWO);
-        return pow(a, p);
-//        return pow(a, (2l << N) - 2);
+        return pow(a, TWO.shiftLeft(N).subtract(TWO));
+    }
+
+    public long[] inv(long[] a) {
+        return pow(a, TWO.shiftLeft(N).subtract(TWO));
     }
     
     /**
-     * あれ
-     * @param a
-     * @param p exponent 1以上
+     * 累乗.
+     * @param a 底
+     * @param p exponent 1以上 128bitではビット不足?
      * @return a^p mod xx
      */
     public byte[] pow(byte[] a, long p) {
@@ -211,11 +208,23 @@ public class GF {
         }
     }
 
+    /**
+     * 累乗.
+     * @param a 底
+     * @param p 指数
+     * @return a^p
+     */
     public long[] pow(long[] a, long p) {
         if ( p == 1 ) {
             return a;
         } else {
             long[] n;
+            if ( p % 5 == 0 ) {
+                n = pow(a, p / 5 );
+                long[] nn = mul(n,n);
+                nn = mul(nn,nn);
+                return mul(nn,n);
+            }
             if ( p % 3 == 0 ) {
                 n = pow(a, p / 3 );
                 return mul(mul(n,n),n);
@@ -230,11 +239,14 @@ public class GF {
         }
     }
     
+    static final BigInteger SEVEN = BigInteger.valueOf(7);
+    static final BigInteger eSEVEN = BigInteger.ONE.shiftLeft(128).subtract(TWO);
+
     /**
-     * 簡易版
-     * @param a 元
-     * @param p exponent 1以上
-     * @return 
+     * 簡易版 累乗.
+     * @param a 底
+     * @param p 指数 exponent 1以上
+     * @return a^p
      */
     public byte[] pow(byte[] a, BigInteger p) {
         if ( p.equals(BigInteger.ONE)) {
@@ -254,7 +266,34 @@ public class GF {
         }
     }
 
-//*    
+    /**
+     * 累乗.
+     * @param a 底
+     * @param p 指数 exponent
+     * @return a^p
+     */
+    public long[] pow(long[] a, BigInteger p) {
+        if ( p.equals(BigInteger.ONE)) {
+            return a;
+        } else {
+            long[] n;
+            if ( p.mod(FIVE).equals(BigInteger.ZERO)) {
+                n = pow(a, p.divide(FIVE));
+                long[] nn = mul(n,n);
+                return mul(mul(nn,nn),n);
+            }
+            if ( p.mod(THREE).equals(BigInteger.ZERO)) {
+                n = pow(a, p.divide(THREE));
+                return mul(mul(n,n),n);
+            }
+            n = pow( a, p.divide(TWO));
+            n = mul(n,n);
+            if ( !p.mod(TWO).equals(BigInteger.ZERO)) {
+                n = mul(n,a);
+            }
+            return n;
+        }
+    }
 
     public int mul(int a, int b) {
         if (a == 0 || b == 0) {
@@ -274,32 +313,22 @@ public class GF {
         return Bin.xor(a, b);
     }
 
+    /**
+     * 加算.　減算.
+     * XOR
+     * @param a
+     * @param b
+     * @return a ＋ b
+     */
     public long[] add(long[] a, long[] b) {
         return Bin.xor(a, b);
     }
 
-
-/*
-    public int mul(int n, int y) {
-        if (n == 0 || y == 0) {
-            return 0;
-        }
-        int m = 0;
-    
-        n &= size;
-        y &= size;
-
-        while (n > 0) {
-            if ((n & 1) != 0) {
-                m ^= y;
-            }
-            y = n(y);
-            n >>>= 1;
-        }
-        return m;
-    }
-*/
-
+    /**
+     * ゼロ判定.
+     * @param a
+     * @return aがゼロのとき true
+     */
     private static boolean isZero(byte[] a) {
         for ( byte c : a ) {
             if ( c != 0 ) return false;
@@ -315,8 +344,9 @@ public class GF {
     }
     
     /**
+     * 積算.
      * a・b
-     * @param a
+     * @param a 
      * @param b
      * @return a・b
      */
@@ -334,16 +364,20 @@ public class GF {
     }
 
     /**
+     * 積算.
      * a・b
-     * @param a
-     * @param b
+     * @param a 整数
+     * @param b 整数
      * @return a・b
      */
     public long[] mul(long[] a, long[] b) {
         long[] r = new long[a.length];
+        if ( isZero(b)) {
+            return r;
+        }
         int last = a.length - 1;
         while ( !isZero(a) ) {
-            if ( (a[last] & 0x01) != 0 ) {
+            if ( (a[last] & 1) != 0 ) {
                 Bin.xorl(r, b);
             }
             a = Bin.shr(a);
@@ -365,16 +399,27 @@ public class GF {
     }
 
     /**
-     * @deprecated 未検証
+     * 割り算.
+     * 逆数
      * @param a
      * @param b
      * @return a / b
      */
-    @Deprecated
     public byte[] div(byte[] a, byte[] b) {
         return mul(a, inv(b));
     }
 
+    /**
+     * 割り算.
+     * 逆数
+     * @param a
+     * @param b
+     * @return a / b
+     */
+    public long[] div(long[] a, long[] b) {
+        return mul(a, inv(b));
+    }
+    
     public static String toHexString(long[] s) {
         StringBuilder sb = new StringBuilder(32);
         for ( long v : s ) {
