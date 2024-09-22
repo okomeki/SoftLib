@@ -150,9 +150,14 @@ public class GF {
     public final int x(int a) {
         return (a << 1) ^ ((a >>> N) * root); 
     }
-    
+
+    /**
+     * 
+     * @param s
+     * @return 
+     */
     public int r(int s) {
-        return (s >>> 1) ^ ((s & 1) * root);
+        return (s >>> 1) ^ ((s & 1) * (root >>> 1));
     }
 
     /**

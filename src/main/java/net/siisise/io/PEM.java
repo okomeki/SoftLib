@@ -122,7 +122,7 @@ public class PEM implements TextEncode {
      * RFC 7468 にまとまっている 
      *
      * @param pem テキストの入力
-     * @return
+     * @return 本体デコードといろいろ.
      * @throws java.io.IOException
      */
     public Map<String,Object> decodeMap(java.io.Reader pem) throws IOException {

@@ -56,11 +56,13 @@ public class BASE64 implements TextEncode {
         /** URL用修正付きBASE64 */
         URL,
         /** 16進数を拡張したもの */
-        HEX64;
+        HEX64,
+        /** bcryptなど */
+        BCRYPT;
         
-        char[] encsrc = new char[64];
-        byte[] bytesrc = new byte[64];
-        int[] decsrc = new int[128];
+        final char[] encsrc = new char[64];
+        final byte[] bytesrc = new byte[64];
+        final int[] decsrc = new int[128];
     }
 
     private Type type;
@@ -68,14 +70,14 @@ public class BASE64 implements TextEncode {
 
     static {
         for (int i = 0; i <= 'z' - 'a'; i++) {
-            Type.BASE64.encsrc[i    ] = Type.URL.encsrc[i    ] = Type.PASSWORD.encsrc[i +12] = Type.HEX64.encsrc[i + 36] = (char)('A' + i);
-            Type.BASE64.encsrc[i +26] = Type.URL.encsrc[i +26] = Type.PASSWORD.encsrc[i +38] = Type.HEX64.encsrc[i + 10] = (char)('a' + i);
-            Type.BASE64.bytesrc[i   ] = Type.URL.bytesrc[i   ] = Type.PASSWORD.bytesrc[i+12] = Type.HEX64.bytesrc[i+ 36] = (byte)('A' + i);
-            Type.BASE64.bytesrc[i+26] = Type.URL.bytesrc[i+26] = Type.PASSWORD.bytesrc[i+38] = Type.HEX64.bytesrc[i+ 10] = (byte)('a' + i);
+            Type.BASE64.encsrc[i    ] = Type.URL.encsrc[i    ] = Type.PASSWORD.encsrc[i +12] = Type.BCRYPT.encsrc[i +  2] = Type.HEX64.encsrc[i + 36] = (char)('A' + i);
+            Type.BASE64.encsrc[i +26] = Type.URL.encsrc[i +26] = Type.PASSWORD.encsrc[i +38] = Type.BCRYPT.encsrc[i + 28] = Type.HEX64.encsrc[i + 10] = (char)('a' + i);
+            Type.BASE64.bytesrc[i   ] = Type.URL.bytesrc[i   ] = Type.PASSWORD.bytesrc[i+12] = Type.BCRYPT.bytesrc[i+  2] = Type.HEX64.bytesrc[i+ 36] = (byte)('A' + i);
+            Type.BASE64.bytesrc[i+26] = Type.URL.bytesrc[i+26] = Type.PASSWORD.bytesrc[i+38] = Type.BCRYPT.bytesrc[i+ 28] = Type.HEX64.bytesrc[i+ 10] = (byte)('a' + i);
         }
         for (int i = 0; i < 10; i++) {
-            Type.BASE64.encsrc[i + 52] = Type.URL.encsrc[i + 52] = Type.PASSWORD.encsrc[i + 2] = Type.HEX64.encsrc[i]  = (char)('0' + i);
-            Type.BASE64.bytesrc[i+ 52] = Type.URL.bytesrc[i+ 52] = Type.PASSWORD.bytesrc[i+ 2] = Type.HEX64.bytesrc[i] = (byte)('0' + i);
+            Type.BASE64.encsrc[i + 52] = Type.URL.encsrc[i + 52] = Type.PASSWORD.encsrc[i + 2] = Type.BCRYPT.encsrc[i + 54] = Type.HEX64.encsrc[i]  = (char)('0' + i);
+            Type.BASE64.bytesrc[i+ 52] = Type.URL.bytesrc[i+ 52] = Type.PASSWORD.bytesrc[i+ 2] = Type.BCRYPT.bytesrc[i+ 54] = Type.HEX64.bytesrc[i] = (byte)('0' + i);
         }
         Type.BASE64.encsrc[62] = '+';
         Type.BASE64.encsrc[63] = '/';
@@ -89,18 +91,23 @@ public class BASE64 implements TextEncode {
         Type.URL.encsrc[63] = '_';
         Type.URL.bytesrc[62] = '-';
         Type.URL.bytesrc[63] = '_';
+        Type.BCRYPT.encsrc[0] = '.';
+        Type.BCRYPT.encsrc[1] = '/';
+        Type.BCRYPT.bytesrc[0] = '.';
+        Type.BCRYPT.bytesrc[1] = '/';
         Type.HEX64.encsrc[62] = '-';
         Type.HEX64.encsrc[63] = '_';
         Type.HEX64.bytesrc[62] = '-';
         Type.HEX64.bytesrc[63] = '_';
 
         for (int i = 0; i < 128; i++) {
-            Type.BASE64.decsrc[i] = Type.URL.decsrc[i] = Type.PASSWORD.decsrc[i] = Type.HEX64.decsrc[i] = -1;
+            Type.BASE64.decsrc[i] = Type.URL.decsrc[i] = Type.PASSWORD.decsrc[i] = Type.BCRYPT.decsrc[i] = Type.HEX64.decsrc[i] = -1;
         }
         for (int i = 0; i < 64; i++) {
             Type.BASE64.decsrc[Type.BASE64.encsrc[i]] = i;
             Type.URL.decsrc[Type.URL.encsrc[i]] = i;
             Type.PASSWORD.decsrc[Type.PASSWORD.encsrc[i]] = i;
+            Type.BCRYPT.decsrc[Type.BCRYPT.encsrc[i]] = i;
             Type.HEX64.decsrc[Type.HEX64.encsrc[i]] = i;
         }
     }
@@ -109,6 +116,7 @@ public class BASE64 implements TextEncode {
     public static final Type BASE64 = Type.BASE64;
     public static final Type PASSWORD = Type.PASSWORD;
     public static final Type URL = Type.URL;
+    public static final Type BCRYPT = Type.BCRYPT;
     public static final Type HEX64 = Type.HEX64;
 
     /**
@@ -133,7 +141,7 @@ public class BASE64 implements TextEncode {
      * @param size 出力時の1行のサイズ 0は改行なし
      */
     public BASE64(Type type, int size) {
-        this(type, type != URL && type != HEX64, size);
+        this(type, type != URL && type != HEX64 && type != BCRYPT, size);
     }
     
     /**
@@ -163,6 +171,7 @@ public class BASE64 implements TextEncode {
             case PASSWORD:
             case URL:
             case BASE64:
+            case BCRYPT:
             case HEX64:
                 break;
             default:
@@ -446,6 +455,17 @@ public class BASE64 implements TextEncode {
      * @return 復元済みデータ
      */
     public static byte[] decodePass(String data) {
+        BASE64 b = new BASE64(PASSWORD,0);
+        return b.decode(data);
+    }
+
+    /**
+     * MCFパスワードエンコードのデコード
+     * 
+     * @param data MCF符号化データ
+     * @return 復元済みデータ
+     */
+    public static byte[] decodeMCF(String data) {
         BASE64 b = new BASE64(PASSWORD,0);
         return b.decode(data);
     }

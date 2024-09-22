@@ -765,6 +765,24 @@ public class Bin {
     }
 
     /**
+     * Little Endian int列をbyte列に変換する.
+     *
+     * @param src int配列
+     * @return byte配列
+     */
+    public static byte[] litob(final int[] src) {
+        byte[] ss = new byte[src.length * 4];
+        for (int i = 0; i < src.length; i++) {
+            int l = i * 4;
+            ss[l++] = (byte)  src[i]       ;
+            ss[l++] = (byte) (src[i] >>  8);
+            ss[l++] = (byte) (src[i] >> 16);
+            ss[l  ] = (byte) (src[i] >> 24);
+        }
+        return ss;
+    }
+
+    /**
      * long列をbyte列に変換する
      *
      * @param src long列
@@ -1046,6 +1064,25 @@ public class Bin {
             ss[l++] = (byte) (src[i] >> 16);
             ss[l++] = (byte) (src[i] >>  8);
             ss[l  ] = (byte)  src[i]       ;
+        }
+        return ss;
+    }
+
+    /**
+     * Little Endian int[]をbyte[]に戻す.
+     *
+     * @param src
+     * @param ss
+     * @param doffset
+     * @return
+     */
+    public static byte[] litob(final int[] src, byte[] ss, int doffset) {
+        for (int i = 0; i < src.length; i++) {
+            int l = doffset + i * 4;
+            ss[l++] = (byte)  src[i]       ;
+            ss[l++] = (byte) (src[i] >>  8);
+            ss[l++] = (byte) (src[i] >> 16);
+            ss[l  ] = (byte) (src[i] >> 24);
         }
         return ss;
     }

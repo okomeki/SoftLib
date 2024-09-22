@@ -24,6 +24,14 @@ public interface BitPacket extends FrontPacket,BackPacket {
 
     int readInt(int bitLength);
     int backReadInt(int bitLength);
+    /**
+     * ビット単位で読み込み。
+     * ビット単位ではMSBから埋める.
+     * @param data 読み込み先
+     * @param offsetBit data列の先頭ビット位置
+     * @param bitLength 読み込むビット長
+     * @return 読み込んだビット長
+     */
     long readBit(byte[] data, long offsetBit, long bitLength);
     long backReadBit(byte[] data, long offsetBit, long bitLength);
 
