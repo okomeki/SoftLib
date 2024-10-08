@@ -47,10 +47,10 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
         /**
          * 読み込んだ次のバイトが壊れていない保証はない
          *
-         * @param data
-         * @param offset
-         * @param length
-         * @return
+         * @param data 読み込み配列
+         * @param offset　位置
+         * @param length　読み込みサイズ
+         * @return 読み込んだサイズ
          */
         @Override
         public int read(byte[] data, int offset, int length) {
@@ -62,6 +62,15 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
         }
 
         public abstract int readInt(int bit);
+        
+        /**
+         * ビット単位の読み込み.
+         * Big Endian 左詰めまたは Little Endian 右詰め
+         * @param data 読み込み配列
+         * @param offset ビット位置
+         * @param bitLength　ビットサイズ
+         * @return 読み込んだサイズ
+         */
         public abstract long readBit(byte[] data, long offset, long bitLength);
         public abstract BitPacket readPac(int bitLength);
         

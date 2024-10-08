@@ -27,12 +27,6 @@ import java.io.OutputStream;
  *
  * 改行コードはOSに依存せず通信の標準である\r\nに統一します。
  *
- * 2019/09/14 BASE64URLのデコード修正
- * 2019/08/28 複数バージョンを統合
- * 2007/01/10 エンコードの高速化
- * 2006/11/09 GPLライセンス適用
- * 2006/10/25 0.3 RFCヘッダフッタ処理機能追加
- *
  */
 public class BASE64 implements TextEncode {
 
@@ -460,13 +454,13 @@ public class BASE64 implements TextEncode {
     }
 
     /**
-     * MCFパスワードエンコードのデコード
+     * BCryptパスワードエンコードのデコード
      * 
      * @param data MCF符号化データ
      * @return 復元済みデータ
      */
-    public static byte[] decodeMCF(String data) {
-        BASE64 b = new BASE64(PASSWORD,0);
+    public static byte[] decodeBcrypt(String data) {
+        BASE64 b = new BASE64(BCRYPT,0);
         return b.decode(data);
     }
 

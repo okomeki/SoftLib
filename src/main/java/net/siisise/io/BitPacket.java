@@ -16,17 +16,26 @@
 package net.siisise.io;
 
 /**
+ * ビット単位メモリ.
  * javaのBitSetと互換かなにかにしたい.
+ * Big Endian. Little Endianの2種類を想定。
  * ビット系からバイト系に変換する際には端数ビットを捨てる方向で調整する。
  * 必要ならパディングを入れてみよう。
  */
 public interface BitPacket extends FrontPacket,BackPacket {
 
+    /**
+     * 
+     * @param bitLength
+     * @return 
+     */
     int readInt(int bitLength);
     int backReadInt(int bitLength);
+
     /**
      * ビット単位で読み込み。
-     * ビット単位ではMSBから埋める.
+     * BigBitPacketではビット単位ではMSBから埋める.
+     * LittleBitPacketではLSBから埋める.
      * @param data 読み込み先
      * @param offsetBit data列の先頭ビット位置
      * @param bitLength 読み込むビット長
