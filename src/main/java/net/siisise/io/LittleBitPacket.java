@@ -370,14 +370,17 @@ public class LittleBitPacket extends BaseBitPac {
         }
     }
 
+    /**
+     * 逆書き込み.
+     */
     class BackLittleBitOutputStream extends BitOutputStream {
 
         /**
          * 簡単な int, long
          * |76543210|fedbca98|
          * 
-         * @param data
-         * @param bitLength
+         * @param data データ
+         * @param bitLength 書き込みビット長
          */
         @Override
         public void writeBit(int data, int bitLength) {
@@ -413,9 +416,47 @@ public class LittleBitPacket extends BaseBitPac {
             }
         }
 
+        /**
+         * backWriteBit
+         * 
+         * @param data data
+         * @param bitOffset ビット位置
+         * @param bitLength ビット長
+         */
         @Override
         public void writeBit(byte[] data, long bitOffset, long bitLength) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            int of = (int) ((bitOffset + bitLength) / 8);
+//            long retLength = bitLength;
+            int ofbit = (int) ((bitOffset + bitLength) % 8); // あまりビット
+
+            if (ofbit > 0 && bitLength >= ofbit) { // 末尾は下位ビットを埋める
+                writeBit((data[of] & 0xff), ofbit);
+                bitLength -= ofbit;
+                ofbit = 0;
+            }
+
+            int v;
+            while (bitLength >= 24) {
+                of -= 3;
+                v = (data[of] & 0xff)
+                  | ((data[of+1] & 0xff) << 8)
+                  | ((data[of+2] & 0xff) << 16);
+                writeBit(v, 24);
+                bitLength -= 24;
+            }
+            while (bitLength >= 8) {
+                of -= 1;
+                writeBit(data[of] & 0xff, 8);
+                bitLength -= 8;
+            }
+            if (bitLength > 0) { //　メモ 下位ビットから埋める // 先頭は上ビットを埋める
+                if ( ofbit == 0 ) {
+                    of--;
+                    ofbit = 8;
+                }
+                int n = ofbit - (int)bitLength;
+                writeBit(data[of] >> n, (int)bitLength);
+            }
         }
     }
 

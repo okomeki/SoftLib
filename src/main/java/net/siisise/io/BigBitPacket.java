@@ -247,7 +247,10 @@ public class BigBitPacket extends BaseBitPac {
             }
         }
     }
-    
+
+    /**
+     * 逆読み.
+     */
     class BackBigBitInputStream extends BitInputStream {
 
         /**
@@ -294,6 +297,7 @@ public class BigBitPacket extends BaseBitPac {
 
         /**
          * backReadBit
+         * 
          * @param data
          * @param offsetBit
          * @param length
@@ -358,6 +362,9 @@ public class BigBitPacket extends BaseBitPac {
         }
     }
 
+    /**
+     * 逆書き込み用.
+     */
     class BackBigBitOutputStream extends BitOutputStream {
         
         /**
@@ -400,12 +407,44 @@ public class BigBitPacket extends BaseBitPac {
             }
         }
 
+        /**
+         * 逆書き.
+         * MSB上位ビットが先頭 |01234567|89abcdef|.
+         * @param data
+         * @param offsetBit
+         * @param length 
+         */
         @Override
-        public void writeBit(byte[] data, long off, long length) {
-            if ( off % 8 != 0 ) {
-                
+        public void writeBit(byte[] data, long offsetBit, long length) {
+            int of = (int) ((offsetBit + length) / 8);
+            int ofbit = (int) ((offsetBit + length) % 8);
+
+            if ( ofbit > 0 && length >= ofbit) {
+                writeBit(data[of] >>> 8 - ofbit, ofbit);
+                length -= ofbit;
+                ofbit = 0;
             }
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+            while (length >= 24) {
+                of -= 3;
+                writeBit(((data[of] << 16) & 0xff) | ((data[of + 1] << 8) & 0xff) | (data[of + 2] & 0xff), 24);
+                length -= 24;
+            }
+
+            while (length >= 8) {
+                of--;
+                writeBit((data[of + 2] & 0xff), 8);
+                length -= 8;
+            }
+
+            if (length > 0) {
+                if ( ofbit == 0 ) {
+                    of--;
+                    ofbit += 8;
+                }
+                int n = 8 - ofbit;
+                writeBit(data[of] >>> n, (int)length);
+            }
         }
     }
 
