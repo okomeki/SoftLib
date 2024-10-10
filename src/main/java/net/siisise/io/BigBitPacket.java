@@ -91,7 +91,7 @@ public class BigBitPacket extends BaseBitPac {
             int ofbit = (int) (offsetBit % 8);
 
             if (ofbit > 0 && length >= (8 - ofbit)) {
-                data[of] &= 0xff - andMask(8-ofbit);
+                data[of] &= 0xff ^ andMask(8-ofbit);
                 data[of] |= (byte) readInt(8 - ofbit);
                 of++;
                 length -= 8 - ofbit;
@@ -209,6 +209,15 @@ public class BigBitPacket extends BaseBitPac {
         public void writeBit(byte[] data, long offsetBit, long bitLength) {
             int of = (int) (offsetBit / 8);
             offsetBit %= 8;
+            
+            if ( offsetBit > 0 & bitLength > (8 - offsetBit)) {
+                int l = 8 - (int)offsetBit;
+                int d = data[of] & 0xff;
+                writeBit(d, l);
+                of++;
+                bitLength -= l;
+                offsetBit = 0;
+            }
 
             while (offsetBit + bitLength >= 32) {
                 writeBit(((data[of] & 0xff) << 24) | ((data[of + 1] & 0xff) << 16) | ((data[of + 2] & 0xff) << 8) | (data[of + 3] & 0xff), 32 - (int)offsetBit);
@@ -241,6 +250,11 @@ public class BigBitPacket extends BaseBitPac {
     
     class BackBigBitInputStream extends BitInputStream {
 
+        /**
+         * backReadInt
+         * @param bit
+         * @return 
+         */
         @Override
         public int readInt(int bit) {
             if (bit > bitLength()) {
@@ -278,41 +292,53 @@ public class BigBitPacket extends BaseBitPac {
             return ret;
         }
 
+        /**
+         * backReadBit
+         * @param data
+         * @param offsetBit
+         * @param length
+         * @return 
+         */
         @Override
         public long readBit(byte[] data, long offsetBit, long length) {
-            long retLength;
-            if (length > bitLength()) {
-                length = bitLength();
+            long l = bitLength();
+            if (length > l) {
+                length = l;
             }
-            retLength = length;
+            long retLength = length;
             int of = (int) ((offsetBit + length) / 8);
             int ofbit = (int) ((offsetBit + length) % 8);
 
-            if ( ofbit > 0 && length > ofbit) {
-                data[of] &= 0xff - andMask(ofbit);
-                data[of] |= backReadInt((int)ofbit);
+            if ( ofbit > 0 && length >= ofbit) {
+                data[of] &= andMask(ofbit);
+                data[of] |= readInt((int)ofbit) << (8 - ofbit);
                 length -= ofbit;
+                ofbit = 0;
             }
 
             int v;
             while (length >= 24) {
-                v = backReadInt(24);
+                v = readInt(24);
                 of -= 3;
-                data[of] = (byte) (v & 0xff);
+                data[of] = (byte) (v >> 16);
                 data[of + 1] = (byte) ((v >> 8) & 0xff);
-                data[of + 2] = (byte) (v >> 16);
+                data[of + 2] = (byte) (v & 0xff);
                 length -= 24;
             }
             while (length >= 8) {
                 of--;
-                data[of] = (byte) backReadInt(8);
+                data[of] = (byte) readInt(8);
                 length -= 8;
             }
 
-            if (ofbit > 0 && length >= (8 - ofbit)) { //todo: ofbit
+            if (length > 0) { //todo: ofbit
+                if ( ofbit > 0) {
+                    throw new java.lang.UnsupportedOperationException();
+                }
                 of--;
-                data[of] &= andMask(ofbit);
-                data[of] |= (byte)(backReadInt(8 - ofbit) << ofbit);
+                int n = 8 - ofbit;
+                data[of] &= 0xff ^ (andMask((int)length) << n);
+                data[of] |= (byte) (readInt((int)length) << n);
             }
             return retLength;
         }
