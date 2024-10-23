@@ -462,10 +462,11 @@ public class PacketA extends BasePacket {
      */
     @Override
     public PacketA get(long index, byte[] b, int offset, int length) {
-        if ( length() < length) {
+        long pl = length();
+        if ( pl < length) {
             throw new java.nio.BufferOverflowException();
         }
-        PacketA bb = backReadPacket(length() - index - length);
+        PacketA bb = backReadPacket(pl - index - length);
         PacketA t = backReadPacket(length);
         t.read(b, offset, length);
         write(b, offset, length);

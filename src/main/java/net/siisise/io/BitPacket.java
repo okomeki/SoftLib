@@ -25,11 +25,18 @@ package net.siisise.io;
 public interface BitPacket extends FrontPacket,BackPacket {
 
     /**
+     * ビット読み込み.
+     * 下位ビットを利用
+     * @param bitLength 読み込むビットサイズ 0 - 32
+     * @return 下位ビットに読み込み
+     */
+    int readInt(int bitLength);
+    /**
+     * 逆読み.
      * 
      * @param bitLength
      * @return 
      */
-    int readInt(int bitLength);
     int backReadInt(int bitLength);
 
     /**

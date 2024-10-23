@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2022 Siisise Net.
+ * Copyright 2019-2024 Siisise Net.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,11 @@ public class BigBitPacket extends BaseBitPac {
     }
 
     class BigBitInputStream extends BitInputStream {
+
         /**
-         *
+         *　ビット読み込み.
          * @param bit 1～32ぐらい
-         * @return 下位ビットを指定ビット分上から埋める |xx012345|
+         * @return 下位ビットを指定ビット分上から埋める |xx012345|6789abcd|
          */
         @Override
         public int readInt(int bit) {
@@ -210,15 +211,6 @@ public class BigBitPacket extends BaseBitPac {
             int of = (int) (offsetBit / 8);
             offsetBit %= 8;
             
-            if ( offsetBit > 0 & bitLength > (8 - offsetBit)) {
-                int l = 8 - (int)offsetBit;
-                int d = data[of] & 0xff;
-                writeBit(d, l);
-                of++;
-                bitLength -= l;
-                offsetBit = 0;
-            }
-
             while (offsetBit + bitLength >= 32) {
                 writeBit(((data[of] & 0xff) << 24) | ((data[of + 1] & 0xff) << 16) | ((data[of + 2] & 0xff) << 8) | (data[of + 3] & 0xff), 32 - (int)offsetBit);
                 of += 4;
