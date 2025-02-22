@@ -30,7 +30,7 @@ Java Module System JDK 11用
 <dependency>
     <groupId>net.siisise</groupId>
     <artifactId>softlib.module</artifactId>
-    <version>1.1.14</version>
+    <version>1.1.16</version>
     <type>jar</type>
 </dependency>
 ~~~
@@ -39,14 +39,14 @@ JDK 8用
 <dependency>
     <groupId>net.siisise</groupId>
     <artifactId>softlib</artifactId>
-    <version>1.1.14</version>
+    <version>1.1.15</version>
     <type>jar</type>
 </dependency>
 ~~~
 時々変わることがあるので特定バージョンを指定するか、SoftLibJSONなど使用したい機能経由で指定するのがおすすめです。
 
-リリース版 1.1.14 ぐらい。
-次版 1.1.15-SNAPSHOT
+リリース版 1.1.16 ぐらい。
+次版 1.1.17-SNAPSHOT
 
 ~~~
 <version>[1.1.8,)</version>
