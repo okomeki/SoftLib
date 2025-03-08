@@ -45,6 +45,7 @@ public class GFRev {
     public GFRev(long[] l) {
         
         long[] n = l.clone();
+        shL = new long[l.length * 64][];
         for (int i = 0; i < l.length * 64; i++) {
             shL[i] = n;
             n = x(n);
@@ -76,9 +77,10 @@ public class GFRev {
             for ( int j = 0; j < 64; j++ ) {
                 if ( c << j < 0) {
                     int k = i * 64 + j;
-                    for (int l = 0; l < a.length; l++) {
-                        v[l] ^= shL[k][l];
-                    }
+                    Bin.xorl(v, shL[k]);
+                    //for (int l = 0; l < a.length; l++) {
+                    //    v[l] ^= shL[k][l];
+                    //}
                 }
             }
         }
@@ -113,7 +115,11 @@ public class GFRev {
     public long[] inv(long[] a) {
         return pow(a, INV_POW);
     }
-
+    
+    public long[] inv() {
+        return pow(INV_POW);
+    }
+    
     /**
      * 累乗.
      * @param a 底
@@ -121,6 +127,8 @@ public class GFRev {
      * @return 
      */
     public long[] pow(long[] a, BigInteger p) {
+        return new GFRev(a).pow(p);
+/*
         if ( p.equals(BigInteger.ONE)) {
             return a;
         } else {
@@ -133,6 +141,27 @@ public class GFRev {
             n = mul(n,n);
             if ( !p.mod(TWO).equals(BigInteger.ZERO)) {
                 n = mul(n,a);
+            }
+            return n;
+        }
+*/
+    }
+    
+    public long[] pow(BigInteger p) {
+        long[] a = shL[0];
+        if ( p.equals(BigInteger.ONE)) {
+            return a;
+        } else {
+            long[] n;
+            if ( p.mod(THREE).equals(BigInteger.ZERO)) {
+                n = pow(p.divide(THREE));
+                GFRev gfn = new GFRev(n);
+                return gfn.mul(gfn.mul(n));
+            }
+            n = pow( p.divide(TWO));
+            n = mul(n,n);
+            if ( !p.mod(TWO).equals(BigInteger.ZERO)) {
+                n = mul(n);
             }
             return n;
         }
