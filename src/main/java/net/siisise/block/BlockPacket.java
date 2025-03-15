@@ -24,25 +24,27 @@ import net.siisise.io.BasePacket;
 public class BlockPacket extends BasePacket {
 
     private static class BlockIn {
+
         private BlockIn prev = this;
         private BlockIn next = this;
         // data, offset, length の代わり
         private OverBlock block;
-        
+
         private BlockIn() {
         }
-        
+
         private BlockIn(OverBlock b) {
             block = b;
         }
-        
+
         void addPrev(OverBlock b) {
             excPrev(new BlockIn(b));
         }
-        
+
         /**
          * PacketA PacketIn と同じ原理
-         * @param pac 
+         *
+         * @param pac
          */
         void excPrev(BlockIn pac) {
             prev.next = pac;            // A の次は D
@@ -50,15 +52,15 @@ public class BlockPacket extends BasePacket {
             BlockIn pre = pac.prev;    // pre = C
             pac.prev = prev;            // D の前は A
             prev = pre;                 // B の前は C
-            
+
         }
-        
+
         void delete() {
             prev.next = next;
             next.prev = prev;
         }
     }
-    
+
     private BlockIn nullBlock = new BlockIn();
 
     /**
@@ -72,12 +74,12 @@ public class BlockPacket extends BasePacket {
     @Override
     public int read(byte[] d, int offset, int length) {
         int b = length;
-        while ( nullBlock.next != nullBlock && length > 0 ) {
+        while (nullBlock.next != nullBlock && length > 0) {
             BlockIn n = nullBlock.next;
-            int s = n.block.read(d,offset,length);
+            int s = n.block.read(d, offset, length);
             offset += s;
             length -= s;
-            if ( n.block.length() == 0 ) {
+            if (n.block.length() == 0) {
                 n.delete();
             }
         }
@@ -90,14 +92,24 @@ public class BlockPacket extends BasePacket {
     @Override
     public long length() {
         long len = 0;
-        for ( BlockIn n = nullBlock.next; n != nullBlock; n = n.next) {
+        for (BlockIn n = nullBlock.next; n != nullBlock; n = n.next) {
             len += n.block.length();
         }
         return len;
     }
 
+    @Override
+    public boolean readable(long length) {
+        for (BlockIn n = nullBlock.next; n != nullBlock && length > 0; n = n.next) {
+            length -= n.block.length();
+        }
+        return length <= 0;
+
+    }
+
     /**
      * 逆読み
+     *
      * @param buf バッファ
      * @param offset バッファ位置
      * @param length サイズ
@@ -106,11 +118,11 @@ public class BlockPacket extends BasePacket {
     @Override
     public int backRead(byte[] buf, int offset, int length) {
         int x = length;
-        for ( BlockIn n = nullBlock.prev; n != nullBlock && x > 0; n = n.prev ) {
+        for (BlockIn n = nullBlock.prev; n != nullBlock && x > 0; n = n.prev) {
             int min = x < n.block.size() ? x : n.block.size();
             n.block.backRead(buf, offset + x - min, min);
             x -= min;
-            if ( n.block.length() == 0 ) {
+            if (n.block.length() == 0) {
                 n.delete();
             }
         }
@@ -133,29 +145,29 @@ public class BlockPacket extends BasePacket {
 
     @Override
     public BlockPacket get(long index, byte[] b, int offset, int length) {
-        if ( length() < length ) {
+        if (!readable(length)) {
             throw new java.nio.BufferOverflowException();
         }
         BlockIn n;
-        for ( n = nullBlock.next; n != nullBlock && index >= n.block.length(); n = n.next ) {
+        for (n = nullBlock.next; n != nullBlock && index >= n.block.length(); n = n.next) {
             index -= n.block.length();
         }
-        if ( n != nullBlock && index > 0 ) {
-            byte[] nb = new byte[(int)index];
+        if (n != nullBlock && index > 0) {
+            byte[] nb = new byte[(int) index];
             n.block.read(nb);
             n.addPrev(OverBlock.wrap(nb)); // 部分的には残せないので分ける
-            
+
         }
-        while ( n != nullBlock && length > 0 ) {
-            int s = n.block.read(b,offset,length);
+        while (n != nullBlock && length > 0) {
+            int s = n.block.read(b, offset, length);
             offset += s;
             length -= s;
-            if ( n.block.length() == 0 ) {
+            if (n.block.length() == 0) {
                 n.delete();
             }
             n = n.next;
         }
-        if ( n != nullBlock && n.prev != nullBlock && n.block.backLength() > n.prev.block.length() ) {
+        if (n != nullBlock && n.prev != nullBlock && n.block.backLength() > n.prev.block.length()) {
             byte[] t = new byte[n.prev.block.size()];
             n.prev.block.read(t);
             n.block.backWrite(t);
@@ -165,6 +177,7 @@ public class BlockPacket extends BasePacket {
 
     /**
      * 指定位置に上書き.
+     *
      * @param index 位置
      * @param d データ
      * @param offset データ位置
@@ -172,14 +185,14 @@ public class BlockPacket extends BasePacket {
      */
     @Override
     public void put(long index, byte[] d, int offset, int length) {
-        if ( length() < length ) {
+        if (length() < length) {
             throw new java.nio.BufferOverflowException();
         }
         BlockIn n;
-        for ( n = nullBlock.next; n != nullBlock && index >= n.block.length(); n = n.next ) {
+        for (n = nullBlock.next; n != nullBlock && index >= n.block.length(); n = n.next) {
             index -= n.block.length();
         }
-        while ( n != nullBlock && length > 0 ) { // 上書き
+        while (n != nullBlock && length > 0) { // 上書き
             long s = n.block.backLength();
             int min = length < n.block.size() ? length : n.block.size();
             n.block.put(s + index, d, offset, min);
@@ -188,7 +201,7 @@ public class BlockPacket extends BasePacket {
             length -= min;
             n = n.next;
         }
-        if ( length > 0 ) { // 増える
+        if (length > 0) { // 増える
             byte[] t = new byte[length];
             System.arraycopy(d, offset, t, 0, length);
             n.addPrev(OverBlock.wrap(t));
@@ -197,30 +210,31 @@ public class BlockPacket extends BasePacket {
 
     @Override
     public void del(long index, long size) {
-        if ( length() < index + size ) {
+        if (length() < index + size) {
             throw new java.nio.BufferOverflowException();
         }
         BlockIn n;
-        for ( n = nullBlock.next; n != nullBlock && index >= n.block.length(); n = n.next ) {
+        for (n = nullBlock.next; n != nullBlock && index >= n.block.length(); n = n.next) {
             index -= n.block.length();
         }
-        if ( n != nullBlock && index > 0 ) {
-            byte[] nb = new byte[(int)index];
+        if (n != nullBlock && index > 0) {
+            byte[] nb = new byte[(int) index];
             n.block.read(nb);
             n.addPrev(OverBlock.wrap(nb)); // 部分的には残せないので分ける
         }
-        while ( n != nullBlock && n.block.length() <= size ) { // ざっくり消す
+        while (n != nullBlock && n.block.length() <= size) { // ざっくり消す
             n.delete();
             size -= n.block.length();
             n = n.next;
         }
-        if ( n != nullBlock && size > 0 ) {
+        if (n != nullBlock && size > 0) {
             n.block.skip(size);
         }
     }
 
     /**
      * 手抜き.
+     *
      * @param index 位置
      * @param buf バックアップ
      * @param offset bufの位置
@@ -236,19 +250,19 @@ public class BlockPacket extends BasePacket {
 
     @Override
     public void add(long index, byte[] d, int offset, int length) {
-        if ( length() < index ) {
+        if (length() < index) {
             throw new java.nio.BufferOverflowException();
         }
         BlockIn n;
-        for ( n = nullBlock.next; n != nullBlock && index >= n.block.length(); n = n.next ) {
+        for (n = nullBlock.next; n != nullBlock && index >= n.block.length(); n = n.next) {
             index -= n.block.length();
         }
-        if ( n != nullBlock && index > 0 ) {
-            byte[] nb = new byte[(int)index];
+        if (n != nullBlock && index > 0) {
+            byte[] nb = new byte[(int) index];
             n.block.read(nb);
             n.addPrev(OverBlock.wrap(nb)); // 部分的には残せないので分ける
         }
-        n.addPrev(OverBlock.wrap(d,offset,length));
+        n.addPrev(OverBlock.wrap(d, offset, length));
     }
 
 }

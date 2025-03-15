@@ -29,7 +29,7 @@ import net.siisise.io.RevOutput;
 /**
  * 編集点が中央になったPacket.
  * ソースとメモリ共有はされない.
- * 
+ *
  * 先頭、終端と編集点を別にしたもの.
  */
 public class PacketBlock extends Edit implements EditBlock {
@@ -44,8 +44,8 @@ public class PacketBlock extends Edit implements EditBlock {
     }
 
     /**
-     * データ列から作るBlock
-     * データ列とこのPacketBlockは共有されない.
+     * データ列から作るBlock データ列とこのPacketBlockは共有されない.
+     *
      * @param data データ列
      */
     public PacketBlock(byte[] data) {
@@ -54,6 +54,7 @@ public class PacketBlock extends Edit implements EditBlock {
 
     /**
      * 入力を繋ぐ.
+     *
      * @param in 入力をFrontPacketでまとったもの
      */
     public PacketBlock(FrontPacket in) {
@@ -65,6 +66,7 @@ public class PacketBlock extends Edit implements EditBlock {
      * inから読んでoutに出て行く形.
      * 全体サイズは不変.
      * position はfront側サイズを基準にする.
+     *
      * @param in 処理前データ入れ back
      * @param out 処理後データ入れ front
      */
@@ -76,6 +78,7 @@ public class PacketBlock extends Edit implements EditBlock {
     /**
      * 特定位置までposition移動.
      * 足りない場合は最後へ
+     *
      * @param offset 位置
      * @return 移動した位置
      */
@@ -92,14 +95,15 @@ public class PacketBlock extends Edit implements EditBlock {
 
     /**
      * 読みとばす。進む。
+     *
      * @param length 長さ
      * @return skip length
      */
     @Override
     public long skip(long length) {
-        if ( length == 0 ) {
+        if (length == 0) {
             return 0;
-        } else if ( length < 0 ) {
+        } else if (length < 0) {
             return -back(-Math.max(length, -front.backLength()));
         }
         Packet fp = back.readPacket(length);
@@ -110,9 +114,9 @@ public class PacketBlock extends Edit implements EditBlock {
 
     @Override
     public long back(long length) {
-        if ( length == 0 ) {
+        if (length == 0) {
             return 0;
-        } else if ( length < 0 ) {
+        } else if (length < 0) {
             return -skip(-Math.max(length, -back.length()));
         }
         Packet ff = front.backReadPacket(length);
@@ -121,6 +125,7 @@ public class PacketBlock extends Edit implements EditBlock {
 
     /**
      * 編集可能なのでいろいろ違うかも
+     *
      * @return position より前を切り取ったもの.
      */
     @Override
@@ -137,7 +142,7 @@ public class PacketBlock extends Edit implements EditBlock {
 
     @Override
     public void write(byte[] data, int offset, int length) {
-        if ( length > length() ) {
+        if (length > length()) {
             throw new java.nio.BufferOverflowException();
         }
         back.skip(length);
@@ -148,11 +153,12 @@ public class PacketBlock extends Edit implements EditBlock {
      * 直書き.
      * data列は再利用しないこと
      * 上限越えはエラー
+     *
      * @param data 配列、データ
      */
     @Override
     public void dwrite(byte[] data) {
-        if ( data.length > length() ) {
+        if (data.length > length()) {
             throw new java.nio.BufferOverflowException();
         }
         back.skip(data.length);
@@ -161,7 +167,7 @@ public class PacketBlock extends Edit implements EditBlock {
 
     /**
      * 書き込む.
-     * 
+     *
      * @param pac 入力
      * @return 上書きしたサイズ
      */
@@ -174,7 +180,7 @@ public class PacketBlock extends Edit implements EditBlock {
 
     @Override
     public long write(Input pac, long length) {
-        if ( length > pac.length() ) {
+        if (length > pac.length()) {
             throw new java.nio.BufferOverflowException();
         }
         long len = Math.min(pac.length(), length);
@@ -201,6 +207,7 @@ public class PacketBlock extends Edit implements EditBlock {
     /**
      * 読む.
      * 読んだところは消えない.
+     *
      * @param index 位置
      * @param d データ入れ
      * @param offset d 位置
@@ -219,6 +226,7 @@ public class PacketBlock extends Edit implements EditBlock {
     /**
      * 上書き.読むデータがなくても追加する.
      * 有限サイズデータ(配列)の場合は上限まで書く?
+     *
      * @param data データ列
      * @param offset 位置
      * @param length サイズ
@@ -226,10 +234,10 @@ public class PacketBlock extends Edit implements EditBlock {
      */
     @Override
     public PacketBlock put(byte[] data, int offset, int length) {
-        if ( length > size() ) {
+        if (length > size()) {
             throw new java.nio.BufferOverflowException();
         }
-        int size = (int)back.skip(length);
+        int size = (int) back.skip(length);
         front.write(data, offset, size);
         return this;
     }
@@ -237,6 +245,7 @@ public class PacketBlock extends Edit implements EditBlock {
     /**
      * 上書き.
      * 書き込み位置の制約はあまりない.
+     *
      * @param index 位置
      * @param d データ
      * @param offset データ位置
@@ -246,13 +255,14 @@ public class PacketBlock extends Edit implements EditBlock {
     public void put(long index, byte[] d, int offset, int length) {
         long p = backLength();
         seek(index);
-        put(d,offset,length);
+        put(d, offset, length);
         seek(p);
     }
 
     /**
      * 追加.
      * index位置に追加する.
+     *
      * @param index block index
      * @param d data
      * @param offset data offset
@@ -262,13 +272,14 @@ public class PacketBlock extends Edit implements EditBlock {
     public void add(long index, byte[] d, int offset, int length) {
         long p = backLength();
         seek(index);
-        front.write(d,offset,length);
+        front.write(d, offset, length);
         seek(p);
     }
 
     /**
-     * 削除
+     * 削除.
      * index位置からsize分削除する.詰める.
+     *
      * @param index block index
      * @param size delete size
      */
@@ -284,7 +295,7 @@ public class PacketBlock extends Edit implements EditBlock {
     public IndexEdit del(long index, byte[] d, int offset, int length) {
         long p = backLength();
         seek(index);
-        back.read(d,offset,length);
+        back.read(d, offset, length);
         seek(p);
         return this;
     }
@@ -296,7 +307,7 @@ public class PacketBlock extends Edit implements EditBlock {
 
     @Override
     public void backWrite(byte[] data, int offset, int length) {
-        if ( backLength() < data.length ) {
+        if (backLength() < data.length) {
             throw new java.nio.BufferOverflowException();
         }
         front.back(length);
@@ -305,7 +316,7 @@ public class PacketBlock extends Edit implements EditBlock {
 
     @Override
     public void dbackWrite(byte[] data) {
-        if ( backLength() < data.length ) {
+        if (backLength() < data.length) {
             throw new java.nio.BufferOverflowException();
         }
         front.back(data.length);
@@ -315,6 +326,11 @@ public class PacketBlock extends Edit implements EditBlock {
     @Override
     public long length() {
         return back.length();
+    }
+
+    @Override
+    public boolean readable(long length) {
+        return back.readable(length);
     }
 
     @Override
@@ -338,7 +354,7 @@ public class PacketBlock extends Edit implements EditBlock {
         }
         back.flush();
     }
-    
+
     @Override
     public String toString() {
         return "PacketBlock size:" + size() + "position: " + backSize();
@@ -347,8 +363,8 @@ public class PacketBlock extends Edit implements EditBlock {
     @Override
     public byte revGet() {
         int b = front.backRead();
-        if ( b < 0 ) throw new java.nio.BufferUnderflowException();
+        if (b < 0) throw new java.nio.BufferUnderflowException();
         back.backWrite(b);
-        return (byte)b;
+        return (byte) b;
     }
 }

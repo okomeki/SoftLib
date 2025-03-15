@@ -149,13 +149,26 @@ public interface Input {
     long length();
 
     /**
+     * サイズが読み込めるかどうか.
+     * length だと細かいデータのとき遅いかも.
+     *
+     * @param size
+     * @return
+     */
+    default boolean readable(long size) {
+        return length() >= size;
+    }
+
+    /**
      * 読めるサイズ int版.
      * 32ビット内であればそのサイズ、それ以上はIntegerの最大値.
      * StreamのFrontの場合は信用しない方がいい
      *
      * @return サイズ
      */
-    int size();
+    default int size() {
+        return (int) Math.min(length(), Integer.MAX_VALUE);
+    }
 
     /**
      * 標準的なパケットを返す場合の実装.
@@ -288,11 +301,5 @@ public interface Input {
             pac.write(this, length);
             return pac;
         }
-
-        @Override
-        public int size() {
-            return (int) Math.min(length(), Integer.MAX_VALUE);
-        }
     }
-
 }

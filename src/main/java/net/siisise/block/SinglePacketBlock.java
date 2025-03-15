@@ -43,6 +43,7 @@ public class SinglePacketBlock extends Edit implements EditBlock {
     /**
      * 絶対位置移動.
      * 移動できる範囲で移動する.
+     *
      * @param offset 絶対位置 absolute position
      * @return 新しい位置 new position
      */
@@ -54,6 +55,7 @@ public class SinglePacketBlock extends Edit implements EditBlock {
     /**
      * 進む.
      * 移動できる範囲で移動する.
+     *
      * @param length 相対位置
      * @return 進んだサイズ
      */
@@ -67,6 +69,7 @@ public class SinglePacketBlock extends Edit implements EditBlock {
     /**
      * 戻る.
      * 移動できる範囲で移動する.
+     *
      * @param length サイズ
      * @return 戻ったサイズ
      */
@@ -85,6 +88,11 @@ public class SinglePacketBlock extends Edit implements EditBlock {
     @Override
     public long length() {
         return block.length() - pos;
+    }
+
+    @Override
+    public boolean readable(long length) {
+        return block.readable(length + pos);
     }
 
     /**
@@ -132,6 +140,7 @@ public class SinglePacketBlock extends Edit implements EditBlock {
 
     /**
      * 仮でOverなかたち
+     *
      * @return positionまでの切り取り
      */
     @Override
@@ -181,7 +190,8 @@ public class SinglePacketBlock extends Edit implements EditBlock {
     }
 
     /**
-     * 削除
+     * 削除.
+     *
      * @param index 位置
      * @param size 長さ
      */
@@ -192,6 +202,7 @@ public class SinglePacketBlock extends Edit implements EditBlock {
 
     /**
      * 削除.
+     *
      * @param index delete position
      * @param buf buffer
      * @param offset buffer position
@@ -206,6 +217,7 @@ public class SinglePacketBlock extends Edit implements EditBlock {
 
     /**
      * 読む.
+     *
      * @param buf バッファ
      * @param offset バッファ位置
      * @param length 読みたい長さ
@@ -234,7 +246,7 @@ public class SinglePacketBlock extends Edit implements EditBlock {
 
     /**
      * write data.
-     * 
+     *
      * 仮で上限あり.
      *
      * @param d ソース
@@ -250,7 +262,7 @@ public class SinglePacketBlock extends Edit implements EditBlock {
 
     /**
      * write data.
-     * 
+     *
      * 仮で上限あり.
      *
      * @param d ソース
@@ -272,5 +284,4 @@ public class SinglePacketBlock extends Edit implements EditBlock {
 //   public String toString() {
 //        return "pos:" + pos + " len: " + block.length();
 //    }
-
 }

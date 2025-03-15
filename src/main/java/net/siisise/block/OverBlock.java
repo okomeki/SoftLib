@@ -36,6 +36,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 
     /**
      * 上書き可能な状態でpositionまでを切り取り
+     *
      * @return 上書き可能な切り取り
      */
     @Override
@@ -50,6 +51,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
      * 使えるのは 0 から limit まで。
      * position も共有する.
      * position を別にするにはsubブロックなど
+     *
      * @param bb 参照先
      * @return ラップしたBlock
      */
@@ -60,7 +62,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
             block.seek(bb.position());
             return block;
         }
-        */ 
+         */
         return new ByteBufferBlock(bb);
     }
 
@@ -71,6 +73,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
     /**
      * EditBlock などで使えばいいよ.
      * 同じ権限のときは sub(long index, long length)を使う
+     *
      * @param block OverBlock として切り取りたい上位権限のブロック
      * @param offset 位置
      * @param length サイズ
@@ -82,9 +85,10 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 
     /**
      * FileChannel を OverBlock で操作できるようにする.
+     *
      * @param ch
      * @return
-     * @throws IOException 
+     * @throws IOException
      */
     public static OverBlock wrap(FileChannel ch) throws IOException {
         ByteBuffer bb = ch.map(FileChannel.MapMode.READ_WRITE, 0, ch.size());
@@ -98,6 +102,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
     /**
      * バッファに複製する.
      * 足りないときはException.
+     *
      * @param index 位置
      * @param d バッファ
      * @param offset バッファ位置
@@ -108,11 +113,12 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
     OverBlock get(long index, byte[] d, int offset, int length);
 
     /**
-    * 指定サイズの部分集合を作る.
-    * offsetは読み込んだ分進む.
-    * @param length サイズ
-    * @return 部分集合 subblock
-    */
+     * 指定サイズの部分集合を作る.
+     * offsetは読み込んだ分進む.
+     *
+     * @param length サイズ
+     * @return 部分集合 subblock
+     */
     @Override
     default OverBlock readBlock(long length) {
         length = Matics.range(length, 0, length());
@@ -123,7 +129,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 
     @Override
     default OverBlock sub(long index, long length) {
-        if ( !Matics.sorted(0, index, index + length, backLength() + length())) {
+        if (!Matics.sorted(0, index, index + length, backLength() + length())) {
             throw new java.nio.BufferOverflowException();
         }
         return new SubOverBlock(index, index + length, this);
@@ -134,7 +140,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
      * サブクラスは write と put のどれかを実装すればなんとかなる.
      */
     public static abstract class AbstractOverBlock extends Base implements OverBlock {
-        
+
         @Override
         public InputStream getInputStream() {
             return new ReadableBlock.BlockInput(this);
@@ -142,13 +148,14 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 
         /**
          * 戻り書く.
+         *
          * @param data データ
          * @param offset data内のデータの開始位置
          * @param length データサイズ
          */
         @Override
         public void backWrite(byte[] data, int offset, int length) {
-            if ( !Matics.sorted(0,length, backSize())) {
+            if (!Matics.sorted(0, length, backSize())) {
                 throw new java.nio.BufferOverflowException();
             }
             put(backSize() - length, data, offset, length);
@@ -156,7 +163,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
         }
 
         /**
-         * 
+         *
          * @param index 位置
          * @param d 複製先
          * @param offset
@@ -165,21 +172,22 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
          */
         @Override
         public OverBlock get(long index, byte[] d, int offset, int length) {
-            if ( !Matics.sorted(0, offset, offset + length, d.length) ) {
+            if (!Matics.sorted(0, offset, offset + length, d.length)) {
                 throw new java.nio.BufferOverflowException();
             }
             long p = backLength();
-            if ( !Matics.sorted(0, index, index + length, p + length()) ) {
+            if (!Matics.sorted(0, index, index + length, p + length())) {
                 throw new java.nio.BufferOverflowException();
             }
             seek(index);
-            get(d,offset,length);
+            get(d, offset, length);
             seek(p);
             return this;
         }
 
         /**
          * 書く.
+         *
          * @param data データ
          * @param offset データ位置
          * @param length データ長
@@ -187,7 +195,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
          */
         @Override
         public Output put(byte[] data, int offset, int length) {
-            if ( !Matics.sorted(0, length, length())) {
+            if (!Matics.sorted(0, length, length())) {
                 throw new java.nio.BufferOverflowException();
             }
             write(data, offset, length);
@@ -196,6 +204,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 
         /**
          * 書き.
+         *
          * @param index Block位置
          * @param d データ
          * @param offset データ位置
@@ -203,54 +212,56 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
          */
         @Override
         public void put(long index, byte[] d, int offset, int length) {
-            if ( !Matics.sorted(0, offset, offset + length, d.length) ) {
+            if (!Matics.sorted(0, offset, offset + length, d.length)) {
                 throw new java.nio.BufferOverflowException();
             }
             long p = backLength();
-            if ( !Matics.sorted(0, index, index + length, p + length()) ) {
+            if (!Matics.sorted(0, index, index + length, p + length())) {
                 throw new java.nio.BufferOverflowException();
             }
             seek(index);
-            put(d,offset,length);
+            put(d, offset, length);
             seek(p);
         }
 
         /**
          * 上書き.
+         *
          * @param data データ
          * @param offset データ位置
          * @param length データ長
          */
         @Override
         public void write(byte[] data, int offset, int length) {
-            if ( !Matics.sorted( 0, length , length()) ) {
+            if (!Matics.sorted(0, length, length())) {
                 throw new java.nio.BufferOverflowException();
             }
             int size = Math.min(size(), length); // Exception 外す前提でとりあえず縮める
-            put(backSize(),data, offset, length); // 仮で put(index を使っておく
+            put(backSize(), data, offset, length); // 仮で put(index を使っておく
             skip(size);
         }
 
         /**
          * 書き込む.
+         *
          * @param src データ
          * @return 書いたサイズ
          */
         @Override
         public int write(ByteBuffer src) {
             int len = Math.min(src.remaining(), size());
-            if ( src.hasArray() ) {
+            if (src.hasArray()) {
                 int p = src.position();
                 write(src.array(), src.arrayOffset() + p, len);
                 src.position(p + len);
             } else {
                 byte[] d = new byte[len];
                 src.get(d);
-                write(d,0,len);
+                write(d, 0, len);
             }
             return len;
         }
-        
+
         /**
          * 切り取りはできない
          *
@@ -258,10 +269,10 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
          */
         @Override
         public OverBlock flip() {
-            return sub(0,backLength());
+            return sub(0, backLength());
         }
     }
-    
+
     /**
      * 上書き可能なブロック、サブブロック.
      * 領域以外の実装。
@@ -274,21 +285,22 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
         long pos;
 
         AbstractSubOverBlock(long min, long max) {
-            if ( !Matics.sorted(0,min,max) ) {
+            if (!Matics.sorted(0, min, max)) {
                 throw new java.lang.IllegalStateException();
             }
             this.min = pos = min;
             this.max = max;
         }
-        
+
         /**
          * MultiBlock用
-         * @param subs 
+         *
+         * @param subs
          */
         AbstractSubOverBlock(List<OverBlock> subs) {
             min = pos = 0;
             long mx = 0;
-            for ( OverBlock sub : subs ) {
+            for (OverBlock sub : subs) {
                 sub.seek(0);
                 mx += sub.length();
             }
@@ -298,6 +310,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
         /**
          * 範囲内で移動する.
          * ReadableBlockと同じ.
+         *
          * @param position 絶対位置
          * @return 位置.
          */
@@ -309,6 +322,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 
         /**
          * 読み書きせずに進む.
+         *
          * @param length 進む相対位置
          * @return 進んだサイズ
          */
@@ -321,6 +335,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 
         /**
          * 読み書きせずに戻る.
+         *
          * @param length 戻る相対位置
          * @return 戻ったサイズ
          */
@@ -333,6 +348,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 
         /**
          * 読めるサイズlong版.
+         *
          * @return size 読めるサイズ
          */
         @Override
@@ -342,6 +358,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 
         /**
          * 読めるbackサイズlong版.
+         *
          * @return back size back系で読めるサイズ
          */
         @Override
@@ -356,10 +373,10 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
     public static class SubOverBlock extends AbstractSubOverBlock {
 
         private final OverBlock block;
-        
+
         public SubOverBlock(long min, long max, OverBlock block) {
-            super(min,max);
-            if ( !Matics.sorted(0,min,max,block.backLength() + block.length())) {
+            super(min, max);
+            if (!Matics.sorted(0, min, max, block.backLength() + block.length())) {
                 throw new java.lang.IllegalStateException();
             }
             this.block = block;
@@ -371,7 +388,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 
         @Override
         public int read(byte[] buf, int offset, int length) {
-            if ( !Matics.sorted(0,offset,offset + length, buf.length)) {
+            if (!Matics.sorted(0, offset, offset + length, buf.length)) {
                 throw new java.nio.BufferOverflowException();
             }
             long p = block.backLength();
@@ -380,7 +397,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 //                throw new java.nio.BufferOverflowException();
 //            }
             length = Math.min(length, size());
-            int s = block.read(buf,offset,length);
+            int s = block.read(buf, offset, length);
             pos += s;
             block.seek(p);
             return s;
@@ -388,15 +405,16 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 
         @Override
         public OverBlock get(long index, byte[] buf, int offset, int length) {
-            if ( !Matics.sorted(0,offset,offset + length, buf.length) || index + length > max - min ) {
+            if (!Matics.sorted(0, offset, offset + length, buf.length) || index + length > max - min) {
                 throw new java.nio.BufferOverflowException();
             }
-            block.get(min + index,buf,offset,length);
+            block.get(min + index, buf, offset, length);
             return this;
         }
 
         /**
          * 逆から読む.
+         *
          * @param dst バッファ
          * @param offset バッファ位置
          * @param length 読む長さ
@@ -404,7 +422,7 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
          */
         @Override
         public int backRead(byte[] dst, int offset, int length) {
-            if ( !Matics.sorted(0,offset,offset + length, dst.length)) {
+            if (!Matics.sorted(0, offset, offset + length, dst.length)) {
                 throw new java.nio.BufferOverflowException();
             }
 //            if ( !Matics.sorted(0, length, size()) ) {
@@ -418,26 +436,27 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 
         /**
          * 上限ぎりぎりまで書き込む.
+         *
          * @param data データ
          * @param offset 位置
          * @param length サイズ
          */
         @Override
         public void write(byte[] data, int offset, int length) {
-            if ( !Matics.sorted(0,offset,offset + length, data.length)) {
+            if (!Matics.sorted(0, offset, offset + length, data.length)) {
                 throw new java.nio.BufferOverflowException();
             }
             length = Math.min(length, size());
             long p = block.backLength();
             block.seek(pos);
-            block.write(data,offset,length);
+            block.write(data, offset, length);
             pos += length;
             block.seek(p);
         }
 
         @Override
         public void put(long index, byte[] d, int offset, int length) {
-            if ( !Matics.sorted(0,offset,offset + length, d.length) || index + length > max - min ) {
+            if (!Matics.sorted(0, offset, offset + length, d.length) || index + length > max - min) {
                 throw new java.nio.BufferOverflowException();
             }
             block.put(min + index, d, offset, length);
@@ -445,26 +464,28 @@ public interface OverBlock extends ReadableBlock, FrontPacket, BackPacket, Index
 
         /**
          * 小分けにする.
+         *
          * @param length
-         * @return 
+         * @return
          */
         @Override
         public OverBlock readBlock(long length) {
             length = Matics.range(length, 0, length());
-            OverBlock b = sub(backLength(),length);
+            OverBlock b = sub(backLength(), length);
             skip(length);
             return b;
         }
 
         /**
          * 切り取り.
+         *
          * @param index 位置
          * @param length サイズ
          * @return 部分集合
          */
         @Override
         public OverBlock sub(long index, long length) {
-            if ( !Matics.sorted(0, index, index + length, max - min) ) {
+            if (!Matics.sorted(0, index, index + length, max - min)) {
                 throw new java.nio.BufferOverflowException();
             }
             return block.sub(min + index, length);

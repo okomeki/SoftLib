@@ -27,6 +27,7 @@ import java.math.BigInteger;
 import net.siisise.lang.Bin;
 
 /**
+ * GF Little Bit Endian.
  * GF 反転版.
  * GCMが反転していたので作ってみる.
  * a・L
@@ -35,7 +36,7 @@ import net.siisise.lang.Bin;
 public class GFRev {
     public static final long RGF128 = 0xe100000000000000l;
 
-    long[][] shL;
+    private final long[][] shL;
     long constRb = RGF128;
 
     /**
@@ -44,14 +45,14 @@ public class GFRev {
      */
     public GFRev(long[] l) {
         
-        long[] n = l.clone();
         shL = new long[l.length * 64][];
-        for (int i = 0; i < l.length * 64; i++) {
-            shL[i] = n;
-            n = x(n);
+        long[] n;
+        n = shL[0] = l.clone();
+        for (int i = 1; i < l.length * 64; i++) {
+            n = shL[i] = x(n);
         }
     }
-    
+
     /**
      * a・2
      * @param a
@@ -65,22 +66,20 @@ public class GFRev {
 
     /**
      * 高速積算.
-     * a・L
+     * a・b
      * Lのシフトビットをキャッシュしておくことで高速化したもの.
-     * @param a
-     * @return a・L
+     * @param b
+     * @return a・b
      */
-    public long[] mul(long[] a) {
-        long[] v = new long[a.length];
-        for (int i = 0; i < a.length; i++) {
-            long c = a[i];
+    public long[] mul(long[] b) {
+        long[] v = new long[b.length];
+        int k = -1;
+        for (int i = 0; i < b.length; i++) {
+            long c = b[i];
             for ( int j = 0; j < 64; j++ ) {
+                k++;
                 if ( c << j < 0) {
-                    int k = i * 64 + j;
                     Bin.xorl(v, shL[k]);
-                    //for (int l = 0; l < a.length; l++) {
-                    //    v[l] ^= shL[k][l];
-                    //}
                 }
             }
         }
@@ -100,6 +99,17 @@ public class GFRev {
         }
         return v;
     }
+
+    /**
+     * 加算。減算.
+     * a + b
+     * @param a
+     * @param b
+     * @return 
+     */
+    public long[] add(long[] a, long[] b) {
+        return Bin.xor(a, b);
+    }
     
     static final BigInteger TWO = BigInteger.valueOf(2);
     static final BigInteger THREE = BigInteger.valueOf(3);
@@ -113,7 +123,7 @@ public class GFRev {
      * @return 逆数
      */
     public long[] inv(long[] a) {
-        return pow(a, INV_POW);
+        return new GFRev(a).pow(INV_POW);
     }
     
     public long[] inv() {
@@ -146,11 +156,10 @@ public class GFRev {
         }
 */
     }
-    
+
     public long[] pow(BigInteger p) {
-        long[] a = shL[0];
         if ( p.equals(BigInteger.ONE)) {
-            return a;
+            return shL[0];
         } else {
             long[] n;
             if ( p.mod(THREE).equals(BigInteger.ZERO)) {

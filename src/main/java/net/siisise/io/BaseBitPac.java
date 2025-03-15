@@ -18,7 +18,7 @@ package net.siisise.io;
 /**
  * ビット操作用.
  * index系まだつかえない.
- * 
+ *
  * 上位ビット優先(Big Endian)/下位ビット(Little Endian)優先共通実装
  */
 public abstract class BaseBitPac extends BasePacket implements BitPacket {
@@ -62,10 +62,11 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
         }
 
         public abstract int readInt(int bit);
-        
+
         /**
          * ビット単位の読み込み.
          * Big Endian 左詰めまたは Little Endian 右詰め
+         *
          * @param data 読み込み配列
          * @param offset ビット位置
          * @param bitLength　ビットサイズ
@@ -73,10 +74,16 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
          */
         public abstract long readBit(byte[] data, long offset, long bitLength);
         public abstract BitPacket readPac(int bitLength);
-        
+
         @Override
         public long length() {
             return BaseBitPac.this.length();
+        }
+
+        @Override
+        public boolean readable(long length) {
+            return BaseBitPac.this.readable(length);
+
         }
     }
 
@@ -120,7 +127,7 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
         }
 
         /**
-         * 
+         *
          * @param data
          * @param bitLength 0でも可
          */
@@ -168,6 +175,15 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
         return bitLength() / 8;
     }
 
+    public boolean bitReadable(long length) {
+        return pac.readable((length + readPadding + writePadding) / 8);
+    }
+
+    @Override
+    public boolean readable(long length) {
+        return bitReadable(length * 8);
+    }
+
     /**
      *
      * @param len 0～32くらい
@@ -201,7 +217,7 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
     }
 
     /**
-     * readのビット版
+     * readのビット版.
      * 入れ物はbyte列
      * 左詰め |01234567|89ABCDEF|
      *
@@ -239,7 +255,7 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
     public void write(byte[] data, int offset, int length) {
         out.write(data, offset, length);
     }
-    
+
     @Override
     public void writeBit(int data, int bitLength) {
         out.writeBit(data, bitLength);

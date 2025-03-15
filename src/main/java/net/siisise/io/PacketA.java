@@ -337,6 +337,16 @@ public class PacketA extends BasePacket {
     }
     
     @Override
+    public boolean readable(long size) {
+        PacketIn pc = nullPack.next;
+        while (pc != nullPack && size > 0) {
+            size -= pc.length;
+            pc = pc.next;
+        }
+        return size <= 0;
+    }
+    
+    @Override
     public String toString() {
         return super.toString() + "length:" + Long.toString(length());
     }
@@ -463,7 +473,7 @@ public class PacketA extends BasePacket {
     @Override
     public PacketA get(long index, byte[] b, int offset, int length) {
         long pl = length();
-        if ( pl < length) {
+        if ( !readable(length)) {
             throw new java.nio.BufferOverflowException();
         }
         PacketA bb = backReadPacket(pl - index - length);

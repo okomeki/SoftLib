@@ -35,9 +35,10 @@ public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeab
 
     /**
      * 読む形で開く.
+     *
      * @param file ふぁいる
      * @return 読みclose できるBlock
-     * @throws FileNotFoundException 
+     * @throws FileNotFoundException
      */
     public static ReadableBlock wrap(File file) throws FileNotFoundException {
         RandomAccessFile io = new RandomAccessFile(file, "r");
@@ -46,9 +47,10 @@ public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeab
 
     /**
      * 読み専用でBlockにする.
+     *
      * @param path nio な path
      * @return 読みclose できるBlock
-     * @throws IOException 
+     * @throws IOException
      */
     public static ReadableBlock wrap(Path path) throws IOException {
         FileChannel c = FileChannel.open(path, StandardOpenOption.READ);
@@ -57,12 +59,13 @@ public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeab
 
     /**
      * 読み書きできる形のBlockで開く.
+     *
      * @param file ファイル
      * @return 読み書きclose できるBlock
-     * @throws IOException 
+     * @throws IOException
      */
     public static OverBlock over(File file) throws IOException {
-        RandomAccessFile io = new RandomAccessFile(file,"rw");
+        RandomAccessFile io = new RandomAccessFile(file, "rw");
         return new ChannelBlock(io.getChannel());
     }
 
@@ -83,6 +86,7 @@ public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeab
      * 先頭からの位置.
      * 読み書きした長さ.
      * 戻って読み書きするときなどに.
+     *
      * @return サイズ/位置
      */
     @Override
@@ -96,6 +100,7 @@ public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeab
 
     /**
      * これから読み書きできる長さ.
+     *
      * @return 長さ
      */
     @Override
@@ -109,6 +114,7 @@ public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeab
 
     /**
      * 移動.
+     *
      * @param offset 指定位置
      * @return 移動した位置
      */
@@ -125,12 +131,12 @@ public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeab
     @Override
     public int read(byte[] d, int offset, int length) {
         try {
-            return ch.read(ByteBuffer.wrap(d,offset,length));
+            return ch.read(ByteBuffer.wrap(d, offset, length));
         } catch (IOException ex) {
             throw new java.nio.BufferOverflowException();
         }
     }
-    
+
     @Override
     public ChannelBlock get(long index, byte[] b, int offset, int length) {
         try {
@@ -150,18 +156,19 @@ public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeab
     /**
      * 逆から読む.
      * ToDo: 後ろから読むよう要修正?
+     *
      * @param buf
      * @param offset
      * @param length
-     * @return 
+     * @return
      */
     @Override
     public int backRead(byte[] buf, int offset, int length) {
         try {
             long p = backLength();
-            int nlength = (int)Math.min(p, length);
+            int nlength = (int) Math.min(p, length);
             int noff = offset + length - nlength;
-            
+
             seek(p - nlength);
             ByteBuffer bb = ByteBuffer.wrap(buf, noff, nlength);
             int l = ch.read(bb);
@@ -181,7 +188,7 @@ public class ChannelBlock extends OverBlock.AbstractOverBlock implements Closeab
             throw new java.nio.BufferOverflowException();
         }
     }
-    
+
     @Override
     public boolean isOpen() {
         return ch != null && ch.isOpen();

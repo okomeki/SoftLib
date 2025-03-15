@@ -134,11 +134,6 @@ public abstract class ReadBase implements Input, IndexInput, RevInput, ReadableB
     }
 
     @Override
-    public int size() {
-        return (int)Math.min(length(), Integer.MAX_VALUE);
-    }
-
-    @Override
     public int backSize() {
         return (int)Math.min(backLength(), Integer.MAX_VALUE);
     }

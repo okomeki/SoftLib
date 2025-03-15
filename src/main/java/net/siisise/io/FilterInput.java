@@ -40,6 +40,11 @@ public class FilterInput extends Input.AbstractInput {
     public long length() {
         return in.length();
     }
+    
+    @Override
+    public boolean readable(long length) {
+        return in.readable(length);
+    }
 
     @Override
     public Packet readPacket(long length) {

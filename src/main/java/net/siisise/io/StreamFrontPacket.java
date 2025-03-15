@@ -49,16 +49,16 @@ public class StreamFrontPacket implements FrontPacket {
     @Override
     public byte get() {
         byte[] d = new byte[1];
-        get(d,0,1);
+        get(d, 0, 1);
         return d[0];
     }
 
     @Override
     public long get(byte[] d, int offset, int length) {
-        if ( size() < length ) {
+        if (size() < length) {
             throw new java.nio.BufferOverflowException();
         }
-        read(d,offset,length);
+        read(d, offset, length);
         return length;
     }
 
@@ -114,7 +114,7 @@ public class StreamFrontPacket implements FrontPacket {
             }
             return len;
         }
-        
+
         @Override
         public long skip(long length) {
             long min = inpac.skip(length);
@@ -278,7 +278,7 @@ public class StreamFrontPacket implements FrontPacket {
     public Packet readPacket(long length) {
         PacketA pp = new PacketA();
         length -= pp.write(inpac, length);
-        pp.write(this,length);
+        pp.write(this, length);
         return pp;
     }
 

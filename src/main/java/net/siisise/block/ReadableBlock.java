@@ -44,6 +44,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
     /**
      * 配列はお持ちですか.
      * 持っていないことにしておく.
+     *
      * @return いいえ
      */
     default boolean hasArray() {
@@ -52,6 +53,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
 
     /**
      * 持っていないときは見てはだめ.
+     *
      * @return 返さない
      */
     default byte[] array() {
@@ -60,15 +62,16 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
 
     /**
      * 持ってないときは使えない.
+     *
      * @return 返さない
      */
     default int arrayOffset() {
         throw new java.lang.UnsupportedOperationException();
     }
-    
-    
+
     /**
      * 読み込み専用のpositionまでの切り取り.
+     *
      * @return 読み専用
      */
     @Override
@@ -77,19 +80,21 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
     /**
      * 部分集合を作る。
      * メモリを共有した状態で範囲を制限して分ける
+     *
      * @param index 位置
      * @param length 長さ
      * @return 戻り型はReadableBlock
      */
     @Override
     ReadableBlock sub(long index, long length);
-  
+
 // 実装が上の方(Base)にあると型が解決できないのとgetの戻り型は重要ではないので略
 //    @Override
 //    ReadableBlock get(long index, byte[] b);
     /**
      * 切り取り.
      * 範囲を超えないこと.
+     *
      * @param index 位置
      * @param b バッファ
      * @param offset バッファ位置
@@ -98,7 +103,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
      */
     @Override
     ReadableBlock get(long index, byte[] b, int offset, int length);
-    
+
     /**
      * 現在値から部分的な切り出し.
      * メモリ空間は可能な場合共有する.
@@ -108,14 +113,14 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
      */
     ReadableBlock readBlock(long length);
 
-    public static ReadableBlock wrap(ReadableBlock rb,long offset, long length) {
-        return new SubReadableBlock(offset,Math.min(offset + length,rb.backLength() + rb.length()), rb);
+    public static ReadableBlock wrap(ReadableBlock rb, long offset, long length) {
+        return new SubReadableBlock(offset, Math.min(offset + length, rb.backLength() + rb.length()), rb);
     }
 
     public static ReadableBlock wrap(CharSequence seq) {
         return wrap(seq.toString());
     }
-    
+
     public static ReadableBlock wrap(String s) {
         return new ByteBlock(s.getBytes(StandardCharsets.UTF_8));
     }
@@ -127,6 +132,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
     /**
      * バイト列を元にBlockを作成.
      * メモリ空間は共有する.
+     *
      * @param b バイト列
      * @param offset 位置
      * @param length サイズ
@@ -152,6 +158,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
 
     /**
      * position より後はpacに収まっているといい
+     *
      * @param pac 元
      * @return ReadableBlockをかぶせたもの
      */
@@ -178,30 +185,31 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
     }
 
     public static ReadableBlock wrap(Input in, long length) {
-        OverBlock b = OverBlock.wrap(new byte[(int)length]);
+        OverBlock b = OverBlock.wrap(new byte[(int) length]);
         b.write(in);
         return b;
     }
-    
+
     static class BlockInput extends FilterInput {
+
         private long mark = 0;
         private final ReadableBlock in;
-        
+
         BlockInput(ReadableBlock in) {
             super(in);
             this.in = in;
         }
-        
+
         @Override
         public boolean markSupported() {
             return true;
         }
-        
+
         @Override
         public void mark(int readlimit) {
             mark = in.backLength();
         }
-        
+
         @Override
         public void reset() {
             in.seek(mark);
@@ -229,7 +237,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
             }
             return position;
         }
-        
+
         @Override
         public ReadableBlock readBlock(long length) {
             length = Math.min(length, length());
@@ -252,7 +260,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
             seek(p);
             return this;
         }
-        
+
         public IndexInput get(long index, OverBlock bb) {
             long p = backLength();
             seek(index);
@@ -268,7 +276,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
          */
         @Override
         public ReadableBlock flip() {
-            return sub(0,backSize());
+            return sub(0, backSize());
         }
 
         /**
@@ -367,6 +375,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
          * Block内の指定の位置に移動する.
          *
          * 切り取った場合もSubBlockの先頭が0
+         *
          * @param position 位置
          * @return 位置.
          */
@@ -378,6 +387,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
 
         /**
          * 後方(読み方向)にpositionを移動する.
+         *
          * @param length マイナスの場合は back
          * @return 移動したサイズ
          */
@@ -394,6 +404,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
         /**
          * 先頭方向にpositionを移動する.
          * 超えた場合は先頭に移動する.
+         *
          * @param length 移動量 マイナスの場合はskip
          * @return 移動したサイズ
          */
@@ -440,7 +451,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
          */
         SubReadableBlock(long min, long max, ReadableBlock p) {
             super(min, max);
-            if ( max > p.backLength() + p.length() ) {
+            if (max > p.backLength() + p.length()) {
                 throw new java.nio.BufferOverflowException();
             }
             pa = p;
@@ -458,7 +469,8 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
         }
 
         /**
-         *  読む
+         * 読む
+         *
          * @param buf バッファ
          * @param offset バッファ位置
          * @param length サイズ
@@ -466,7 +478,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
          */
         @Override
         public int read(byte[] buf, int offset, int length) {
-            if ( !Matics.sorted(0,offset,offset + length, buf.length)) {
+            if (!Matics.sorted(0, offset, offset + length, buf.length)) {
                 throw new java.nio.BufferOverflowException();
             }
             long p = pa.backLength();
@@ -480,6 +492,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
 
         /**
          * 逆から読む.
+         *
          * @param d バッファ
          * @param offset バッファ位置
          * @param length 長さ
@@ -487,7 +500,7 @@ public interface ReadableBlock extends Block, Input, RevInput, IndexInput, BinIn
          */
         @Override
         public int backRead(byte[] d, int offset, int length) {
-            if ( !Matics.sorted(0,offset,offset + length, d.length)) {
+            if (!Matics.sorted(0, offset, offset + length, d.length)) {
                 throw new java.nio.BufferOverflowException();
             }
             int size = (int) Matics.range(length, 0, pos - min);

@@ -70,28 +70,28 @@ public class FileIO {
     }
 
     public static byte[] binRead(InputStream in) throws IOException {
-        Packet pac = new PacketA();
+        FIFOPacket pac = new FIFOPacket();
         io(in,pac.getOutputStream());
         return pac.toByteArray();
     }
 
     /**
      * Socket等ブロックしない程度に読む.
-     * @param in
-     * @return
+     * @param in 入力
+     * @return データ
      * @throws IOException 
      */
     public static byte[] readAvailablie(InputStream in) throws IOException {
-        Packet pac = new PacketA();
+        FIFOPacket pac = new FIFOPacket();
         available(in,pac.getOutputStream());
         return pac.toByteArray();
     }
 
     /**
      * inとoutを繋ぐだけ
-     * @param in
-     * @param out
-     * @return
+     * @param in 入力
+     * @param out 出力
+     * @return 移動サイズ
      * @throws IOException 
      */
     public static int io(InputStream in, OutputStream out) throws IOException {

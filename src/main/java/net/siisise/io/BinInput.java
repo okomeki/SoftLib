@@ -50,7 +50,7 @@ public interface BinInput extends Input {
 
         @Override
         public InputStream getInputStream() {
-            throw new UnsupportedOperationException("Not supported yet.");
+            return new FilterInput(this);
         }
         
         void back(byte[] a) {
@@ -159,6 +159,11 @@ public interface BinInput extends Input {
         @Override
         public long length() {
             return Math.min(in1.length(), in2.length());
+        }
+        
+        @Override
+        public boolean readable(long length) {
+            return in1.readable(length) & in2.readable(length);
         }
 
         @Override

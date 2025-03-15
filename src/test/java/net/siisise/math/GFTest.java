@@ -140,20 +140,13 @@ public class GFTest {
             x = gf.mul(x,3);
             System.out.print(" 5^"+sub(i,3)+"= " + hex(x5,2));
             System.out.print(" inv = 0x" + hex(gf.inv(x5),2));
-            x5 = gf.mul(x5,5);
-            System.out.print(" mod3 " + i % 3);
-            System.out.print(" mod5 " + i % 5);
-            System.out.print(" mod17 " + i % 17);
-            System.out.print(" mod3 " + gf.inv(i) % 3);
-            System.out.print(" mod5 " + gf.inv(i) % 5);
-            System.out.println(" mod17 " + gf.inv(i) % 17);
         }
         
         
         System.out.println("e 6 inv " + gf.mul(0x8d, 0xf6));
         System.out.println("e 6 inv " + gf.inv(gf.mul(0x8d, 0xf6)));
     }
-    
+
     String sub(int src, int len) {
         String t = "" + src;
         return "       ".substring(0, len - t.length()) + t;

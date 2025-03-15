@@ -22,10 +22,10 @@ public class GF {
 //  final byte FF4 = 0x3; // 0x13 10011
     public static final byte FF8 = 0x1b; // 0x11b 100011011 AES
     public static final byte FF64  = 0x1b; // 0x1000000000000001b x11011
-    public static final byte FF128 = (byte)0x87; // 0x100000000000000000000000000000087 x10000111 // GMAC
+    public static final byte FF128 = (byte) 0x87; // 0x100000000000000000000000000000087 x10000111 // GMAC
     public static final byte[] GF8 = {FF8}; // 0x11b
-    public static final byte[] GF64 = {0,0,0,0,0,0,0,FF64}; // 0x1000000000000001b
-    public static final byte[] GF128 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,FF128}; // 0x100000000000000000000000000000087 CMAC
+    public static final byte[] GF64 = {0, 0, 0, 0, 0, 0, 0, FF64}; // 0x1000000000000001b
+    public static final byte[] GF128 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, FF128}; // 0x100000000000000000000000000000087 CMAC
 
     public GF() {
         this(8, 0x11b);
@@ -33,6 +33,7 @@ public class GF {
 
     /**
      * 短い用 1バイトくらいの
+     *
      * @param n 2^n 8 bit を想定
      * @param m n = 8のとき 0x11bくらい 上のビットあり
      */
@@ -57,6 +58,7 @@ public class GF {
 
     /**
      * rb は1バイトだけ使う仮実装
+     *
      * @param n ビット数 128を想定
      * @param rb 0x87 を想定
      */
@@ -66,6 +68,7 @@ public class GF {
 
     /**
      * 長い用
+     *
      * @param n ビット長 128bit
      * @param rb MSBを外したもの constやfinalなので複製しなくてもいい?
      */
@@ -76,10 +79,11 @@ public class GF {
         log = null;
         exp = null;
     }
-    
+
     /**
-     * ふつうのGF s・2
+     * ふつうのGF s・2.
      * バイト数は未検証. てきとう.
+     *
      * @param s 数
      * @return s・2
      */
@@ -93,6 +97,7 @@ public class GF {
 
     /**
      * long列 GF s・2
+     *
      * @param s 数
      * @return s・2
      */
@@ -101,9 +106,10 @@ public class GF {
         v[v.length - 1] ^= (constRb & 0xffl) * (s[0] >>> 63);
         return v;
     }
-    
+
     /**
      * GF s・2の逆 /2
+     *
      * @param s・2
      * @return s
      */
@@ -114,9 +120,10 @@ public class GF {
         }
         return r;
     }
-    
+
     /**
      * GF s・2の逆 /2
+     *
      * @param s・2
      * @return s
      */
@@ -127,12 +134,13 @@ public class GF {
         }
         return r;
     }
-    
+
     /**
      * s / 2.
      * s・2ができるならs/2も比較的単純な計算でできる 2以外はできない
+     *
      * @param s
-     * @return 
+     * @return
      */
     public long[] r(long[] s) {
         long[] r = Bin.ror(s); // constRb の 1bit が消えるのでこっちでつける
@@ -144,17 +152,18 @@ public class GF {
 
     /**
      * a・2
+     *
      * @param a
      * @return a・2
      */
     public final int x(int a) {
-        return (a << 1) ^ ((a >>> N) * root); 
+        return (a << 1) ^ ((a >>> N) * root);
     }
 
     /**
-     * 
+     *
      * @param s
-     * @return 
+     * @return
      */
     public int r(int s) {
         return (s >>> 1) ^ ((s & 1) * (root >>> 1));
@@ -162,21 +171,23 @@ public class GF {
 
     /**
      * 8bit 逆数計算的なもの(高速版)
+     *
      * @param a
      * @return aの逆数
      */
     public int inv(int a) {
         return a == 0 ? 0 : exp[size - log[a]];
     }
-    
+
     static final BigInteger TWO = BigInteger.valueOf(2);
     static final BigInteger THREE = BigInteger.valueOf(3);
     static final BigInteger FIVE = BigInteger.valueOf(5);
-    
+
     /**
-     * 逆数計算的なもの(簡易版)
+     * 逆数計算的なもの(簡易版).
      * 256 - 2 で ^254 ぐらいの位置づけ
      * ビット長*2回掛けるぐらいで計算はできる
+     *
      * @param a
      * @return aの逆数 60bit程度まで
      */
@@ -187,25 +198,26 @@ public class GF {
     public long[] inv(long[] a) {
         return pow(a, TWO.shiftLeft(N).subtract(TWO));
     }
-    
+
     /**
      * 累乗.
+     *
      * @param a 底
      * @param p exponent 1以上 128bitではビット不足?
      * @return a^p mod xx
      */
     public byte[] pow(byte[] a, long p) {
-        if ( p == 1 ) {
+        if (p == 1) {
             return a;
         } else {
             byte[] n;
-            if ( p % 3 == 0 ) {
-                n = pow(a, p / 3 );
-                return mul(mul(n,n),n);
+            if (p % 3 == 0) {
+                n = pow(a, p / 3);
+                return mul(mul(n, n), n);
             }
             n = pow(a, p / 2);
             n = mul(n, n);
-            if ( p % 2 != 0 ) {
+            if (p % 2 != 0) {
                 n = mul(n, a);
 //            Bin.xorl(n, a);
             }
@@ -215,57 +227,58 @@ public class GF {
 
     /**
      * 累乗.
+     *
      * @param a 底
      * @param p 指数
      * @return a^p
      */
     public long[] pow(long[] a, long p) {
-        if ( p == 1 ) {
+        if (p == 1) {
             return a;
         } else {
             long[] n;
-            if ( p % 5 == 0 ) {
-                n = pow(a, p / 5 );
-                long[] nn = mul(n,n);
-                nn = mul(nn,nn);
-                return mul(nn,n);
+            if (p % 5 == 0) {
+                n = pow(a, p / 5);
+                long[] nn = mul(n, n);
+                nn = mul(nn, nn);
+                return mul(nn, n);
             }
-            if ( p % 3 == 0 ) {
-                n = pow(a, p / 3 );
-                return mul(mul(n,n),n);
+            if (p % 3 == 0) {
+                n = pow(a, p / 3);
+                return mul(mul(n, n), n);
             }
             n = pow(a, p / 2);
             n = mul(n, n);
-            if ( p % 2 != 0 ) {
+            if (p % 2 != 0) {
                 n = mul(n, a);
-//            Bin.xorl(n, a);
             }
             return n;
         }
     }
-    
+
     static final BigInteger SEVEN = BigInteger.valueOf(7);
     static final BigInteger eSEVEN = BigInteger.ONE.shiftLeft(128).subtract(TWO);
 
     /**
      * 簡易版 累乗.
+     *
      * @param a 底
      * @param p 指数 exponent 1以上
      * @return a^p
      */
     public byte[] pow(byte[] a, BigInteger p) {
-        if ( p.equals(BigInteger.ONE)) {
+        if (p.equals(BigInteger.ONE)) {
             return a;
         } else {
             byte[] n;
-            if ( p.mod(THREE).equals(BigInteger.ZERO)) {
+            if (p.mod(THREE).equals(BigInteger.ZERO)) {
                 n = pow(a, p.divide(THREE));
-                return mul(mul(n,n),n);
+                return mul(mul(n, n), n);
             }
-            n = pow( a, p.divide(TWO));
-            n = mul(n,n);
-            if ( !p.mod(TWO).equals(BigInteger.ZERO)) {
-                n = mul(n,a);
+            n = pow(a, p.divide(TWO));
+            n = mul(n, n);
+            if (!p.mod(TWO).equals(BigInteger.ZERO)) {
+                n = mul(n, a);
             }
             return n;
         }
@@ -273,28 +286,29 @@ public class GF {
 
     /**
      * 累乗.
+     *
      * @param a 底
      * @param p 指数 exponent
      * @return a^p
      */
     public long[] pow(long[] a, BigInteger p) {
-        if ( p.equals(BigInteger.ONE)) {
+        if (p.equals(BigInteger.ONE)) {
             return a;
         } else {
             long[] n;
-            if ( p.mod(FIVE).equals(BigInteger.ZERO)) {
+            if (p.mod(FIVE).equals(BigInteger.ZERO)) {
                 n = pow(a, p.divide(FIVE));
-                long[] nn = mul(n,n);
-                return mul(mul(nn,nn),n);
+                long[] nn = mul(n, n);
+                return mul(n, mul(nn, nn));
             }
-            if ( p.mod(THREE).equals(BigInteger.ZERO)) {
+            if (p.mod(THREE).equals(BigInteger.ZERO)) {
                 n = pow(a, p.divide(THREE));
-                return mul(mul(n,n),n);
+                return mul(n, mul(n, n));
             }
-            n = pow( a, p.divide(TWO));
-            n = mul(n,n);
-            if ( !p.mod(TWO).equals(BigInteger.ZERO)) {
-                n = mul(n,a);
+            n = pow(a, p.divide(TWO));
+            n = mul(n, n);
+            if (!p.mod(TWO).equals(BigInteger.ZERO)) {
+                n = mul(n, a);
             }
             return n;
         }
@@ -321,6 +335,7 @@ public class GF {
     /**
      * 加算.　減算.
      * XOR
+     *
      * @param a
      * @param b
      * @return a ＋ b
@@ -331,35 +346,37 @@ public class GF {
 
     /**
      * ゼロ判定.
+     *
      * @param a
      * @return aがゼロのとき true
      */
     private static boolean isZero(byte[] a) {
-        for ( byte c : a ) {
-            if ( c != 0 ) return false;
+        for (byte c : a) {
+            if (c != 0) return false;
         }
         return true;
     }
 
     private static boolean isZero(long[] a) {
-        for ( long c : a ) {
-            if ( c != 0 ) return false;
+        for (long c : a) {
+            if (c != 0) return false;
         }
         return true;
     }
-    
+
     /**
      * 積算.
      * a・b
-     * @param a 
+     *
+     * @param a
      * @param b
      * @return a・b
      */
     public byte[] mul(byte[] a, byte[] b) {
         byte[] r = new byte[a.length];
         int last = a.length - 1;
-        while ( !isZero(a) ) {
-            if ( (a[last] & 0x01) != 0 ) {
+        while (!isZero(a)) {
+            if ((a[last] & 0x01) != 0) {
                 Bin.xorl(r, b);
             }
             a = Bin.shr(a);
@@ -371,18 +388,19 @@ public class GF {
     /**
      * 積算.
      * a・b
+     *
      * @param a 整数
      * @param b 整数
      * @return a・b
      */
     public long[] mul(long[] a, long[] b) {
         long[] r = new long[a.length];
-        if ( isZero(b)) {
+        if (isZero(b)) {
             return r;
         }
         int last = a.length - 1;
-        while ( !isZero(a) ) {
-            if ( (a[last] & 1) != 0 ) {
+        while (!isZero(a)) {
+            if ((a[last] & 1) != 0) {
                 Bin.xorl(r, b);
             }
             a = Bin.shr(a);
@@ -406,6 +424,7 @@ public class GF {
     /**
      * 割り算.
      * 逆数
+     *
      * @param a
      * @param b
      * @return a / b
@@ -417,6 +436,7 @@ public class GF {
     /**
      * 割り算.
      * 逆数
+     *
      * @param a
      * @param b
      * @return a / b
@@ -424,10 +444,10 @@ public class GF {
     public long[] div(long[] a, long[] b) {
         return mul(a, inv(b));
     }
-    
+
     public static String toHexString(long[] s) {
         StringBuilder sb = new StringBuilder(32);
-        for ( long v : s ) {
+        for (long v : s) {
             String h = "000000000000000" + Long.toHexString(v);
             sb.append(h.substring(h.length() - 16));
         }
