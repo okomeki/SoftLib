@@ -76,7 +76,7 @@ public class Punycode {
         if (sb.length() > 0) {
             // ASCII あり
             // xn-- を付ける場合 ASCII + 国際化両方あり
-            sb.append('-');
+            sb.append(DELIMIT);
         }
         if (st.size() == 0) { // 国際化なし ASCIIのみ
             return sb.toString();
@@ -92,11 +92,11 @@ public class Punycode {
         tn++;
         int d = DAMP;
         while (st.length() > 0) {
-            int ostat = c + n + 1;
+            int cbase = c + n + 1;
             st.read(dc);
             c = Bin.btoi(dc)[0];
             n = c / tn;
-            int delta = c - ostat;
+            int delta = c - cbase;
             sb.append(toCh(delta, bias)); // delta からコード
             bias = adapt(delta, d, tn);
             d = 2;
@@ -204,6 +204,9 @@ public class Punycode {
                 w = 1;
                 n = 0;
             }
+        }
+        if ( w != 1) {
+            throw new IllegalStateException();
         }
         
         return sb.toString();
