@@ -889,10 +889,10 @@ public class Bin {
         int[] dst = new int[length];
         for (int i = 0; i < dst.length; i++) {
             dst[i]
-                    =   src[offset]                   
+                    =  (src[offset]     & 0xff)                  
                     | ((src[offset + 1] & 0xff) <<  8)
                     | ((src[offset + 2] & 0xff) << 16)
-                    | ((src[offset + 3] & 0xff) << 24);
+                    | ( src[offset + 3]         << 24);
             offset += 4;
         }
         return dst;
