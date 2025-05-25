@@ -806,6 +806,29 @@ public class Bin {
     }
 
     /**
+     * Little Endian long列をbyte列に変換する
+     *
+     * @param src long列
+     * @return byte列
+     */
+    public static byte[] lltob(final long[] src) {
+        byte[] ds = new byte[src.length * 8];
+        for (int i = 0; i < src.length; i++) {
+            long s = src[i];
+            int l = i * 8;
+            ds[l    ] = (byte) (s      );
+            ds[l + 1] = (byte) (s >>  8);
+            ds[l + 2] = (byte) (s >> 16);
+            ds[l + 3] = (byte) (s >> 24);
+            ds[l + 4] = (byte) (s >> 32);
+            ds[l + 5] = (byte) (s >> 40);
+            ds[l + 6] = (byte) (s >> 48);
+            ds[l + 7] = (byte) (s >> 56);
+        }
+        return ds;
+    }
+
+    /**
      * long列をint列に変換する
      *
      * @param src long列
