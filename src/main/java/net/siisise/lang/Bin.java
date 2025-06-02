@@ -20,7 +20,7 @@ import java.util.Arrays;
 import net.siisise.math.Matics;
 
 /**
- * 名前候補 BinかHex
+ * 名前候補 BinかHex.
  * Hexというよりバイト列変換の主なもの.
  * 配列をintやlongとbyteで変換してみたり、ちょっとしたbit演算をまとめて実行するだけのまとまり.
  * HexとBASE64は統合したいかもしれない
@@ -788,7 +788,7 @@ public class Bin {
      * @param src long列
      * @return byte列
      */
-    public static byte[] ltob(final long[] src) {
+    public static byte[] ltob(final long... src) {
         byte[] ds = new byte[src.length * 8];
         for (int i = 0; i < src.length; i++) {
             long s = src[i];
@@ -811,7 +811,7 @@ public class Bin {
      * @param src long列
      * @return byte列
      */
-    public static byte[] lltob(final long[] src) {
+    public static byte[] lltob(final long... src) {
         byte[] ds = new byte[src.length * 8];
         for (int i = 0; i < src.length; i++) {
             long s = src[i];

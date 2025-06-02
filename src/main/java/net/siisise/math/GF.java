@@ -1,6 +1,7 @@
 package net.siisise.math;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import net.siisise.lang.Bin;
 
 /**
@@ -21,7 +22,7 @@ public class GF {
     // ガロア 有限体 原始多項式?
 //  final byte FF4 = 0x3; // 0x13 10011
     public static final byte FF8 = 0x1b; // 0x11b 100011011 AES
-    public static final byte FF64  = 0x1b; // 0x1000000000000001b x11011
+    public static final byte FF64 = 0x1b; // 0x1000000000000001b x11011
     public static final byte FF128 = (byte) 0x87; // 0x100000000000000000000000000000087 x10000111 // GMAC
     public static final byte[] GF8 = {FF8}; // 0x11b
     public static final byte[] GF64 = {0, 0, 0, 0, 0, 0, 0, FF64}; // 0x1000000000000001b
@@ -191,12 +192,38 @@ public class GF {
      * @param a
      * @return aの逆数 60bit程度まで
      */
-    public byte[] inv(byte[] a) {
+    public byte[] inv1(byte[] a) {
         return pow(a, TWO.shiftLeft(N).subtract(TWO));
     }
 
-    public long[] inv(long[] a) {
+    public long[] inv1(long[] a) {
         return pow(a, TWO.shiftLeft(N).subtract(TWO));
+    }
+
+    /**
+     * 逆数演算.
+     * 速い?
+     * @param a
+     * @return 
+     */
+    public byte[] inv(byte[] a) {
+        byte[] p = new byte[a.length];
+        Arrays.fill(p, (byte) -1);
+        p[p.length - 1]--;
+        return pow(a, p);
+    }
+
+    /**
+     * 逆数演算.
+     * 速い?
+     * @param a 
+     * @return 
+     */
+    public long[] inv(long[] a) {
+        long[] p = new long[a.length];
+        Arrays.fill(p, -1l);
+        p[p.length - 1]--;
+        return pow(a, p);
     }
 
     /**
@@ -254,6 +281,34 @@ public class GF {
             }
             return n;
         }
+    }
+
+    public byte[] pow(byte[] n, byte[] p) {
+        byte[] x = new byte[n.length];
+        x[x.length - 1] = 1;
+        for (int i = 0; i < p.length; i++) {
+            for (int j = 24; j < 32; j++) {
+                x = mul(x, x);
+                if ((p[i] << j) < 0) {
+                    x = mul(x, n);
+                }
+            }
+        }
+        return x;
+    }
+
+    public long[] pow(long[] n, long[] p) {
+        long[] x = new long[n.length];
+        x[n.length - 1] = 1;
+        for (int i = 0; i < p.length; i++) {
+            for (int j = 0; j < 64; j++) {
+                x = mul(x, x);
+                if ((p[i] << j) < 0) {
+                    x = mul(x, n);
+                }
+            }
+        }
+        return x;
     }
 
     static final BigInteger SEVEN = BigInteger.valueOf(7);
@@ -373,7 +428,14 @@ public class GF {
      * @return a・b
      */
     public byte[] mul(byte[] a, byte[] b) {
+        if (a.length % 8 == 0) {
+            return Bin.ltob(mul(Bin.btol(a), Bin.btol(b)));
+        }
         byte[] r = new byte[a.length];
+        if (isZero(b)) {
+            return r;
+        }
+        /*
         int last = a.length - 1;
         while (!isZero(a)) {
             if ((a[last] & 0x01) != 0) {
@@ -382,6 +444,23 @@ public class GF {
             a = Bin.shr(a);
             b = x(b);
         }
+         */
+        for (int i = a.length - 1; i >= 0; i--) {
+            byte ai = a[i];
+            if (ai == 0) {
+                for (int j = 0; j < 8; j++) {
+                    b = x(b);
+                }
+            } else {
+                for (int j = 7; j >= 0; j--) {
+                    if (((byte) (ai << j)) < 0) {
+                        Bin.xorl(r, b);
+                    }
+                    b = x(b);
+                }
+            }
+        }
+
         return r;
     }
 
@@ -443,14 +522,5 @@ public class GF {
      */
     public long[] div(long[] a, long[] b) {
         return mul(a, inv(b));
-    }
-
-    public static String toHexString(long[] s) {
-        StringBuilder sb = new StringBuilder(32);
-        for (long v : s) {
-            String h = "000000000000000" + Long.toHexString(v);
-            sb.append(h.substring(h.length() - 16));
-        }
-        return sb.toString();
     }
 }

@@ -114,7 +114,8 @@ public class GFRev {
     static final BigInteger TWO = BigInteger.valueOf(2);
     static final BigInteger THREE = BigInteger.valueOf(3);
 
-    static final BigInteger INV_POW = BigInteger.ONE.shiftLeft(128).subtract(TWO);
+//    static final BigInteger INV_POW = BigInteger.ONE.shiftLeft(128).subtract(TWO);
+    static final long[] INV_LONG_POW = {0xffffffffffffffffl, 0xfffffffffffffffdl};
 
     /**
      * 逆数計算.
@@ -123,18 +124,18 @@ public class GFRev {
      * @return 逆数
      */
     public long[] inv(long[] a) {
-        return new GFRev(a).pow(INV_POW);
+        return new GFRev(a).pow(INV_LONG_POW);
     }
     
     public long[] inv() {
-        return pow(INV_POW);
+        return pow(INV_LONG_POW);
     }
     
     /**
      * 累乗.
      * @param a 底
      * @param p exponent 1以上
-     * @return 
+     * @return a^p
      */
     public long[] pow(long[] a, BigInteger p) {
         return new GFRev(a).pow(p);
@@ -156,12 +157,39 @@ public class GFRev {
         }
 */
     }
+    
+    public long[] pow(long[] p) {
+        long[] n = shL[0];
+        long[] x = {0,1};
+        for ( int i = 0; i < p.length; i++) {
+            for ( int j = 0; j < 64; j++) {
+                if ( (p[i] << j) < 0) {
+                    x = mul(x, n);
+                }
+                x = mul(x, x);
+            }
+        }
+        return x;
+    }
+
+    BigInteger OCT = BigInteger.valueOf(256);
 
     public long[] pow(BigInteger p) {
         if ( p.equals(BigInteger.ONE)) {
             return shL[0];
         } else {
             long[] n;
+            if ( p.compareTo(OCT) > 0 ) {
+                BigInteger m = p.mod(OCT);
+                n = pow(p.divide(OCT));
+                for ( int i = 0; i < 8; i++ ) {
+                    n = mul(n,n);
+                }
+                if ( !m.equals(BigInteger.ZERO)) {
+                    n = mul( n, pow(p));
+                }
+                return n;
+            }
             if ( p.mod(THREE).equals(BigInteger.ZERO)) {
                 n = pow(p.divide(THREE));
                 GFRev gfn = new GFRev(n);

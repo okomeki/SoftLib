@@ -27,6 +27,7 @@ public class GFL {
     static final long FF128 = 0x87; 
     
     long constRb = FF128;
+    long[] constRbl;
     
     private final long[][] shL;
 
@@ -49,6 +50,15 @@ public class GFL {
         this(FF128, a);
     }
     
+    public GFL(long[] rb, long[] a) {
+        constRbl = rb.clone();
+        shL = new long[a.length * 64][];
+        shL[0] = a.clone();
+        for ( int i = 1; i < shL.length; i++) {
+            shL[i] = shll(shL[i-1]);
+        }
+    }
+    
     /**
      * 左シフト演算っぽい動作 1つ.
      * s・2.
@@ -59,6 +69,15 @@ public class GFL {
     public final long[] shl(long[] s) {
         long[] v = Bin.shl(s);
         v[v.length - 1] ^= (constRb * (s[0] >>> 63));
+        return v;
+    }
+
+    
+    public final long[] shll(long[] s) {
+        long[] v = Bin.shl(s);
+        if (s[0] < 0) {
+            Bin.xorl(v, constRbl);
+        }
         return v;
     }
 
