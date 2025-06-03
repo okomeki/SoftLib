@@ -425,7 +425,7 @@ public class BigBitPacket extends BaseBitPac {
 
             while (length >= 8) {
                 of--;
-                writeBit((data[of + 2] & 0xff), 8);
+                writeBit((data[of] & 0xff), 8);
                 length -= 8;
             }
 
