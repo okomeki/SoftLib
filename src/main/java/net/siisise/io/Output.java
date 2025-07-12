@@ -80,7 +80,7 @@ public interface Output {
      *
      * @param pac データ
      * @param length pac data length
-     * @return
+     * @return 移動サイズ
      */
     long write(Input pac, long length);
 
@@ -179,7 +179,7 @@ public interface Output {
         }
 
         /**
-         * 
+         * データの移動.
          * @param src 入力元
          * @return データ移動したサイズ
          */
@@ -188,6 +188,12 @@ public interface Output {
             return Output.write(this, src, src.length());
         }
 
+        /**
+         * データの移動.
+         * @param pac 移動元
+         * @param length サイズ
+         * @return 移動したサイズ
+         */
         @Override
         public long write(Input pac, long length) {
             return Output.write(this, pac, length);

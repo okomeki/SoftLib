@@ -46,9 +46,9 @@ public interface RevInput {
     int backRead(byte[] buf, int offset, int length);
     int backRead(byte[] buf);
     /**
-     * 逆読み
-     * @param length
-     * @return 
+     * 逆読み.
+     * @param length 長さ
+     * @return パケットで分割
      */
     Packet backReadPacket(long length);
     /**

@@ -176,7 +176,7 @@ public class PacketA extends BasePacket {
      * @param b 入れ物
      * @param offset b offset
      * @param length b length
-     * @return 
+     * @return 読み込めた長さ
      */
     @Override
     public int backRead(byte[] b, int offset, int length) {
@@ -289,12 +289,22 @@ public class PacketA extends BasePacket {
             offset += d.length;
         }
     }
-    
+
+    /**
+     * 直書き.
+     * @param d データ領域
+     */
     @Override
     public void dwrite(byte[] d) {
         nullPack.addPrev(d);        
     }
 
+    /**
+     * 逆書き.
+     * @param src 元データ
+     * @param offset 位置
+     * @param length データ長さ
+     */
     @Override
     public void backWrite(byte[] src, int offset, int length) {
         PacketIn nn = nullPack.next;
@@ -320,11 +330,19 @@ public class PacketA extends BasePacket {
         }
     }
 
+    /**
+     * 直逆書き.
+     * @param d データ領域
+     */
     @Override
     public void dbackWrite(byte[] d) {
         nullPack.next.addPrev(d);
     }
 
+    /**
+     * read方向の長さ.
+     * @return 残りサイズ
+     */
     @Override
     public long length() {
         long length = 0;
@@ -335,7 +353,12 @@ public class PacketA extends BasePacket {
         }
         return length;
     }
-    
+
+    /**
+     * 読み込み可能サイズの確認.
+     * @param size サイズ
+     * @return 可否
+     */
     @Override
     public boolean readable(long size) {
         PacketIn pc = nullPack.next;
@@ -454,7 +477,7 @@ public class PacketA extends BasePacket {
     /**
      * backSkip 戻る
      * @param length 長さ
-     * @return 
+     * @return 戻れた長さ
      */
     @Override
     public long back(long length) {
@@ -468,7 +491,7 @@ public class PacketA extends BasePacket {
      * @param b データ
      * @param offset データ位置
      * @param length 長さ
-     * @return 
+     * @return 読み込めたデータ
      */
     @Override
     public PacketA get(long index, byte[] b, int offset, int length) {

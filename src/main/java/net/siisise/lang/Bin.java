@@ -148,7 +148,7 @@ public class Bin {
      *
      * @param txt baae64まで
      * @param radixBase 6まで
-     * @return
+     * @return BigIntegerの入力に使えるbyte列
      */
     public static byte[] toByteArray(char[] txt, int radixBase) {
         int len = txt.length;
@@ -330,14 +330,14 @@ public class Bin {
     }
 
     /**
-     * OR
+     * a OR b.
      *
-     * @param a 長さの基準
-     * @param aoffset
-     * @param b
-     * @param boffset
-     * @param ret
-     * @return a OR b
+     * @param a 入力a長さの基準
+     * @param aoffset aの位置
+     * @param b 入力b
+     * @param boffset bの位置
+     * @param ret 出力先
+     * @return a OR b retを返す
      */
     public static byte[] or(byte[] a, int aoffset, byte[] b, int boffset, byte[] ret) {
         int min = Matics.min(ret.length, a.length - aoffset, b.length - boffset);
@@ -658,7 +658,7 @@ public class Bin {
      * 右1bit rotate
      *
      * @param a 非破壊
-     * @return
+     * @return rotate後
      */
     public static byte[] ror(byte[] a) {
         byte b = (byte) (a[a.length - 1] << 7);
@@ -668,10 +668,10 @@ public class Bin {
     }
 
     /**
-     * 右1bit rotate
+     * 右1bit rotate.
      *
      * @param a 非破壊
-     * @return
+     * @return rotate後
      */
     public static int[] ror(int[] a) {
         int b = a[a.length - 1] << 31;
@@ -681,9 +681,9 @@ public class Bin {
     }
 
     /**
-     *
+     * 右1bit rotate.
      * @param a 非破壊
-     * @return
+     * @return rotate後
      */
     public static long[] ror(long[] a) {
         long b = a[a.length - 1] << 63;
@@ -1075,10 +1075,10 @@ public class Bin {
     /**
      * int[]をbyte[]に戻す.
      *
-     * @param src
-     * @param ss
-     * @param doffset
-     * @return
+     * @param src int列
+     * @param ss 出力先byte列
+     * @param doffset 出力位置
+     * @return ss
      */
     public static byte[] itob(final int[] src, byte[] ss, int doffset) {
         for (int i = 0; i < src.length; i++) {
@@ -1094,10 +1094,10 @@ public class Bin {
     /**
      * Little Endian int[]をbyte[]に戻す.
      *
-     * @param src
-     * @param ss
-     * @param doffset
-     * @return
+     * @param src int列
+     * @param ss 出力先
+     * @param doffset 出力位置
+     * @return ss
      */
     public static byte[] litob(final int[] src, byte[] ss, int doffset) {
         for (int i = 0; i < src.length; i++) {
@@ -1111,12 +1111,12 @@ public class Bin {
     }
 
     /**
-     * long[] to byte[].
+     * Big Endian long[] to byte[].
      *
-     * @param src
-     * @param ss
-     * @param doffset
-     * @return
+     * @param src long列
+     * @param ss 出力先byte列
+     * @param doffset 出力位置
+     * @return ss
      */
     public static final byte[] ltob(final long[] src, byte[] ss, int doffset) {
         for (int i = 0; i < src.length; i++) {

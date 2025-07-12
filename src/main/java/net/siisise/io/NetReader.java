@@ -33,8 +33,8 @@ public class NetReader extends FilterReader {
     private final static char LF = '\n';
 
     /**
-     *
-     * @param r
+     * Readerつなぎ.
+     * @param r 読み出し元
      */
     public NetReader(Reader r) {
         super(r);
@@ -43,7 +43,7 @@ public class NetReader extends FilterReader {
     /**
      * 不正な文字コードが混入していないかUnicodeに変換してから一応チェック
      *
-     * @return
+     * @return 1行
      * @throws java.io.IOException
      */
     public String readLine() throws IOException {

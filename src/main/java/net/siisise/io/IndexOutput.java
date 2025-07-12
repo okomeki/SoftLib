@@ -21,11 +21,16 @@ package net.siisise.io;
 public interface IndexOutput {
 
     /**
-     * 上書き.
-     * @param index
-     * @param d 
+     * overwrite 上書き.
+     * @param index 位置
+     * @param d データ
      */
     void put(long index, byte d);
+    /**
+     * overwrite 上書き.
+     * @param index 位置
+     * @param d データ列
+     */
     void put(long index, byte[] d);
     void put(long index, byte[] d, int offset, int length);
 }

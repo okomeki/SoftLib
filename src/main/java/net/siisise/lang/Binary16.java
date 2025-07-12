@@ -41,7 +41,7 @@ public class Binary16 extends Number {
 
     /**
      * 使わない方がいいのかも valueOf が標準
-     * @param v
+     * @param v binary16な値
      * @deprecated
      */
     @Deprecated(since="9")
@@ -68,7 +68,7 @@ public class Binary16 extends Number {
     }
 
     /**
-     * てきとーに変換.
+     * てきとーにfloatに変換.
      * @return floatっぽい値
      */
     @Override
@@ -106,12 +106,17 @@ public class Binary16 extends Number {
      * short 形式をBinary16形式にするだけ.
      * 型自動変換に注意.
      * @param value Binary16っぽい値
-     * @return
+     * @return 新しいBinary16インスタンス
      */
     public static Binary16 valueOf(short value) {
         return new Binary16(value);
     }
-    
+
+    /**
+     * float値をbinary16値になんとなく変換してインスタンスを返す.
+     * @param value float値
+     * @return Binary16インスタンス
+     */
     public static Binary16 valueOf(float value) {
         return new Binary16(FloatToBinary16bits(value));
     }
@@ -123,8 +128,8 @@ public class Binary16 extends Number {
     /**
      * 文字列をIEEE形式でどうにかする.
      * 文字列をfloat に変えてからBinary16にしているので誤差などあるかもしれない.
-     * @param s
-     * @return
+     * @param s IEEE形式の数値テキスト
+     * @return binary16な中身のshort値
      * @throws NumberFormatException 
      */
     public static short parseBinary16(java.lang.String s) throws NumberFormatException {
@@ -137,7 +142,7 @@ public class Binary16 extends Number {
      * てきとーに正規化内に変換した
      *
      * @param b16 binary16 format IEEE 754
-     * @return
+     * @return floatっぽい値
      */
     public static float binary16BitsToFloat(short b16) {
         int sign = ((b16 & 0x8000) << 16); // 符号部 1 bit
@@ -173,10 +178,10 @@ public class Binary16 extends Number {
     }
 
     /**
-     * NaN をまとめる
-     *
-     * @param v
-     * @return
+     * NaN をまとめる.
+     * NaNなら標準のNaN、それ以外は変換しない.
+     * @param v binary16っぽい値
+     * @return 標準のNaN、NaN以外は変換しない
      */
     public static short binary16ToShortBits(short v) {
         return isNaN(v) ? NaN : v;

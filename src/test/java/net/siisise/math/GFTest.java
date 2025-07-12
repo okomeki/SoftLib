@@ -139,7 +139,7 @@ public class GFTest {
             System.out.print(" inv = 0x" + hex(gf.inv(x),2));
             x = gf.mul(x,3);
             System.out.print(" 5^"+sub(i,3)+"= " + hex(x5,2));
-            System.out.print(" inv = 0x" + hex(gf.inv(x5),2));
+            System.out.println(" inv = 0x" + hex(gf.inv(x5),2));
         }
         
         
@@ -175,11 +175,22 @@ public class GFTest {
         System.out.println("GFFFF");
         byte[] a = Bin.toByteArray("0388dace60b6a392f328c2b971b2fe78");
         byte[] b = Bin.toByteArray("66E94BD4EF8A2C3B884CFA59CA342B2E");
+        byte[] ex = Bin.toByteArray("519FA38AC731568E9C1EB21731167F1C");
+        byte[] ONE = Bin.toByteArray("00000000000000000000000000000001");
         GF gf = new GF(128, GF.GF128);
-        long[] c = gf.mul(Bin.btol(a), Bin.btol(b));
+        long[] la = Bin.btol(a);
+        long[] LONG_ONE = Bin.btol(ONE);
+        long[] c = gf.mul(la, Bin.btol(b));
         byte[] d = gf.mul(a, b);
+        long[] ia = gf.inv(la);
         System.out.println(" a x b " + Bin.toUpperHex(Bin.ltob(c)));
         System.out.println(" a x bd" + Bin.toUpperHex(d));
+        System.out.println(" a inv" + Bin.toUpperHex(Bin.ltob(ia)));
+        System.out.println(" a mul" + Bin.toUpperHex(Bin.ltob( gf.mul(la, ia))));
+        assertArrayEquals(Bin.btol(ex),c);
+        assertArrayEquals(ex,d);
+        assertArrayEquals(LONG_ONE,gf.mul(la, ia));
+        
     }   
     
     @Test

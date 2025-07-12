@@ -48,8 +48,8 @@ public class ArrayOutputStream extends OutputStream {
 
     /**
      * 配列の特定位置からストリーム出力先にする。
-     * @param data
-     * @param offset 
+     * @param data ソース配列
+     * @param offset 位置
      */
     public ArrayOutputStream(byte[] data, int offset) {
         buff = data;

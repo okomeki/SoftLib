@@ -83,14 +83,38 @@ public interface Input {
         return dst.write(this);
     }
 
+    /**
+     * 1バイト読み.
+     * @return 1バイトデータ
+     */
     byte get();
 
+    /**
+     * 特定サイズ取得.
+     * @param b 出力先
+     * @return 取得サイズ
+     */
     default long get(byte[] b) {
         return get(b, 0, b.length);
     }
 
+    /**
+     * 配列の途中にデータ取得.
+     * lengthがsizeより大きい場合はException
+     * @param b 配列
+     * @param offset 位置
+     * @param length　サイズ
+     * @return 取得サイズ
+     */
     long get(byte[] b, int offset, int length);
 
+    /**
+     * ここからoutにデータ複製または移動.
+     * outは固定サイズ、または可変サイズ
+     * 固定サイズの場合は上限まで読み込む.
+     * @param out 出力先
+     * @return 
+     */
     default long get(Output out) {
         if (out instanceof OverBlock && ((OverBlock) out).hasArray()) {
             ByteBlock o = (ByteBlock) out;
@@ -152,8 +176,8 @@ public interface Input {
      * サイズが読み込めるかどうか.
      * length だと細かいデータのとき遅いかも.
      *
-     * @param size
-     * @return
+     * @param size 読み込み予定サイズ
+     * @return size以上のデータの有無
      */
     default boolean readable(long size) {
         return length() >= size;
@@ -215,6 +239,13 @@ public interface Input {
             return (byte) b[0];
         }
 
+        /**
+         * 部分読み込み.
+         * @param b 読み込み先
+         * @param offset 位置
+         * @param length サイズ
+         * @return 取得サイズ
+         */
         @Override
         public long get(byte[] b, int offset, int length) {
             int len = size();

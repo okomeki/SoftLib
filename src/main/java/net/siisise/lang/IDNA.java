@@ -170,6 +170,11 @@ public class IDNA {
         return java.lang.String.join(".", t);
     }
 
+    /**
+     * 仮 NFKCかけるだけ.
+     * @param u 国際化文字列
+     * @return NFKCかけてみた
+     */
     static final java.lang.String NFKC(java.lang.String u) {
         return Normalizer.normalize(u, Normalizer.Form.NFKC);
     }
