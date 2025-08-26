@@ -171,7 +171,9 @@ public interface Output {
         }
 
         @Override
-        public abstract void write(byte[] d, int offset, int length);
+        public void write(byte[] d, int offset, int length) {
+            put(d, offset, length);
+        };
 
         @Override
         public void dwrite(byte[] d) {
