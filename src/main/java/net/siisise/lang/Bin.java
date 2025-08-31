@@ -1158,4 +1158,53 @@ public class Bin {
             src[x]++;
         } while (src[x] == 0 && x > 0);
     }
+
+    /**
+     * 逆順.
+     * 
+     * @param s 元列
+     * @return 逆列
+     */
+    public static byte[] rev(byte[] s) {
+        int r = s.length;
+        byte[] rev = new byte[r];
+        for (int i = 0; i < s.length; i++) {
+            rev[i] = s[--r];
+        }
+        return rev;
+    }
+
+    /**
+     * Little Endian.
+     * 
+     * @param src Little Endian bytes
+     * @return big integer
+     */
+    public static BigInteger lbtobi(byte[] src) {
+        int offset = src.length + ((src[src.length - 1] < 0) ? 1 : 0);
+        byte[] code = new byte[offset];
+
+        for (int i = 0; i < src.length; i++) {
+            code[--offset] = src[i];
+        }
+        return new BigInteger(code);
+    }
+
+    /**
+     * Little Endian.
+     * 
+     * @param src big integer
+     * @param len output length
+     * @return Little Endian bytes
+     */
+    public static byte[] bitolb(BigInteger src, int len) {
+        byte[] code = src.toByteArray();
+        byte[] dst = new byte[len];
+        int min = len > code.length ? code.length : len;
+        int offset = code.length;
+        for (int i = 0; i < min; i++) {
+            dst[i] = code[--offset];
+        }
+        return dst;
+    }
 }
