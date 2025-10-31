@@ -22,15 +22,7 @@ package net.siisise.io;
  * ビット系からバイト系に変換する際には端数ビットを捨てる方向で調整する。
  * 必要ならパディングを入れてみよう。
  */
-public interface BitPacket extends FrontPacket,BackPacket {
-
-    /**
-     * ビット読み込み.
-     * 下位ビットを利用
-     * @param bitLength 読み込むビットサイズ 0 - 32
-     * @return 下位ビットに読み込み
-     */
-    int readInt(int bitLength);
+public interface BitPacket extends BitInput,FrontPacket,BackPacket {
     /**
      * 逆読み.
      * 
@@ -38,17 +30,6 @@ public interface BitPacket extends FrontPacket,BackPacket {
      * @return 
      */
     int backReadInt(int bitLength);
-
-    /**
-     * ビット単位で読み込み。
-     * BigBitPacketではビット単位ではMSBから埋める.
-     * LittleBitPacketではLSBから埋める.
-     * @param data 読み込み先
-     * @param offsetBit data列の先頭ビット位置
-     * @param bitLength 読み込むビット長
-     * @return 読み込んだビット長
-     */
-    long readBit(byte[] data, long offsetBit, long bitLength);
     long backReadBit(byte[] data, long offsetBit, long bitLength);
 
     BitPacket readPac(int length);
@@ -62,6 +43,4 @@ public interface BitPacket extends FrontPacket,BackPacket {
     void backWriteBit(BitPacket pac, long bitLength);
     void writeBit(BitPacket pac);
     void backWriteBit(BitPacket pac);
-
-    long bitLength();
 }

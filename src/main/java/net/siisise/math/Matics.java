@@ -15,6 +15,9 @@
  */
 package net.siisise.math;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+
 /**
  * 仮 名前は変わるかも.
  */
@@ -133,5 +136,16 @@ public class Matics {
             }
         }
         return true;
+    }
+    
+    public static byte[] rndBytes(int len) {
+        byte[] r = new byte[len];
+        try {
+            SecureRandom sr = SecureRandom.getInstanceStrong();
+            sr.nextBytes(r);
+            return r;
+        } catch (NoSuchAlgorithmException ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 }

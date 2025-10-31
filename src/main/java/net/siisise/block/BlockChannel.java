@@ -34,7 +34,7 @@ public class BlockChannel implements SeekableByteChannel {
 
     /**
      * ここからバイト列をdstに読み込む.
-     * @param dst
+     * @param dst 転送先
      * @return サイズ的なもの
      * @throws IOException 
      */
