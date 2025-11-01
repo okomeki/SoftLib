@@ -183,10 +183,11 @@ public class GFTest {
         long[] c = gf.mul(la, Bin.btol(b));
         byte[] d = gf.mul(a, b);
         long[] ia = gf.inv(la);
-        System.out.println(" a x b " + Bin.toUpperHex(Bin.ltob(c)));
-        System.out.println(" a x bd" + Bin.toUpperHex(d));
-        System.out.println(" a inv" + Bin.toUpperHex(Bin.ltob(ia)));
-        System.out.println(" a mul" + Bin.toUpperHex(Bin.ltob( gf.mul(la, ia))));
+        System.out.println(" a      " + Bin.toUpperHex(a));
+        System.out.println(" a x b  " + Bin.toUpperHex(Bin.ltob(c)));
+        System.out.println(" a x bl " + Bin.toUpperHex(d));
+        System.out.println(" a inv  " + Bin.toUpperHex(Bin.ltob(ia)));
+        System.out.println(" a mul  " + Bin.toUpperHex(Bin.ltob( gf.mul(la, ia))));
         assertArrayEquals(Bin.btol(ex),c);
         assertArrayEquals(ex,d);
         assertArrayEquals(LONG_ONE,gf.mul(la, ia));

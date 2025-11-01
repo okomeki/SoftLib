@@ -73,7 +73,7 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
          * @return 読み込んだサイズ
          */
         public abstract long readBit(byte[] data, long offset, long bitLength);
-        public abstract BitPacket readPac(int bitLength);
+        public abstract BitPacket readBitPacket(long bitLength);
 
         @Override
         public long length() {
@@ -160,6 +160,10 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
         return backOut;
     }
 
+    /**
+     * 有効ビット
+     * @return 読み込み可能なビット数.
+     */
     @Override
     public long bitLength() {
         return pac.length() * 8 - readPadding - writePadding;
@@ -232,8 +236,8 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
     }
 
     @Override
-    public BitPacket readPac(int length) {
-        return in.readPac(length);
+    public BitPacket readPac(long length) {
+        return in.readBitPacket(length);
     }
 
     @Override
@@ -301,28 +305,57 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
         backOut.writeBit(data, bitOffset, bitLength);
     }
 
+    /**
+     * 消えない読み.
+     * @param index 位置
+     * @param b データ
+     * @param offset データ位置
+     * @param length データサイズ
+     * @return これ
+     */
     @Override
     public BaseBitPac get(long index, byte[] b, int offset, int length) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        PacketA na = new PacketA();
+        na.write(this, index);
+        in.read(b, offset, length);
+        backWrite(b, offset, length);
+        backWrite(na, index);
+        return this;
     }
 
+    /**
+     * 上書き.
+     * @param index 位置(バイト)
+     * @param d データ
+     * @param srcOffset データ位置
+     * @param length 長さ
+     */
     @Override
     public void put(long index, byte[] d, int srcOffset, int length) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        BitPacket na = readPac((index + length) * 8);
+        backWrite(d, srcOffset, length);
+        backWriteBit(na, index * 8);
     }
 
     @Override
     public void add(long index, byte[] d, int srcOffset, int length) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        BitPacket na = readPac(index * 8);
+        backWrite(d, srcOffset, length);
+        backWriteBit(na, index * 8);
     }
 
     @Override
     public void del(long index, long size) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        BitPacket na = readPac(index * 8);
+        skip(size);
+        backWriteBit(na, index * 8);
     }
 
     @Override
     public BaseBitPac del(long index, byte[] d, int offset, int length) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        BitPacket na = readPac(index * 8);
+        read(d, offset, length);
+        backWriteBit(na, index * 8);
+        return this;
     }
 }

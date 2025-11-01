@@ -42,5 +42,9 @@ public interface BitInput {
      */
     long readBit(byte[] data, long offsetBit, long bitLength);
 
+    /**
+     * 読み込み可能なビット数.
+     * @return 端数含むビット数
+     */
     long bitLength();
 }

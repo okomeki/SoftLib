@@ -30,9 +30,17 @@ public interface BitPacket extends BitInput,FrontPacket,BackPacket {
      * @return 
      */
     int backReadInt(int bitLength);
+
+    /**
+     * 
+     * @param data 読み込み配列
+     * @param offsetBit ビット位置
+     * @param bitLength ビット長
+     * @return 読み込めたビット長
+     */
     long backReadBit(byte[] data, long offsetBit, long bitLength);
 
-    BitPacket readPac(int length);
+    BitPacket readPac(long length);
 
     void writeBit(int data, int bitLength);
     void backWriteBit(int data, int bitLength);

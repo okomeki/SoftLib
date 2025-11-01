@@ -72,25 +72,28 @@ public class LittleBitPacket extends BaseBitPac {
         }
 
         @Override
-        public LittleBitPacket readPac(int bit) {
+        public LittleBitPacket readBitPacket(long bit) {
             if (bit > bitLength()) {
                 throw new java.lang.IndexOutOfBoundsException();
             }
             LittleBitPacket bp = new LittleBitPacket();
-            if (bit + readPadding >= 8) { // そのまま
-                //    bp.block.write(d);
-                int d;
-                d = pac.read();
-                bp.pac.write(d);
+            if (bit + readPadding < 8) {
+                int d = readInt((int)bit);
+                bp.writeBit(d, (int)bit);
+                return bp;
+            } // そのまま
+            
+            //先頭Padding処理
+            //    bp.block.write(d);
+            if (readPadding > 0) {
+                int c = pac.read();
+                bp.pac.write(c);
                 bp.readPadding = readPadding;
                 bit -= (8 - readPadding);
                 readPadding = 0;
-            } else {
-                int d = readInt(bit);
-                bp.writeBit(d, bit);
-                return bp;
             }
-            int len = bit / 8;
+            
+            int len = (int)(bit / 8);
             if (len > 0) {
                 byte[] d = new byte[len];
                 pac.read(d);
@@ -98,8 +101,8 @@ public class LittleBitPacket extends BaseBitPac {
                 bit -= len * 8;
             }
             if (bit > 0) { // bit = 1～7 ビット構造で異なる
-                int d = readInt(bit);
-                bp.writeBit(d, bit);
+                int d = readInt((int)bit);
+                bp.writeBit(d, (int)bit);
             }
             return bp;
         }
@@ -136,7 +139,6 @@ public class LittleBitPacket extends BaseBitPac {
                 of = (int) (offsetBit / 8);
                 ofbit = (int) (offsetBit % 8);
                 readPadding = 0;
-                retLength += l;
             } else {
                 //    throw new UnsupportedOperationException();
             }
@@ -200,9 +202,9 @@ public class LittleBitPacket extends BaseBitPac {
             if (len > 0) {
                 byte[] d = new byte[len];
                 pac.backRead(d);
-                for (byte x : d) {
+                for (int i = d.length - 1; i >= 0; i--) {
                     ret <<= 8;
-                    ret |= x & 0xff;
+                    ret |= d[i] & 0xff;
                 }
                 bit -= len * 8;
             }
@@ -274,11 +276,33 @@ public class LittleBitPacket extends BaseBitPac {
             return retLength;
         }
 
+        /**
+         * ビット単位で分割.
+         * ToDo: padding考慮して分割するともう少し速い.
+         * 
+         * @param bitLength ビット長
+         * @return 
+         */
         @Override
-        public LittleBitPacket readPac(int bitLength) {
-            byte[] tmp = new byte[(bitLength + 7) / 8];
-            readBit(tmp, 0, bitLength);
+        public LittleBitPacket readBitPacket(long bitLength) {
             LittleBitPacket p = new LittleBitPacket();
+            if ( bitLength < 8) {
+                int c = readInt((int)bitLength);
+                p.writeBit(c, (int)bitLength);
+                return p;
+            }
+            //先頭Padding処理
+            //    bp.block.write(d);
+            if (readPadding > 0) {
+                int c = pac.read();
+                p.pac.write(c);
+                p.readPadding = readPadding;
+                bitLength -= (8 - readPadding);
+                readPadding = 0;
+            }
+            
+            byte[] tmp = new byte[(int)((bitLength + 7) / 8)];
+            readBit(tmp, 0, bitLength);
             p.writeBit(tmp, 0, bitLength);
             return p;
         }

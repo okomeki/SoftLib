@@ -23,11 +23,6 @@ package net.siisise.io;
  */
 public class BigBitPacket extends BaseBitPac {
 
-    @Override
-    public BigBitPacket del(long index, byte[] buf, int offset, int length) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
     class BigBitInputStream extends BitInputStream {
 
         /**
@@ -122,27 +117,27 @@ public class BigBitPacket extends BaseBitPac {
 
         /**
          * 分ける
-         * @param bit
+         * @param bit 読み込みビット長
          * @return 
          */
         @Override
-        public BigBitPacket readPac(int bit) {
+        public BigBitPacket readBitPacket(long bit) {
             if (bit > bitLength()) {
                 throw new java.lang.IndexOutOfBoundsException();
             }
             BigBitPacket bp = new BigBitPacket();
-            if (bit >= (8 - readPadding)) { // そのまま
-                int d;
-                d = pac.read();
-                bp.pac.write(d);
-                bp.readPadding = readPadding;
-                bit -= (8 - readPadding);
-                readPadding = 0;
-            } else {
-                int d = readInt(bit);
-                bp.writeBit(d, bit);
+            if (bit < (8 - readPadding)) {
+                int d = readInt((int)bit);
+                bp.writeBit(d, (int)bit);
                 return bp;
             }
+            // Padding 処理
+            int c = pac.read();
+            bp.pac.write(c);
+            bp.readPadding = readPadding;
+            bit -= (8 - readPadding);
+            readPadding = 0;
+            
             int len = (int) bit / 8;
             if (len > 0) {
                 byte[] d = new byte[len];
@@ -151,8 +146,8 @@ public class BigBitPacket extends BaseBitPac {
                 bit -= len * 8;
             }
             if (bit > 0) { // bit = 1～7 ビット構造で異なる
-                int d = readInt(bit);
-                bp.writeBit(d,bit);
+                int d = readInt((int)bit);
+                bp.writeBit(d,(int)bit);
             }
             return bp;
         }
@@ -266,8 +261,8 @@ public class BigBitPacket extends BaseBitPac {
             if (len > 0) {
                 byte[] d = new byte[len];
                 pac.backRead(d);
-                for (byte x : d) {
-                    ret |= (x & 0xff) << flen;
+                for (int i = d.length-1; i>=0; i--) {
+                    ret |= (d[i] & 0xff) << flen;
                     flen += 8;
                 }
                 bit -= len * 8;
@@ -345,8 +340,8 @@ public class BigBitPacket extends BaseBitPac {
          * @return 
          */
         @Override
-        public BigBitPacket readPac(int bitLength) {
-            byte[] tmp = new byte[(bitLength+7) / 8];
+        public BigBitPacket readBitPacket(long bitLength) {
+            byte[] tmp = new byte[(int)((bitLength+7) / 8)];
             readBit(tmp,0,bitLength);
             BigBitPacket p = new BigBitPacket();
             p.writeBit(tmp, 0, bitLength);
@@ -419,7 +414,7 @@ public class BigBitPacket extends BaseBitPac {
 
             while (length >= 24) {
                 of -= 3;
-                writeBit(((data[of] << 16) & 0xff) | ((data[of + 1] << 8) & 0xff) | (data[of + 2] & 0xff), 24);
+                writeBit(((data[of] & 0xff) << 16) | ((data[of + 1] & 0xff) << 8) | (data[of + 2] & 0xff), 24);
                 length -= 24;
             }
 
@@ -471,12 +466,17 @@ public class BigBitPacket extends BaseBitPac {
     @Override
     public BigBitPacket readPacket(long length) {
         BigBitPacket bb = new BigBitPacket();
-        Output.write(bb, this, length);
+        long ln = Output.write(bb, this, length);
+        if ( ln < length) {
+            long b = bitLength();
+            int c = this.readInt((int)b);
+            bb.writeBit(c, (int)b);
+        }
         return bb;
     }
 
     @Override
-    public Packet backReadPacket(long length) {
+    public BigBitPacket backReadPacket(long length) {
         BigBitPacket bb = new BigBitPacket();
         RevOutput.backWrite(bb, this, length);
         return bb;
