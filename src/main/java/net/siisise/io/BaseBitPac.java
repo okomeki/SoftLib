@@ -189,13 +189,13 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
     }
 
     /**
-     *
-     * @param len 0～32くらい
-     * @return
+     * 簡易mask bitの生成.
+     * @param len 0～64くらい
+     * @return mask
      */
-    static final int andMask(int len) {
+    static final long andMask(int len) {
         //if ( len == 32 ) return -1;
-        return (int) (1l << len) - 1;
+        return (long) (1l << len) - 1;
     }
 
     /**

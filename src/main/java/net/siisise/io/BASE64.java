@@ -135,7 +135,7 @@ public class BASE64 implements TextEncode {
      * @param size 出力時の1行のサイズ 0は改行なし
      */
     public BASE64(Type type, int size) {
-        this(type, type != URL && type != HEX64 && type != BCRYPT, size);
+        this(type, type == Type.BASE64 || type == Type.PASSWORD, size);
     }
     
     /**
@@ -428,7 +428,7 @@ public class BASE64 implements TextEncode {
      * @return
      */
     public static byte[] decodeBase(String data) {
-        BASE64 b = new BASE64(BASE64,0);
+        BASE64 b = new BASE64(Type.BASE64,0);
         return b.decode(data);
     }
 
@@ -438,7 +438,7 @@ public class BASE64 implements TextEncode {
      * @return 復元済みデータ
      */
     public static byte[] decodeURL(String data) {
-        BASE64 b = new BASE64(URL,0);
+        BASE64 b = new BASE64(Type.URL,0);
         return b.decode(data);
     }
 
@@ -449,7 +449,7 @@ public class BASE64 implements TextEncode {
      * @return 復元済みデータ
      */
     public static byte[] decodePass(String data) {
-        BASE64 b = new BASE64(PASSWORD,0);
+        BASE64 b = new BASE64(Type.PASSWORD,0);
         return b.decode(data);
     }
 
@@ -460,7 +460,7 @@ public class BASE64 implements TextEncode {
      * @return 復元済みデータ
      */
     public static byte[] decodeBcrypt(String data) {
-        BASE64 b = new BASE64(BCRYPT,0);
+        BASE64 b = new BASE64(Type.BCRYPT,0);
         return b.decode(data);
     }
 
@@ -471,7 +471,7 @@ public class BASE64 implements TextEncode {
      * @return 復元済みデータ
      */
     public static byte[] decodeHex64(String data) {
-        BASE64 b = new BASE64(HEX64,0);
+        BASE64 b = new BASE64(Type.HEX64,0);
         return b.decode(data);
     }
 

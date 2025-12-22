@@ -29,7 +29,7 @@ public class BASE64Test {
 
     @Test
     public void testBCryptEncode() {
-        System.out.println("encode");
+        System.out.println("BCrypt encode");
         byte[] src = "spamandeggs".getBytes(StandardCharsets.UTF_8);
         BASE64 instance = new BASE64(BASE64.BCRYPT, 0);
         String expResult = "a1/fZUDsXETlX1K";
@@ -42,7 +42,7 @@ public class BASE64Test {
      */
     @Test
     public void testBCryptDecode() {
-        System.out.println("decode");
+        System.out.println("BCrypt decode");
         String data = "a1/fZUDsXETlX1K";
         BASE64 instance = new BASE64(BASE64.BCRYPT, 0);
         byte[] expResult = "spamandeggs".getBytes(StandardCharsets.UTF_8);

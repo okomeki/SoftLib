@@ -268,7 +268,7 @@ public class BigBitPacket extends BaseBitPac {
                 bit -= len * 8;
             }
             if (bit > 0) { // bit = 1～7 ビット構造で異なる
-                int d = ((pac.backRead() >> writePadding) & andMask(bit)) << flen;
+                int d = (int) (((pac.backRead() >> writePadding) & andMask(bit)) << flen);
                 writePadding += bit;
                 ret |= d;
                 if (pac.length() == 0 && readPadding + writePadding == 8) {
@@ -389,7 +389,7 @@ public class BigBitPacket extends BaseBitPac {
             if (bitLength > 0) {
                 // lenは1-7, writePadding は 0-7, bitLength < writePadding
                 readPadding = 8 - bitLength;
-                pac.backWrite(data & andMask(bitLength));
+                pac.backWrite((int) (data & andMask(bitLength)));
                 // data = 0;
             }
         }

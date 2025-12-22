@@ -57,7 +57,7 @@ public class LittleBitPacket extends BaseBitPac {
                 bit -= len * 8;
             }
             if (bit > 0) { // bit = 1～7 ビット構造で異なる
-                int d = ((pac.read() >> readPadding) & andMask(bit)) << flen;
+                int d = (int) (((pac.read() >> readPadding) & andMask(bit)) << flen);
                 readPadding += bit;
                 ret |= d;
                 if (pac.length() == 0 && readPadding + writePadding == 8) {
@@ -322,17 +322,15 @@ public class LittleBitPacket extends BaseBitPac {
             int oldData = 0;
             if (writePadding > 0) {
                 oldData = pac.backRead();
-                int d = oldData | (data << (8 - writePadding));
+                int d = (data << (8 - writePadding)) | oldData;
                 pac.write(d & 0xff);
-                if (bitLength >= writePadding) { // | nnnn oooo |
-                    bitLength -= writePadding;
-                    data >>>= writePadding;
-                    writePadding = 0;
-                    //data &= andMask(bitLength);
-                } else {
+                if (bitLength < writePadding) { // | nnnn oooo |
                     writePadding -= bitLength;
                     return;
                 }
+                bitLength -= writePadding;
+                data >>>= writePadding;
+                writePadding = 0;
             }
 
             if (bitLength >= 8) {
@@ -347,7 +345,7 @@ public class LittleBitPacket extends BaseBitPac {
             }
             if (bitLength > 0) {
                 writePadding = 8 - bitLength;
-                pac.write(data & andMask(bitLength));
+                pac.write(data);
             }
         }
 
@@ -363,7 +361,6 @@ public class LittleBitPacket extends BaseBitPac {
             int of = (int) (bitOffset / 8);
             int bit = (int) (bitOffset % 8);
 
-            /*
             if (bit > 0 && bitLength >= (8 - bit)) {
                 int d = data[of] & 0xff;
                 writeBit(d >>> bit, 8 - bit);
@@ -371,23 +368,23 @@ public class LittleBitPacket extends BaseBitPac {
                 bitLength -= bit;
                 bit = 0;
             }
-             */
+
             while (bit + bitLength >= 32) {
-                writeBit((data[of] & 0xff) | ((data[of + 1] & 0xff) << 8) | ((data[of + 2] & 0xff) << 16) | ((data[of + 3] & 0xff) << 24), 32 - bit);
+                writeBit(((data[of] & 0xff) | ((data[of + 1] & 0xff) << 8) | ((data[of + 2] & 0xff) << 16) | ((data[of + 3] & 0xff) << 24)) >>> bit, 32 - bit);
                 of += 4;
                 bitLength -= 32 - bit;
                 bit = 0;
             }
 
-            while (bit + bitLength >= 16) {
-                writeBit((data[of] & 0xff) | ((data[of + 1] & 0xff) << 8), 16 - bit);
+            if (bit + bitLength >= 16) {
+                writeBit(((data[of] & 0xff) | ((data[of + 1] & 0xff) << 8)) >>> bit, 16 - bit);
                 of += 2;
                 bitLength -= 16 - bit;
                 bit = 0;
             }
 
             while (bit + bitLength >= 8) {
-                writeBit(data[of] & 0xff, 8 - bit);
+                writeBit((data[of] & 0xff) >>> bit, 8 - bit);
                 of += 1;
                 bitLength -= 8 - bit;
                 bit = 0;
@@ -456,13 +453,12 @@ public class LittleBitPacket extends BaseBitPac {
         @Override
         public void writeBit(byte[] data, long bitOffset, long bitLength) {
             int of = (int) ((bitOffset + bitLength) / 8);
-//            long retLength = bitLength;
-            int ofbit = (int) ((bitOffset + bitLength) % 8); // あまりビット
+            int bit = (int) ((bitOffset + bitLength) % 8); // あまりビット
 
-            if (ofbit > 0 && bitLength >= ofbit) { // 末尾は下位ビットを埋める
-                writeBit((data[of] & 0xff), ofbit);
-                bitLength -= ofbit;
-                ofbit = 0;
+            if (bit > 0 && bitLength >= bit) { // 末尾は下位ビットを埋める
+                writeBit((data[of] & 0xff), bit);
+                bitLength -= bit;
+                bit = 0;
             }
 
             int v;
@@ -480,11 +476,11 @@ public class LittleBitPacket extends BaseBitPac {
                 bitLength -= 8;
             }
             if (bitLength > 0) { //　メモ 下位ビットから埋める // 先頭は上ビットを埋める
-                if (ofbit == 0) {
+                if (bit == 0) {
                     of--;
-                    ofbit = 8;
+                    bit = 8;
                 }
-                int n = ofbit - (int) bitLength;
+                int n = bit - (int) bitLength;
                 writeBit(data[of] >> n, (int) bitLength);
             }
         }
