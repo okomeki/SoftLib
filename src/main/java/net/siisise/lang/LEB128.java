@@ -22,57 +22,77 @@ import net.siisise.io.Packet;
 import net.siisise.io.PacketA;
 
 /**
+ * Little Endian Base 128.
  * 符号なしとして符号化.
  * Wasm用仮
  */
 public class LEB128 {
 
+    static final BigInteger FF = BigInteger.ONE.negate();
+
     /**
-     * 正の整数限定
+     * 適度な変換.
+     *
      * @param val
-     * @return 
+     * @return LEB128列
      */
     public static byte[] toLEB128(BigInteger val) {
         Packet pac = new PacketA();
-        
-        do {
-            byte v = (byte)(val.intValue() & 0x7f);
+
+        byte v = (byte) (val.intValue() & 0x7f);
+        val = val.shiftRight(7);
+
+        while ((!val.equals(BigInteger.ZERO)) && (!val.equals(FF))) {
+            pac.write(v | 0x80);
+            v = (byte) (val.intValue() & 0x7f);
             val = val.shiftRight(7);
-            if (!val.equals(BigInteger.ZERO)) {
-                v |= 0x80;
-            }
-            pac.write(v);
-        } while (val.compareTo(BigInteger.ZERO) > 0);
+        }
+        pac.write(v);
         return pac.toByteArray();
     }
 
-    public static BigInteger toBigInteger(byte[] val) {
-        return toBigInteger(ReadableBlock.wrap(val));
-/*
-        int shift = 0;
-        BigInteger r = BigInteger.ZERO;
-        for (byte v : val) {
-            BigInteger b = BigInteger.valueOf(v & 0x7f);
-            
-            r = r.or(b.shiftLeft(shift));
-            if ( (v & 0x80) == 0) {
-                return r;
+    /**
+     * 符号なし
+     *
+     * @param sign 符号なしとみなす
+     * @return
+     */
+    public static byte[] toLEB128(long sign) {
+        Packet pac = new PacketA();
+        do {
+            byte v = (byte) (sign & 0x7f);
+            sign >>>= 7;
+            if (sign != 0) {
+                v |= 0x80;
             }
-            shift += 7;
-        }
-        throw new IllegalStateException();
-*/
+            pac.write(v);
+        } while (sign > 0);
+        return pac.toByteArray();
     }
 
+    /**
+     * LEB128 から BigInteger
+     * @param val LEB128
+     * @return BigInteger
+     */
+    public static BigInteger toBigInteger(byte[] val) {
+        return toBigInteger(ReadableBlock.wrap(val));
+    }
+
+    /**
+     *
+     * @param in LEB128 からはじまる Stream
+     * @return
+     */
     public static BigInteger toBigInteger(Input in) {
         int shift = 0;
         BigInteger r = BigInteger.ZERO;
         int v = in.read();
         while (v >= 0) {
             BigInteger b = BigInteger.valueOf(v & 0x7f);
-            
+
             r = r.or(b.shiftLeft(shift));
-            if ( (v & 0x80) == 0) {
+            if ((v & 0x80) == 0) {
                 return r;
             }
             shift += 7;
@@ -81,38 +101,26 @@ public class LEB128 {
         throw new IllegalStateException();
     }
 
+    /**
+     * longへ直接変換.
+     *
+     * @param in LEB128
+     * @return
+     */
     public static long toLong(Input in) {
         int shift = 0;
         long r = 0;
         int v = in.read();
         while (v >= 0) {
             long b = v & 0x7f;
-            
+
             r |= b << shift;
-            if ( (v & 0x80) == 0) {
+            if ((v & 0x80) == 0) {
                 return r;
             }
             shift += 7;
             v = in.read();
         }
         throw new IllegalStateException();
-    }
-    
-    /**
-     * 符号なし
-     * @param sign 符号なしとみなす
-     * @return 
-     */
-    public static byte[] toLEB128(long sign) {
-        Packet pac = new PacketA();
-        do {
-            byte v = (byte)(sign & 0x7f);
-            sign >>>= 7;
-            if ( sign != 0) {
-                v |= 0x80;
-            }
-            pac.write(v);
-        } while (sign > 0);
-        return pac.toByteArray();
     }
 }
