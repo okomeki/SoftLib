@@ -59,8 +59,8 @@ public class BASE64 implements TextEncode {
         final int[] decsrc = new int[128];
     }
 
-    private Type type;
-    private boolean padding = true;
+    Type type;
+    boolean padding = true;
 
     static {
         for (int i = 0; i <= 'z' - 'a'; i++) {
@@ -332,7 +332,7 @@ public class BASE64 implements TextEncode {
      * @param length 変換元バイト列の長さ
      * @return BASE64符号化時のサイズ
      */
-    private int b64size(int length) {
+    int b64size(int length) {
         int b64size = (length + 2) / 3 * 4; // 改行含まず
         if (cols > 0) {
             b64size += (b64size + cols - 1) / cols * 2; // 字数は4の倍数のみ想定
@@ -537,5 +537,218 @@ public class BASE64 implements TextEncode {
         tmp = new byte[len];
         pac.read(tmp);
         return tmp;
+    }
+
+    /**
+     * SHA-crypt 用変則型.
+     */
+    public static class LE extends BASE64 {
+        
+        public LE(int size) {
+            super(Type.PASSWORD, false, size);
+        }
+
+        /**
+         * padding は未定.
+         * @param type
+         * @param size 
+         */
+        public LE(Type type, int size) {
+            super(type, false, size);
+        }
+
+        public LE(Type type, boolean padding, int size) {
+            super(type, padding, size);
+        }
+
+        @Override
+        public char[] encodeToChar(byte[] data, int offset, int length) {
+            int tmpData = 0, bit = 0;
+            int col = 0;
+            char[] b64;
+            int b64offset = 0;
+
+            int b64size = b64size(length);
+            b64 = new char[b64size];
+
+            int last = offset + length;
+
+            if (cols <= 0) { // 速い
+                int l2 = last - 2;
+                while (offset < l2) {
+                    int tmp = (data[offset++] & 0xff) | ((data[offset++] & 0xff) << 8) | ((data[offset++] & 0xff) << 16);
+                    b64[b64offset++] = this.type.encsrc[tmp & 0x3f];
+                    b64[b64offset++] = this.type.encsrc[(tmp >>> 6) & 0x3f];
+                    b64[b64offset++] = this.type.encsrc[(tmp >>> 12) & 0x3f];
+                    b64[b64offset++] = this.type.encsrc[tmp >>> 18];
+                }
+            }
+
+            for (int idx = offset; idx < last; idx++) {
+//                tmpData <<= 8;
+                tmpData |= (data[idx] & 0xff) << bit;
+                bit += 8;
+                do {
+                    bit -= 6;
+                    b64[b64offset++] = type.encsrc[tmpData & 0x3f];
+                    tmpData >>>= 6;
+                    col++;
+                    if (cols > 0 && col >= cols) { // 4文字単位で改行するのなら while の外でもいいかも
+                        b64[b64offset++] = '\r';
+                        b64[b64offset++] = '\n';
+                        col = 0;
+                    }
+                } while (bit >= 6);
+            }
+            if (bit > 0) { // ビット残あり 4または 2ビット
+                b64[b64offset++] = type.encsrc[tmpData & 0x3f];
+                bit += (8 - 6);
+                if ( padding ) {
+                    do { // BASE64URLでは不要かもしれない
+                        // 2 -> 10 -> 4 ->
+                        b64[b64offset++] = '=';
+                        bit -= 6;
+                        if (bit < 0) {
+                            bit += 8;
+                        }
+                        /*
+                        col++;
+                        // ここにも改行処理は必要?
+
+                        if (col >= max) {
+                            b64[b64offset++] = '\r';
+                            b64[b64offset++] = '\n';
+                            col = 0;
+                        }
+                         */
+                    } while (bit > 0); // ビットあまりの場合なので比較はあとでいい
+                }
+            }
+            if (cols > 0 && col > 0) {
+                b64[b64offset++] = '\r';
+                b64[b64offset++] = '\n';
+            }
+
+            return b64;
+        }
+    
+        @Override
+        public int encodeToStream(byte[] data, OutputStream out, int offset, int length) throws IOException {
+            int tmpData = 0, bit = 0;
+            int col = 0;
+
+            int b64size = b64size(length);
+            int last = offset + length;
+            if (cols <= 0) {
+                int l2 = last - 2;
+                byte[] n = new byte[4];
+                while (offset < l2) {
+                    int tmp = (data[offset++] & 0xff) | ((data[offset++] & 0xff) << 8) | ((data[offset++] & 0xff) << 16);
+                    n[0] = type.bytesrc[tmp & 0x3f];
+                    n[1] = type.bytesrc[(tmp >>> 6) & 0x3f];
+                    n[2] = type.bytesrc[(tmp >>> 12) & 0x3f];
+                    n[3] = type.bytesrc[tmp >>> 18];
+                    out.write(n);
+                }
+            }
+
+            for (int idx = offset; idx < last; idx++) {
+                tmpData |= (data[idx] & 0xff) << bit;
+                bit += 8;
+                do {
+                    bit -= 6;
+                    out.write(type.bytesrc[tmpData & 0x3f]);
+                    col++;
+                    if (col >= cols && cols > 0) { // 4文字単位で改行するのなら while の外でもいいかも
+                        out.write(CRLF);
+                        col = 0;
+                    }
+                } while (bit >= 6);
+            }
+            if (bit > 0) { // ビット残あり 4または 2ビット
+                out.write(type.bytesrc[tmpData & 0x3f]);
+                bit += (8 - 6);
+                if ( padding ) {
+                    do {
+                        // 2 -> 10 -> 4 ->
+                        out.write('=');
+                        bit -= 6;
+                        if (bit < 0) {
+                            bit += 8;
+                        }
+                        /*
+                        col++;
+                        // ここにも改行処理は必要?
+
+                        if (col >= max) {
+                            b64[b64offset++] = '\r';
+                            b64[b64offset++] = '\n';
+                            col = 0;
+                        }
+                         */
+                    } while (bit > 0); // ビットあまりの場合なので比較はあとでいい
+                }
+            }
+            if (cols > 0 && col > 0) {
+                out.write(CRLF);
+            }
+
+            return b64size;
+        }
+
+        @Override
+        public byte[] decode(String data) {
+            PacketA pac = new PacketA();
+            byte[] tmp = new byte[3];
+            int ch;
+            int len = 0;
+            int tmpbits = 0;
+            int bit = 0;
+
+            // 余計な文字(改行、スペース等)を取り除く
+            // いまのところ不要
+            boolean skip;
+            // 抽出
+            int o = 0;
+            for (int i = 0; i < data.length(); i++, o++) {
+                ch = data.charAt(i);
+                skip = false;
+                if (ch < 128 && type.decsrc[ch] >= 0) {
+                    tmpbits |= type.decsrc[ch] << bit;
+                    bit += 6;
+                } else if (ch == '=') {
+                    len--; // 最後に捨てる文字数
+                    // 4文字そろってからデコード終了する
+                } else { // その他は無視する
+                    // 基本的にはここを通ることはない
+                    // 改行などは別にした方がいいかも
+                    //  System.err.println("BASE64 対象外文字混入 異常処理");
+                    o--;
+                    skip = true;
+                }
+                if (o % 4 == 3 && !skip) { // パディング込みで4文字必要
+                    tmp[0] = (byte) (tmpbits & 0xff);
+                    tmp[1] = (byte) ((tmpbits >> 8) & 0xff);
+                    tmp[2] = (byte) ((tmpbits >> 16) & 0xff);
+                    pac.write(tmp);
+                    len += 3;
+                    tmpbits = 0;
+                }
+            }
+            if ( !padding ) {
+                o  = o % 4; // 0123
+                if ( o >= 2 ) {
+                    tmp[0] = (byte) (tmpbits & 0xff);
+                    tmp[1] = (byte) ((tmpbits >> 8) & 0xff);
+                    pac.write(tmp);
+                    len += o-1;
+                }
+            }
+
+            tmp = new byte[len];
+            pac.read(tmp);
+            return tmp;
+        }
+
     }
 }
