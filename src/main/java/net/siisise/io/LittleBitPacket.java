@@ -361,11 +361,11 @@ public class LittleBitPacket extends BaseBitPac {
             int of = (int) (bitOffset / 8);
             int bit = (int) (bitOffset % 8);
 
-            if (bit > 0 && bitLength >= (8 - bit)) {
+            if (bit > 0 && (bit + bitLength) >= 8) {
                 int d = data[of] & 0xff;
                 writeBit(d >>> bit, 8 - bit);
                 of++;
-                bitLength -= bit;
+                bitLength -= 8 - bit;
                 bit = 0;
             }
 
