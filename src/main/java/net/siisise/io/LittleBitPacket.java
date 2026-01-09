@@ -362,25 +362,24 @@ public class LittleBitPacket extends BaseBitPac {
             int bit = (int) (bitOffset % 8);
 
             if (bit > 0 && (bit + bitLength) >= 8) {
-                int d = data[of] & 0xff;
-                writeBit(d >>> bit, 8 - bit);
+                int d = data[of];
+                int ln = 8 - bit;
+                writeBit(d >>> bit, ln);
                 of++;
-                bitLength -= 8 - bit;
+                bitLength -= ln;
                 bit = 0;
             }
 
-            while (bit + bitLength >= 32) {
-                writeBit(((data[of] & 0xff) | ((data[of + 1] & 0xff) << 8) | ((data[of + 2] & 0xff) << 16) | ((data[of + 3] & 0xff) << 24)) >>> bit, 32 - bit);
+            while (bitLength >= 32) {
+                writeBit(((data[of] & 0xff) | ((data[of + 1] & 0xff) << 8) | ((data[of + 2] & 0xff) << 16) | ((data[of + 3] & 0xff) << 24)) >>> bit, 32);
                 of += 4;
-                bitLength -= 32 - bit;
-                bit = 0;
+                bitLength -= 32;
             }
 
-            if (bit + bitLength >= 16) {
-                writeBit(((data[of] & 0xff) | ((data[of + 1] & 0xff) << 8)) >>> bit, 16 - bit);
+            if (bitLength >= 16) {
+                writeBit(((data[of] & 0xff) | ((data[of + 1] & 0xff) << 8)) >>> bit, 16);
                 of += 2;
-                bitLength -= 16 - bit;
-                bit = 0;
+                bitLength -= 16;
             }
 
             while (bit + bitLength >= 8) {

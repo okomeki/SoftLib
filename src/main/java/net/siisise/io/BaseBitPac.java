@@ -180,7 +180,7 @@ public abstract class BaseBitPac extends BasePacket implements BitPacket {
     }
 
     public boolean bitReadable(long length) {
-        return pac.readable((length + readPadding + writePadding) / 8);
+        return pac.readable((length + readPadding + writePadding + 7) / 8);
     }
 
     @Override
