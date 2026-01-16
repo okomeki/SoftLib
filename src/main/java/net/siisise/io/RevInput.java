@@ -52,11 +52,14 @@ public interface RevInput {
      */
     Packet backReadPacket(long length);
     /**
+     * backSkip
      * Input#skip(long) の逆
      * @param length 読みとばすサイズ skip size.
      * @return skip size;
      */
-    long back(long length);
+    default long back(long length) {
+        return backImpl(this, length);
+    }
 
     public static Packet splitImpl(RevInput in, long length) {
         Packet pac = new PacketA();

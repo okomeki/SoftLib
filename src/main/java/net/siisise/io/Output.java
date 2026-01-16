@@ -24,7 +24,9 @@ import net.siisise.block.ReadableBlock;
  */
 public interface Output {
 
-    OutputStream getOutputStream();
+    default OutputStream getOutputStream() {
+        return new FilterOutput(this);
+    }
 
     /**
      * 上限のない書き込み.
@@ -33,7 +35,9 @@ public interface Output {
      *
      * @param data データ
      */
-    void write(int data);
+    default void write(int data) {
+        write(new byte[] {(byte)data});
+    }
 
     /**
      * 上限のない書き込み.
@@ -42,7 +46,9 @@ public interface Output {
      *
      * @param data データ
      */
-    void write(byte[] data);
+    default void write(byte[] data) {
+        write(data, 0, data.length);
+    }
 
     /**
      * 上限のない書き込み.
@@ -62,7 +68,9 @@ public interface Output {
      *
      * @param data データ列
      */
-    void dwrite(byte[] data);
+    default void dwrite(byte[] data) {
+        write(data, 0, data.length);
+    }
 
     /**
      * 書き込み.中身の移動.
@@ -90,15 +98,23 @@ public interface Output {
      * @param data 1バイトデータ
      * @return これ
      */
-    Output put(byte data);
-
+    default Output put(byte data) {
+        return put(new byte[] {data});
+    }
+/*
+    default Output put(byte data) {
+        return put(new byte[] {data});
+    }
+*/
     /**
      * 上書き. 上限あり?
      *
      * @param data データ
      * @return これ
      */
-    Output put(byte[] data);
+    default Output put(byte[] data) {
+        return put(data, 0, data.length);
+    }
 
     /**
      * 上書き.
@@ -153,6 +169,9 @@ public interface Output {
         return length - x;
     }
 
+    /**
+     * OutputStream に変換.
+     */
     public static abstract class AbstractOutput extends OutputStream implements Output {
 
         @Override
@@ -173,7 +192,7 @@ public interface Output {
         @Override
         public void write(byte[] d, int offset, int length) {
             put(d, offset, length);
-        };
+        }
 
         @Override
         public void dwrite(byte[] d) {

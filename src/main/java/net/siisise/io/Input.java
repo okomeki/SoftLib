@@ -31,7 +31,9 @@ public interface Input {
      *
      * @return InputStream への変換
      */
-    InputStream getInputStream();
+    default InputStream getInputStream() {
+        return new FilterInput(this);
+    }
 
     /**
      * InputStreamとの違い
@@ -64,7 +66,9 @@ public interface Input {
      * @return 読めたサイズ
      * @see #read(byte[],int,int)
      */
-    int read(byte[] d);
+    default int read(byte[] d) {
+        return read(d, 0, d.length);
+    }
 
     /**
      * データ移動的なところ (Packet / Block 汎用)
@@ -87,7 +91,11 @@ public interface Input {
      * 1バイト読み.
      * @return 1バイトデータ
      */
-    byte get();
+    default byte get() {
+        byte[] b = new byte[1];
+        get(b, 0, 1);
+        return b[0];
+    }
 
     /**
      * 特定サイズ取得.
@@ -162,7 +170,9 @@ public interface Input {
      * @param length skipするサイズ
      * @return skipしたサイズ
      */
-    long skip(long length);
+    default long skip(long length) {
+        return skipImpl(this, length);
+    }
 
     /**
      * 読めるサイズ long版.
@@ -217,7 +227,7 @@ public interface Input {
     public static long skipImpl(Input in, long length) {
         long r = length;
         byte[] t = new byte[(int) Math.min(length, PacketA.MAXLENGTH)];
-        while (r > 0 && in.length() > 0) {
+        while (r > 0 && in.readable(1)) {
             int s = in.read(t, 0, (int) Math.min(r, t.length));
             if (s <= 0) {
                 break;
@@ -231,13 +241,6 @@ public interface Input {
      * Abstract的な
      */
     public abstract static class AbstractInput extends InputStream implements Input {
-
-        @Override
-        public byte get() {
-            byte[] b = new byte[1];
-            get(b, 0, 1);
-            return (byte) b[0];
-        }
 
         /**
          * 部分読み込み.

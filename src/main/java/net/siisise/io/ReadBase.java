@@ -36,13 +36,6 @@ public abstract class ReadBase implements Input, IndexInput, RevInput, ReadableB
     }
 
     @Override
-    public byte get() {
-        byte[] b = new byte[1];
-        get(b,0,1);
-        return b[0];
-    }
-
-    @Override
     public long get(byte[] b, int offset, int length) {
         if ( !Matics.sorted(0,offset,offset + length, b.length) ||  length() < length ) {
             throw new java.nio.BufferOverflowException();
@@ -66,11 +59,6 @@ public abstract class ReadBase implements Input, IndexInput, RevInput, ReadableB
     public int read() {
         byte[] d = new byte[1];
         return read(d,0,1) < 1 ? -1 : d[0] & 0xff;
-    }
-
-    @Override
-    public int read(byte[] d) {
-        return read(d, 0, d.length);
     }
 
     /**
@@ -103,21 +91,6 @@ public abstract class ReadBase implements Input, IndexInput, RevInput, ReadableB
         byte[] b = new byte[size()];
         read(b);
         return b;
-    }
-
-    @Override
-    public long skip(long length) {
-        return Input.skipImpl(this, length);
-    }
-
-    /**
-     * backSkip
-     * @param length 移動量
-     * @return 移動した量
-     */
-    @Override
-    public long back(long length) {
-        return RevInput.backImpl(this, length);
     }
 
     /**

@@ -47,13 +47,6 @@ public class StreamFrontPacket implements FrontPacket {
     }
 
     @Override
-    public byte get() {
-        byte[] d = new byte[1];
-        get(d, 0, 1);
-        return d[0];
-    }
-
-    @Override
     public long get(byte[] d, int offset, int length) {
         if (size() < length) {
             throw new java.nio.BufferOverflowException();
@@ -86,11 +79,6 @@ public class StreamFrontPacket implements FrontPacket {
                 in = null;
             }
             return v;
-        }
-
-        @Override
-        public int read(byte[] d) throws IOException {
-            return read(d, 0, d.length);
         }
 
         @Override
@@ -139,15 +127,6 @@ public class StreamFrontPacket implements FrontPacket {
         }
     }
 
-    /**
-     * @return
-     */
-    @Override
-    public InputStream getInputStream() {
-        return new FilterInput(this);
-//        return in;
-    }
-
     @Override
     public OutputStream getBackOutputStream() {
         return inpac.getBackOutputStream();
@@ -187,11 +166,6 @@ public class StreamFrontPacket implements FrontPacket {
             Logger.getLogger(StreamFrontPacket.class.getName()).log(Level.SEVERE, null, ex);
         }
         return 0;
-    }
-
-    @Override
-    public int read(byte[] data) {
-        return read(data, 0, data.length);
     }
 
     @Override

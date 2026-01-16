@@ -45,7 +45,7 @@ public class BASE64 implements TextEncode {
     public static enum Type {
         /** BASE64 用変換表 */
         BASE64,
-        /** crypt / password 用変換表 (予定) */
+        /** crypt / password 用変換表 */
         PASSWORD,
         /** URL用修正付きBASE64 */
         URL,
@@ -53,7 +53,7 @@ public class BASE64 implements TextEncode {
         HEX64,
         /** bcryptなど */
         BCRYPT;
-        
+
         final char[] encsrc = new char[64];
         final byte[] bytesrc = new byte[64];
         final int[] decsrc = new int[128];
@@ -64,14 +64,14 @@ public class BASE64 implements TextEncode {
 
     static {
         for (int i = 0; i <= 'z' - 'a'; i++) {
-            Type.BASE64.encsrc[i    ] = Type.URL.encsrc[i    ] = Type.PASSWORD.encsrc[i +12] = Type.BCRYPT.encsrc[i +  2] = Type.HEX64.encsrc[i + 36] = (char)('A' + i);
-            Type.BASE64.encsrc[i +26] = Type.URL.encsrc[i +26] = Type.PASSWORD.encsrc[i +38] = Type.BCRYPT.encsrc[i + 28] = Type.HEX64.encsrc[i + 10] = (char)('a' + i);
-            Type.BASE64.bytesrc[i   ] = Type.URL.bytesrc[i   ] = Type.PASSWORD.bytesrc[i+12] = Type.BCRYPT.bytesrc[i+  2] = Type.HEX64.bytesrc[i+ 36] = (byte)('A' + i);
-            Type.BASE64.bytesrc[i+26] = Type.URL.bytesrc[i+26] = Type.PASSWORD.bytesrc[i+38] = Type.BCRYPT.bytesrc[i+ 28] = Type.HEX64.bytesrc[i+ 10] = (byte)('a' + i);
+            Type.BASE64.encsrc[i    ] = Type.URL.encsrc[i    ] = Type.PASSWORD.encsrc[i +12] = Type.BCRYPT.encsrc[i + 2] = Type.HEX64.encsrc[i + 36] = (char) ('A' + i);
+            Type.BASE64.encsrc[i +26] = Type.URL.encsrc[i +26] = Type.PASSWORD.encsrc[i +38] = Type.BCRYPT.encsrc[i + 28] = Type.HEX64.encsrc[i + 10] = (char) ('a' + i);
+            Type.BASE64.bytesrc[i   ] = Type.URL.bytesrc[i   ] = Type.PASSWORD.bytesrc[i+12] = Type.BCRYPT.bytesrc[i+ 2] = Type.HEX64.bytesrc[i+ 36] = (byte) ('A' + i);
+            Type.BASE64.bytesrc[i+26] = Type.URL.bytesrc[i+26] = Type.PASSWORD.bytesrc[i+38] = Type.BCRYPT.bytesrc[i+ 28] = Type.HEX64.bytesrc[i+ 10] = (byte) ('a' + i);
         }
         for (int i = 0; i < 10; i++) {
-            Type.BASE64.encsrc[i + 52] = Type.URL.encsrc[i + 52] = Type.PASSWORD.encsrc[i + 2] = Type.BCRYPT.encsrc[i + 54] = Type.HEX64.encsrc[i]  = (char)('0' + i);
-            Type.BASE64.bytesrc[i+ 52] = Type.URL.bytesrc[i+ 52] = Type.PASSWORD.bytesrc[i+ 2] = Type.BCRYPT.bytesrc[i+ 54] = Type.HEX64.bytesrc[i] = (byte)('0' + i);
+            Type.BASE64.encsrc[i + 52] = Type.URL.encsrc[i + 52] = Type.PASSWORD.encsrc[i + 2] = Type.BCRYPT.encsrc[i + 54] = Type.HEX64.encsrc[i] = (char) ('0' + i);
+            Type.BASE64.bytesrc[i+ 52] = Type.URL.bytesrc[i+ 52] = Type.PASSWORD.bytesrc[i + 2] = Type.BCRYPT.bytesrc[i + 54] = Type.HEX64.bytesrc[i] = (byte) ('0' + i);
         }
         Type.BASE64.encsrc[62] = '+';
         Type.BASE64.encsrc[63] = '/';
@@ -123,6 +123,7 @@ public class BASE64 implements TextEncode {
 
     /**
      * 改行位置指定ありBASE64処理装置コンストラクタ。
+     *
      * @param size 出力時の1行のサイズ 0は改行なし
      */
     public BASE64(int size) {
@@ -131,15 +132,16 @@ public class BASE64 implements TextEncode {
 
     /**
      * 符号の種類と改行幅の指定できるBASE64処理装置コンストラクタ。
+     *
      * @param type 符号の種類 BASE64かPASSWORDかURL
      * @param size 出力時の1行のサイズ 0は改行なし
      */
     public BASE64(Type type, int size) {
         this(type, type == Type.BASE64 || type == Type.PASSWORD, size);
     }
-    
+
     /**
-     * 
+     *
      * @param type BASE64,PASSWORD,URLなど指定可能
      * @param padding パディングをつけるか?
      * @param size 出力時の1行のサイズ 0は改行なし
@@ -151,7 +153,7 @@ public class BASE64 implements TextEncode {
     }
 
     static BASE64 selectType(Type t) {
-        return new BASE64(t,0);
+        return new BASE64(t, 0);
     }
 
     /**
@@ -178,7 +180,7 @@ public class BASE64 implements TextEncode {
     public void setPadding(boolean pad) {
         padding = pad;
     }
-    
+
     /**
      * 改行字数の指定。
      * 4の倍数以外でも動作するが推奨はしない
@@ -274,7 +276,7 @@ public class BASE64 implements TextEncode {
         if (bit > 0) { // ビット残あり 4または 2ビット
             b64[b64offset++] = type.encsrc[(tmpData << (6 - bit)) & 0x3f];
             bit += (8 - 6);
-            if ( padding ) {
+            if (padding) {
                 do { // BASE64URLでは不要かもしれない
                     // 2 -> 10 -> 4 ->
                     b64[b64offset++] = '=';
@@ -326,7 +328,7 @@ public class BASE64 implements TextEncode {
         }
         return out.toByteArray();
     }
-    
+
     /**
      * バイト列のBASE64符号化時のサイズを計算するだけ。
      * @param length 変換元バイト列の長さ
@@ -337,7 +339,7 @@ public class BASE64 implements TextEncode {
         if (cols > 0) {
             b64size += (b64size + cols - 1) / cols * 2; // 字数は4の倍数のみ想定
         }
-        if ( !padding && length %3 > 0 ) { // パディングなし
+        if (!padding && length % 3 > 0) { // パディングなし
             b64size += length % 3 - 3;
         }
         return b64size;
@@ -391,7 +393,7 @@ public class BASE64 implements TextEncode {
         if (bit > 0) { // ビット残あり 4または 2ビット
             out.write(type.bytesrc[(tmpData << (6 - bit)) & 0x3f]);
             bit += (8 - 6);
-            if ( padding ) {
+            if (padding) {
                 do {
                     // 2 -> 10 -> 4 ->
                     out.write('=');
@@ -428,50 +430,51 @@ public class BASE64 implements TextEncode {
      * @return
      */
     public static byte[] decodeBase(String data) {
-        BASE64 b = new BASE64(Type.BASE64,0);
+        BASE64 b = new BASE64(Type.BASE64, 0);
         return b.decode(data);
     }
 
     /**
      * URLエンコードのBASE64デコード
+     *
      * @param data URL符号化データ
      * @return 復元済みデータ
      */
     public static byte[] decodeURL(String data) {
-        BASE64 b = new BASE64(Type.URL,0);
+        BASE64 b = new BASE64(Type.URL, 0);
         return b.decode(data);
     }
 
     /**
      * パスワードエンコードのデコード
-     * 
+     *
      * @param data PASSWORD符号化データ
      * @return 復元済みデータ
      */
     public static byte[] decodePass(String data) {
-        BASE64 b = new BASE64(Type.PASSWORD,0);
+        BASE64 b = new BASE64(Type.PASSWORD, 0);
         return b.decode(data);
     }
 
     /**
      * BCryptパスワードエンコードのデコード
-     * 
+     *
      * @param data MCF符号化データ
      * @return 復元済みデータ
      */
     public static byte[] decodeBcrypt(String data) {
-        BASE64 b = new BASE64(Type.BCRYPT,0);
+        BASE64 b = new BASE64(Type.BCRYPT, 0);
         return b.decode(data);
     }
 
     /**
      * 独自HEX64エンコードのデコード
-     * 
+     *
      * @param data HEX64符号化データ
      * @return 復元済みデータ
      */
     public static byte[] decodeHex64(String data) {
-        BASE64 b = new BASE64(Type.HEX64,0);
+        BASE64 b = new BASE64(Type.HEX64, 0);
         return b.decode(data);
     }
 
@@ -523,17 +526,17 @@ public class BASE64 implements TextEncode {
                 tmpbits = 0;
             }
         }
-        if ( !padding ) {
-            o  = o % 4; // 0123
-            if ( o >= 2 ) {
-                tmpbits <<= 6*(4-o);
+        if (!padding) {
+            o = o % 4; // 0123
+            if (o >= 2) {
+                tmpbits <<= 6 * (4 - o);
                 tmp[0] = (byte) ((tmpbits >> 16) & 0xff);
                 tmp[1] = (byte) ((tmpbits >> 8) & 0xff);
                 pac.write(tmp);
-                len += o-1;
+                len += o - 1;
             }
         }
-        
+
         tmp = new byte[len];
         pac.read(tmp);
         return tmp;
@@ -543,15 +546,16 @@ public class BASE64 implements TextEncode {
      * SHA-crypt 用変則型.
      */
     public static class LE extends BASE64 {
-        
+
         public LE(int size) {
             super(Type.PASSWORD, false, size);
         }
 
         /**
          * padding は未定.
+         *
          * @param type
-         * @param size 
+         * @param size
          */
         public LE(Type type, int size) {
             super(type, false, size);
@@ -603,7 +607,7 @@ public class BASE64 implements TextEncode {
             if (bit > 0) { // ビット残あり 4または 2ビット
                 b64[b64offset++] = type.encsrc[tmpData & 0x3f];
                 bit += (8 - 6);
-                if ( padding ) {
+                if (padding) {
                     do { // BASE64URLでは不要かもしれない
                         // 2 -> 10 -> 4 ->
                         b64[b64offset++] = '=';
@@ -631,7 +635,7 @@ public class BASE64 implements TextEncode {
 
             return b64;
         }
-    
+
         @Override
         public int encodeToStream(byte[] data, OutputStream out, int offset, int length) throws IOException {
             int tmpData = 0, bit = 0;
@@ -668,7 +672,7 @@ public class BASE64 implements TextEncode {
             if (bit > 0) { // ビット残あり 4または 2ビット
                 out.write(type.bytesrc[tmpData & 0x3f]);
                 bit += (8 - 6);
-                if ( padding ) {
+                if (padding) {
                     do {
                         // 2 -> 10 -> 4 ->
                         out.write('=');
@@ -735,13 +739,13 @@ public class BASE64 implements TextEncode {
                     tmpbits = 0;
                 }
             }
-            if ( !padding ) {
-                o  = o % 4; // 0123
-                if ( o >= 2 ) {
+            if (!padding) {
+                o = o % 4; // 0123
+                if (o >= 2) {
                     tmp[0] = (byte) (tmpbits & 0xff);
                     tmp[1] = (byte) ((tmpbits >> 8) & 0xff);
                     pac.write(tmp);
-                    len += o-1;
+                    len += o - 1;
                 }
             }
 

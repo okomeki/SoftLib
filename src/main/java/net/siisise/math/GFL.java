@@ -35,7 +35,6 @@ public class GFL {
     long mask;
     final long[] p;
     final long[] rp;
-    BigInteger n;
 
     // 片側
 //    private final long[][] shL;
@@ -74,7 +73,7 @@ public class GFL {
         int bb = 0;
         if (rs[0] == 0) { // b[0] == 1
             rs = Arrays.copyOfRange(rs, 1, rs.length);
-            b = Arrays.copyOfRange(b, 1, b.length);
+            //b = Arrays.copyOfRange(b, 1, b.length);
             preBit = 63;
             rs[0] |= 0x8000000000000000l;
             rp = rs;

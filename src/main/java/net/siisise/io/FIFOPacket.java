@@ -74,18 +74,6 @@ public class FIFOPacket implements Input, Output {
     }
 
     @Override
-    public int read(byte[] d) {
-        return read(d, 0, d.length);
-    }
-
-    @Override
-    public byte get() {
-        byte[] b = new byte[1];
-        get(b, 0, 1);
-        return b[0];
-    }
-
-    @Override
     public long get(byte[] b, int offset, int length) {
         if (!Matics.sorted(0, offset, offset + length, b.length) || length() < length) {
             throw new java.nio.BufferOverflowException();

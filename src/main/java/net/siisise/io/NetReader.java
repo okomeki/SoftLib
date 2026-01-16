@@ -34,6 +34,7 @@ public class NetReader extends FilterReader {
 
     /**
      * Readerつなぎ.
+     *
      * @param r 読み出し元
      */
     public NetReader(Reader r) {
@@ -48,7 +49,7 @@ public class NetReader extends FilterReader {
      */
     public String readLine() throws IOException {
         byte[] data = readByteLine();
-        if ( data == null ) return null;
+        if (data == null) return null;
         String string = new String(data, "iso-10646-ucs-2");
         if (string.indexOf('\r') >= 0 || string.indexOf('\n') >= 0) {
             // 偽UTF-8とかで改行コードが漏れた
@@ -59,28 +60,30 @@ public class NetReader extends FilterReader {
 
     public byte[] readByteLine() throws IOException {
         PacketA pac2 = new PacketA();
-        Writer opw = new OutputStreamWriter(pac2.getOutputStream(),"iso-10646-ucs-2"); // ucs-2かutf-16?
+        Writer opw = new OutputStreamWriter(pac2.getOutputStream(), "iso-10646-ucs-2"); // ucs-2かutf-16?
         int ch;
         ch = super.read();
-        if ( ch == -1) return null;
+        if (ch == -1) return null;
         do {
-            if (ch == CR) { // 改行なのでLFがあろうがなかろうが
+            switch (ch) {
+                case CR: // 改行なのでLFがあろうがなかろうが
                     lastCR = true;
-                break;
-            } else if (ch == LF) {
-                if (!lastCR) { // LF単体
                     break;
-                } else { // CRLFセット  前がCRなら改行済なので何もしない
+                case LF:
+                    if (lastCR) { // LF単体
+                        break;
+                    } else { // CRLFセット  前がCRなら改行済なので何もしない
                         lastCR = false;
                     }
-            } else {
+                    break;
+                default:
                     lastCR = false;
                     //pac2.write(ch);
                     opw.write(ch);
                     opw.flush();
             }
             ch = super.read();
-        } while ( ch != -1 );
+        } while (ch != -1);
         byte[] a = new byte[(int) pac2.length()];
         pac2.read(a);
         return a;

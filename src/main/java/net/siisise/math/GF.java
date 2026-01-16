@@ -6,6 +6,7 @@ import net.siisise.lang.Bin;
 
 /**
  * ガロア体のなにか.
+ * the Finite Field.
  * 8bit用とbyte列,long列用
  */
 public class GF {
