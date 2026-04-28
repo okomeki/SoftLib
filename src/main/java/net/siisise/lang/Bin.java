@@ -69,6 +69,17 @@ public class Bin {
         }
         return new java.lang.String(txt);
     }
+    
+    public static java.lang.String toBin(byte[] src) {
+        char[] txt = new char[src.length * 8];
+        for (int i = 0; i < src.length; i++) {
+            int d = (char) (src[i] & 0xff);
+            for ( int j = 7; j >= 0; j--) {
+                txt[i * 8 + 7 - j] = (((d >> j) & 1) != 0) ? '1' : '0';
+            }
+        }
+        return new java.lang.String(txt);
+    }
 
     /**
      * 16進数をバイト列に変換する。

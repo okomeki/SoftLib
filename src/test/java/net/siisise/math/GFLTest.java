@@ -38,10 +38,12 @@ public class GFLTest {
         System.out.println("gfl.x");
         long[] s = {0xe568f68194cf76d6l,0x174d4cc04310a854l};
         
-        GFL instance = new GFL(GFL.GF128);
+        GFL gf = new GFL(GFL.GF128);
         long[] expResult = {0xcad1ed03299eedacl, 0x2e9a99808621502fl};
-        long[] result = instance.x(s);
+        long[] result = gf.x(s);
         assertArrayEquals(expResult, result);
+        long[] rev = gf.r(result);
+        assertArrayEquals(s, rev);
     }
 
     /**
@@ -52,9 +54,9 @@ public class GFLTest {
     public void testR() {
         System.out.println("gfl.r");
         long[] s = {0xcad1ed03299eedacl, 0x2e9a99808621502fl};
-        GFL instance = new GFL(GFL.GF128);
+        GFL gf = new GFL(GFL.GF128);
         long[] expResult = {0xe568f68194cf76d6l,0x174d4cc04310a854l};
-        long[] result = instance.r(s);
+        long[] result = gf.r(s);
         assertArrayEquals(expResult, result);
     }
 
@@ -94,9 +96,9 @@ public class GFLTest {
     public void testLfsrLeft() {
         System.out.println("lfsrLeft");
         long[] s = null;
-        GFL instance = null;
+        GFL gf = null;
         long[] expResult = null;
-        long[] result = instance.lfsrLeft(s);
+        long[] result = gf.lfsrLeft(s);
         assertArrayEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
@@ -111,9 +113,9 @@ public class GFLTest {
     public void testLfsrRight() {
         System.out.println("lfsrRight");
         long[] s = null;
-        GFL instance = null;
+        GFL gf = null;
         long[] expResult = null;
-        long[] result = instance.lfsrRight(s);
+        long[] result = gf.lfsrRight(s);
         assertArrayEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
@@ -123,22 +125,23 @@ public class GFLTest {
     @Test
     public void testGF() {
         System.out.println("GFFFF");
-        byte[] a = Bin.toByteArray("0388dace60b6a392f328c2b971b2fe78");
-        byte[] b = Bin.toByteArray("66E94BD4EF8A2C3B884CFA59CA342B2E");
-        byte[] ex = Bin.toByteArray("519FA38AC731568E9C1EB21731167F1C");
+        byte[] a   = Bin.toByteArray("0388dace60b6a392f328c2b971b2fe78");
+        byte[] b   = Bin.toByteArray("66E94BD4EF8A2C3B884CFA59CA342B2E");
+        byte[] ex  = Bin.toByteArray("519FA38AC731568E9C1EB21731167F1C");
         byte[] ONE = Bin.toByteArray("00000000000000000000000000000001");
         GFL gf = new GFL(GFL.GF128);
         long[] la = Bin.btol(a);
+        long[] lb = Bin.btol(b);
         long[] LONG_ONE = Bin.btol(ONE);
-        long[] c = gf.mul(la, Bin.btol(b));
+        long[] c = gf.mul(la, lb);
         byte[] d = gf.mul(a, b);
         long[] ia = gf.inv(la);
-        System.out.println(" a      " + Bin.toUpperHex(a));
-        System.out.println(" a x b  " + Bin.toUpperHex(Bin.ltob(c)));
-        System.out.println(" a x bl " + Bin.toUpperHex(d));
-        System.out.println(" a inv  " + Bin.toUpperHex(Bin.ltob(ia)));
-        System.out.println(" a mul  " + Bin.toUpperHex(Bin.ltob( gf.mul(la, ia))));
-        assertArrayEquals(Bin.btol(ex),c);
+        System.out.println(" a      " + Bin.toBin(a));
+        System.out.println(" a x b  " + Bin.toBin(Bin.ltob(c)));
+        System.out.println(" a x bl " + Bin.toBin(d));
+        System.out.println(" a inv  " + Bin.toBin(Bin.ltob(ia)));
+        System.out.println(" a mul  " + Bin.toBin(Bin.ltob( gf.mul(la, ia))));
+        assertArrayEquals(Bin.btol(ex),c, "a x b = c");
         assertArrayEquals(ex,d);
         assertArrayEquals(LONG_ONE,gf.mul(la, ia));
         

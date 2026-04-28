@@ -33,53 +33,54 @@ public class GFL {
 
     final int preBit;
     long mask;
+    /**
+     * 2倍時の反転.
+     */
     final long[] p;
+    /**
+     * 半減時の反転.
+     */
     final long[] rp;
-
     // 片側
 //    private final long[][] shL;
-    private long flg;
-    private int findex;
 
     //
     long[] a;
 
     /**
-     * 固定サイズ.
-     *
-     * @param rb p
+     * 
+     * @param p 標数
      */
-    public GFL(long rb) {
-        this(new long[]{1, 0, rb});
-    }
-
     public GFL(BigInteger p) {
         this(p.toByteArray());
     }
 
-    public GFL(byte[] bp) {
-        this(toLong(bp));
+    public GFL(byte[] p) {
+        this(toLong(p));
     }
 
-    public GFL(long[] b) {
+    /**
+     * 標数 p の有限体.
+     * @param p 標数
+     */
+    public GFL(long[] p) {
         // 列詰め
-        for (int i = 0; i < b.length; i++) {
-            if (b[i] != 0) {
-                b = Arrays.copyOfRange(b, i, b.length);
+        for (int i = 0; i < p.length; i++) {
+            if (p[i] != 0) {
+                p = Arrays.copyOfRange(p, i, p.length);
                 break;
             }
         }
-        long[] rs = Bin.shr(b);
-        int bb = 0;
-        if (rs[0] == 0) { // b[0] == 1
-            rs = Arrays.copyOfRange(rs, 1, rs.length);
-            //b = Arrays.copyOfRange(b, 1, b.length);
+        long[] rs = Bin.shr(p);
+        if (rs[0] == 0) { // p[0] == 1
+            this.p = Arrays.copyOfRange(p, 1, p.length);
+            rp = Arrays.copyOfRange(rs, 1, rs.length);
             preBit = 63;
-            rs[0] |= 0x8000000000000000l;
-            rp = rs;
+//            rp[0] |= 0x8000000000000000l;
         } else {
+            int bb = 0;
             long f = 0x4000000000000000l;
-            long t = b[0];
+            long t = p[0];
             for (int i = 1; i < 64; i++) {
                 if ((t & f) != 0) {
                     bb = i;
@@ -88,9 +89,9 @@ public class GFL {
                 f >>>= 1;
             }
             preBit = (62 - bb) & 63;
+            this.p = p;
             rp = rs;
         }
-        p = b;
         mask = 1l << preBit;
     }
 
@@ -100,9 +101,9 @@ public class GFL {
     }
 
     /**
-     *
-     * @param b
-     * @return
+     * 型変換.
+     * @param b バイト数値
+     * @return long数値
      */
     public static long[] toLong(byte[] b) {
         long[] l = new long[(b.length + 7) / 8];
@@ -162,7 +163,7 @@ public class GFL {
     public long[] r(long[] s) {
         long[] v = Bin.shr(s); // constRbの1bit が消えるのでrorで付ける
         if ((s[s.length - 1] & 1) != 0) {
-            v = Bin.xor(v, rp);
+            Bin.xorl(v, rp);
         }
         return v;
     }
