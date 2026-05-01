@@ -15,8 +15,10 @@
  */
 package net.siisise.lang;
 
-import net.siisise.io.Packet;
-import net.siisise.io.PacketA;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
 import net.siisise.math.Matics;
 
 /**
@@ -43,30 +45,27 @@ public class Punycode {
         if ( cp.length() >= 64 ) {
             throw new IllegalStateException();
         }
-        int[] cpch = cp.codePoints().toArray();
+        List<Integer> cpch = cp.codePoints().boxed().collect(Collectors.toList());
         
-        Packet st = new PacketA();
+        Deque<Integer> st = new LinkedList<>();
         
         // 分離とソート unicodeの大きい方から code と位置に変換
         do {
             int index = -1;
             int co = 0; // (n, i)
-            for (int i = cpch.length - 1; i >= 0; i--) {
-                if ( cpch[i] > co ) {
+            for (int i = cpch.size() - 1; i >= 0; i--) {
+                if ( cpch.get(i) > co ) {
                     index = i;
-                    co = cpch[i];
+                    co = cpch.get(i);
                 }
             }
             if ( co < 128 ) {
                 break;
             }
-            co = co * cpch.length + index;
-            st.backWrite(Bin.toByte(co));
+            co = co * cpch.size() + index;
+            st.addFirst(co);
             
-            int[] tmpch = new int[cpch.length - 1];
-            System.arraycopy(cpch, 0, tmpch, 0, index);
-            System.arraycopy(cpch, index+1, tmpch, index, tmpch.length - index);
-            cpch = tmpch;
+            cpch.remove(index);
         } while ( true );
         // 残ったのがASCII
         StringBuilder sb = new StringBuilder();
@@ -78,7 +77,7 @@ public class Punycode {
             // xn-- を付ける場合 ASCII + 国際化両方あり
             sb.append(DELIMIT);
         }
-        if (st.size() == 0) { // 国際化なし ASCIIのみ
+        if (st.isEmpty()) { // 国際化なし ASCIIのみ
             return sb.toString();
         }
 
@@ -86,15 +85,13 @@ public class Punycode {
         int n = INITIAL_N;
         int bias = INITIAL_BIAS;
         
-        byte[] dc = new byte[4];
-        int tn = cpch.length;
+        int tn = cpch.size();
         int c = n * tn - 1;
         tn++;
         int d = DAMP;
-        while (st.length() > 0) {
+        while (!st.isEmpty()) {
             int cbase = c + n + 1;
-            st.read(dc);
-            c = Bin.btoi(dc)[0];
+            c = st.removeFirst();
             n = c / tn;
             int delta = c - cbase;
             sb.append(toCh(delta, bias)); // delta からコード
