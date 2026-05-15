@@ -124,7 +124,10 @@ public interface Output {
      * @param length サイズ
      * @return これ
      */
-    Output put(byte[] data, int offset, int length);
+    default Output put(byte[] data, int offset, int length) {
+        write(data, offset, length);
+        return this;
+    }
 
     /**
      * データを小分けにしながら移動。

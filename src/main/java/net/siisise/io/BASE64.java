@@ -17,6 +17,8 @@ package net.siisise.io;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import net.siisise.block.ByteBlock;
+import net.siisise.block.EditBlock;
 
 /**
  * BASE64エンコーダ/デコーダ。
@@ -316,17 +318,17 @@ public class BASE64 implements TextEncode {
      * @return
      */
     public byte[] encodeToByte(byte[] data, int offset, int length) {
-        ArrayOutputStream out;
 
         int b64size = b64size(length);
-        out = new ArrayOutputStream(b64size);
+        byte[] buff = new byte[b64size];
+        ByteBlock out = new ByteBlock(buff);
 
         try {
-            encodeToStream(data, out, offset, length);
+            encodeToStream(data, out.getOutputStream(), offset, length);
         } catch (IOException ex) {
             // ないかも
         }
-        return out.toByteArray();
+        return buff;
     }
 
     /**

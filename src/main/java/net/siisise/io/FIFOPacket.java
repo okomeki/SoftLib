@@ -145,16 +145,6 @@ public class FIFOPacket implements Input, Output {
     }
 
     @Override
-    public void write(int data) {
-        write(new byte[]{(byte) data});
-    }
-
-    @Override
-    public void write(byte[] data) {
-        write(data, 0, data.length);
-    }
-
-    @Override
     public void write(byte[] data, int offset, int length) {
         Chain n = new Chain();
         in.data = new byte[Math.min(length, data.length - offset)];
@@ -199,21 +189,4 @@ public class FIFOPacket implements Input, Output {
         }
         return len;
     }
-
-    @Override
-    public Output put(byte data) {
-        return put(new byte[]{data});
-    }
-
-    @Override
-    public Output put(byte[] data) {
-        return put(data, 0, data.length);
-    }
-
-    @Override
-    public Output put(byte[] data, int offset, int length) {
-        write(data, offset, length);
-        return this;
-    }
-
 }
