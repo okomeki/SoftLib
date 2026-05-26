@@ -26,7 +26,7 @@ public class ProfSpool {
      * 設定ファイル的なものがあればFileを取得する.
      * @param folderName
      * @param fileName
-     * @return 
+     * @return 対象ファイル
      * @throws java.io.FileNotFoundException ファイルがない
      */
     public static File load(String folderName, String fileName) throws FileNotFoundException {
@@ -37,7 +37,7 @@ public class ProfSpool {
         }
         throw new java.io.FileNotFoundException();
     }
-    
+
     public static File save(String folderName, String fileName) throws IOException {
         File path = path(folderName);
         if (!path.exists()) {
@@ -50,7 +50,7 @@ public class ProfSpool {
         }
         return new File(path, fileName);
     }
-    
+
     public static void save(String folderName, String fileName, byte[] data) throws IOException {
         File tgFile = save(folderName, fileName);
         File newFile = save(folderName, fileName + ".new");
@@ -74,5 +74,5 @@ public class ProfSpool {
             }
         }
     }
-    
+
 }

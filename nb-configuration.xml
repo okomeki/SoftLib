@@ -15,5 +15,7 @@ Any value defined here will override the pom.xml file value but is only applicab
 -->
         <netbeans.hint.jdkPlatform>JDK_11</netbeans.hint.jdkPlatform>
         <netbeans.hint.license>apache20</netbeans.hint.license>
+        <org-netbeans-modules-javascript2-requirejs.enabled>true</org-netbeans-modules-javascript2-requirejs.enabled>
+        <org-netbeans-modules-javascript2-editor.jsversion>ECMA5</org-netbeans-modules-javascript2-editor.jsversion>
     </properties>
 </project-shared-configuration>
